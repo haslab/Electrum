@@ -94,7 +94,10 @@ public final class ExprTemp extends Expr {
    public enum Op {
       /** always formula       		*/  ALWAYS("always"),
       /** next formula      		*/  AFTER("after"),
-      /** eventually formula       	*/  EVENTUALLY("eventually");
+      /** eventually formula       	*/  EVENTUALLY("eventually"),
+      /** historically formula      */  HISTORICALLY("historically"),
+      /** previous formula      	*/  PREVIOUS("previous"),
+      /** once formula       		*/  ONCE("once");
 
       /** The constructor. */
       private Op(String label) { this.label = label; }

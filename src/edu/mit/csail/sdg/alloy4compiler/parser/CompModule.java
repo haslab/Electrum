@@ -719,14 +719,13 @@ public final class CompModule extends Browsable implements Module {
 	}
 
 	/** Return the list containing UNIV, SIGINT, SEQIDX, STRING, NONE, and all sigs defined in this module or a reachable submodule. */
-	// pt.uminho.haslab: extended with time sig
 	public ConstList<Sig> getAllReachableSigs() {
 		TempList<Sig> x = new TempList<Sig>();
 		x.add(UNIV);
 		x.add(SIGINT);
 		x.add(SEQIDX);
 		x.add(STRING);
-		x.add(TIME); // pt.uminho.haslab: time sig
+//		x.add(TIME); // pt.uminho.haslab: time scope currently managed in the options
 		x.add(NONE);
 		for(CompModule m:getAllReachableModules()) x.addAll(m.sigs.values());
 		return x.makeConst();
@@ -769,7 +768,6 @@ public final class CompModule extends Browsable implements Module {
 	}
 
 	/** Lookup a Sig from the current module (and it will also search this.params) */
-	// pt.uminho.haslab: extended with time sig
 	private Sig getRawSIG (Pos pos, String name) throws Err {
 		List<Object> s;
 		Sig s2=null;
@@ -781,7 +779,7 @@ public final class CompModule extends Browsable implements Module {
 		if (name.equals("Int"))        return SIGINT;
 		if (name.equals("seq/Int"))    return SEQIDX;
 		if (name.equals("String"))     return STRING;
-		if (name.equals("Time"))       return TIME; // pt.uminho.haslab: time sig
+//		if (name.equals("Time"))       return TIME; // pt.uminho.haslab: time scope currently managed in the options
 		if (name.equals("none"))       return NONE;
 		if (name.indexOf('/')<0) {
 			s=getRawNQS(this, 1, name);
@@ -1276,7 +1274,7 @@ public final class CompModule extends Browsable implements Module {
 	//============================================================================================================================//
 
 	/** Add a COMMAND declaration. */
-	// pt.uminho.haslab: extended time scopes
+	// pt.uminho.haslab: extended time scopes, deprecated, currently managed in the options
 	void addCommand(boolean followUp, Pos p, String n, boolean c, int o, int b, int seq, int t, boolean et, int exp, List<CommandScope> s, ExprVar label) throws Err { 
 		if (followUp && !Version.experimental) throw new ErrorSyntax(p, "Syntax error encountering => symbol.");
 		if (label!=null) p=Pos.UNKNOWN.merge(p).merge(label.pos);
@@ -1290,7 +1288,7 @@ public final class CompModule extends Browsable implements Module {
 	}
 
 	/** Add a COMMAND declaration. */
-	// pt.uminho.haslab: extended time scopes
+	// pt.uminho.haslab: extended time scopes, deprecated, currently managed in the options
 	void addCommand(boolean followUp, Pos p, Expr e, boolean c, int o, int b, int seq, int t, boolean et, int exp, List<CommandScope> s, ExprVar label) throws Err {
 		if (followUp && !Version.experimental) throw new ErrorSyntax(p, "Syntax error encountering => symbol.");
 		if (label!=null) p=Pos.UNKNOWN.merge(p).merge(label.pos);
@@ -1468,7 +1466,6 @@ public final class CompModule extends Browsable implements Module {
 	//============================================================================================================================//
 
 	/** This method resolves the entire world; NOTE: if it throws an exception, it may leave the world in an inconsistent state! */
-	// pt.uminho.haslab: extended time sig
 	static CompModule resolveAll(final A4Reporter rep, final CompModule root) throws Err {
 		final List<ErrorWarning> warns = new ArrayList<ErrorWarning>();
 		for(CompModule m: root.getAllReachableModules()) root.allModules.add(m);
@@ -1478,7 +1475,7 @@ public final class CompModule extends Browsable implements Module {
 		// Resolves SigAST -> Sig, and topologically sort the sigs into the "sorted" array
 		root.new2old.put(UNIV,UNIV);
 		root.new2old.put(SIGINT,SIGINT);
-		root.new2old.put(TIME,TIME); // pt.uminho.haslab: time sig
+//		root.new2old.put(TIME,TIME); // pt.uminho.haslab: time scopes currently managed in the options
 		root.new2old.put(SEQIDX,SEQIDX);
 		root.new2old.put(STRING,STRING);
 		root.new2old.put(NONE,NONE);
@@ -1520,7 +1517,6 @@ public final class CompModule extends Browsable implements Module {
 	}
 
 	/** Resolve the name based on the current context and this module. */
-	// pt.uminho.haslab: extended with time ops
 	private Expr populate(TempList<Expr> ch, TempList<String> re, Decl rootfield, Sig rootsig, boolean rootfunparam, Func rootfunbody, Pos pos, String fullname, Expr THIS) {
 		// Return object can be Func(with > 0 arguments) or Expr
 		final String name = (fullname.charAt(0)=='@') ? fullname.substring(1) : fullname;
@@ -1530,11 +1526,7 @@ public final class CompModule extends Browsable implements Module {
 		if (name.equals("Int"))        return ExprUnary.Op.NOOP.make(pos, SIGINT);
 		if (name.equals("seq/Int"))    return ExprUnary.Op.NOOP.make(pos, SEQIDX);
 		if (name.equals("String"))     return ExprUnary.Op.NOOP.make(pos, STRING);
-		if (name.equals("Time"))       return ExprUnary.Op.NOOP.make(pos, TIME); // pt.uminho.haslab: time sig
-		if (name.equals("time_end"))   return ExprConstant.Op.END.make(pos,0); // pt.uminho.haslab: time ops
-		if (name.equals("time_init"))  return ExprConstant.Op.INIT.make(pos,0); // pt.uminho.haslab: time ops
-		if (name.equals("time_loop"))  return ExprConstant.Op.LOOP.make(pos, 0); // pt.uminho.haslab: time ops
-		if (name.equals("time_next"))  return ExprConstant.Op.NEXTTIME.make(pos,0); // pt.uminho.haslab: time ops
+//		if (name.equals("Time"))       return ExprUnary.Op.NOOP.make(pos, TIME); // pt.uminho.haslab: time scope currently managed in the options
 		if (name.equals("none"))       return ExprUnary.Op.NOOP.make(pos, NONE);
 		if (name.equals("iden"))       return ExprConstant.Op.IDEN.make(pos, 0);
 		if (name.equals("sig$") || name.equals("field$")) if (world!=null) {

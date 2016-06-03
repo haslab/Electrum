@@ -134,10 +134,6 @@ parser code {:
     ch.put(CompSym.INTMIN, "fun");
     ch.put(CompSym.INTMAX, "fun");
     ch.put(CompSym.INTNEXT, "fun");
-    ch.put(CompSym.TIMENEXT, "fun"); // pt.uminho.haslab: time tokens
-    ch.put(CompSym.TIMEEND, "fun"); // pt.uminho.haslab: time tokens
-    ch.put(CompSym.TIMELOOP, "fun"); // pt.uminho.haslab: time tokens
-    ch.put(CompSym.TIMEINIT, "fun"); // pt.uminho.haslab: time tokens
     ch.put(CompSym.TOTALORDER, "pred");
     ch.put(CompSym.ABSTRACT, "abstract");
     ch.put(CompSym.ALL, "all");
@@ -196,10 +192,13 @@ parser code {:
     ch.put(CompSym.NOTLTE, "!");
     ch.put(CompSym.ONE2, "one");
     ch.put(CompSym.ONE, "one");
-    ch.put(CompSym.VAR, "var"); // pt.uminho.haslab: variable tokens
-    ch.put(CompSym.ALWAYS, "always"); // pt.uminho.haslab: ltl tokens
-    ch.put(CompSym.EVENTUALLY, "eventually"); // pt.uminho.haslab: ltl tokens
-    ch.put(CompSym.AFTER, "after"); // pt.uminho.haslab: ltl tokens
+    ch.put(CompSym.VAR, "var"); 					// pt.uminho.haslab: variable tokens
+    ch.put(CompSym.ALWAYS, "always"); 				// pt.uminho.haslab: ltl tokens
+    ch.put(CompSym.EVENTUALLY, "eventually");		// pt.uminho.haslab: ltl tokens
+    ch.put(CompSym.AFTER, "after"); 				// pt.uminho.haslab: ltl tokens
+    ch.put(CompSym.PREVIOUS, "previous"); 			// pt.uminho.haslab: ltl tokens
+    ch.put(CompSym.HISTORICALLY, "historically"); 	// pt.uminho.haslab: ltl tokens
+    ch.put(CompSym.ONCE, "once");					// pt.uminho.haslab: ltl tokens
     ch.put(CompSym.OPEN, "open");
     ch.put(CompSym.OR, "||");
     ch.put(CompSym.PART, "part");
@@ -233,7 +232,7 @@ parser code {:
     ch.put(CompSym.POSTID, "POSTNAME"); // pt.uminho.haslab: ltl tokens
     ch.put(CompSym.NUMBER, "NUMBER");
     ch.put(CompSym.STR, "STRING");
-    ch.put(CompSym.TIME, "Time"); //pt.haslab.uminho: time tokens
+//  ch.put(CompSym.TIME, "Time"); //pt.haslab.uminho: time scopes currently managed at the options
     TreeSet<String> list = new TreeSet<String>();
     Pos p=Pos.UNKNOWN;
     if (x!=null && x.value instanceof Pos) p=(Pos)(x.value);
@@ -346,8 +345,9 @@ action code {:
     //pt.uminho.haslab: extended with time scopes
     private void c(boolean follow, ExprVar o, ExprVar x, ExprVar n, Expr e, List<CommandScope> s, ExprConstant c) throws Err {
         if (n!=null) nod(n);
-        int bitwidth=(-1), maxseq=(-1), overall=(-1), expects=(c==null ? -1 : c.num), maxtime =(-1); //pt.uminho.haslab: time scope
-        boolean exacttime = false; // pt.uminho.haslab: time scope
+        int bitwidth=(-1), maxseq=(-1), overall=(-1), expects=(c==null ? -1 : c.num); 
+        int maxtime = (-1); //pt.uminho.haslab: time scope currently managed by the options
+        boolean exacttime = false; //pt.uminho.haslab: time scope currently managed by the options
         Pos p = o.pos.merge(n!=null ? n.span() : e.span());
         for(int i=s.size()-1; i>=0; i--) {
           Sig j=s.get(i).sig;  int k=s.get(i).startingScope;
@@ -355,12 +355,12 @@ action code {:
           if (j.label.equals("univ")) { overall=k; s.remove(i); continue; }
           if (j.label.equals("int"))  { if (bitwidth>=0) throw new ErrorSyntax(j.pos, "The bitwidth cannot be specified more than once."); bitwidth=k; s.remove(i); continue; }
           if (j.label.equals("seq"))  { if (maxseq>=0) throw new ErrorSyntax(j.pos, "The maximum sequence length cannot be specified more than once."); maxseq=k; s.remove(i); continue; }
-          if (j.label.equals("Time")) { if (maxtime>=0) throw new ErrorSyntax(j.pos, "The bitwidth cannot be specified more than once."); maxtime=k; exacttime = s.get(i).isExact; s.remove(i); continue; } //pt.uminho.haslab: time scope
+//        if (j.label.equals("Time")) { if (maxtime>=0) throw new ErrorSyntax(j.pos, "The time cannot be specified more than once."); maxtime=k; exacttime = s.get(i).isExact; s.remove(i); continue; } //pt.uminho.haslab: time scope currently managed by the options
         }
         if (n!=null)
-          parser.alloymodule.addCommand(follow, p, n.label, o.label.equals("c"), overall, bitwidth, maxseq, maxtime, exacttime, expects, s, x); //pt.uminho.haslab: time scope
+          parser.alloymodule.addCommand(follow, p, n.label, o.label.equals("c"), overall, bitwidth, maxseq, maxtime, exacttime, expects, s, x); //pt.uminho.haslab: time scope currently managed by the options
         else
-          parser.alloymodule.addCommand(follow, p, e,       o.label.equals("c"), overall, bitwidth, maxseq, maxtime, exacttime, expects, s, x); //pt.uminho.haslab: time scope
+          parser.alloymodule.addCommand(follow, p, e,       o.label.equals("c"), overall, bitwidth, maxseq, maxtime, exacttime, expects, s, x); //pt.uminho.haslab: time scope currently managed by the options
     }
     private Expr t(Pos pos, Pos oldClosing, Expr left, Expr right, Pos close) throws Err {
       if (right instanceof ExprVar) {
@@ -403,10 +403,6 @@ terminal Pos INTREM;
 terminal Pos INTMIN;
 terminal Pos INTMAX;
 terminal Pos INTNEXT;
-terminal Pos TIMENEXT; //pt.uminho.haslab: time tokens
-terminal Pos TIMEEND; //pt.uminho.haslab: time tokens
-terminal Pos TIMELOOP; //pt.uminho.haslab: time tokens
-terminal Pos TIMEINIT; //pt.uminho.haslab: time tokens
 terminal Pos TOTALORDER;
 
 terminal Pos ABSTRACT;         //  abstract
@@ -470,6 +466,9 @@ terminal Pos VAR;              //  var   		  // pt.uminho.haslab: variable token
 terminal Pos ALWAYS;           //  always   	  // pt.uminho.haslab: ltl tokens
 terminal Pos EVENTUALLY;       //  eventually  	  // pt.uminho.haslab: ltl tokens
 terminal Pos AFTER;       	   //  after  	  	  // pt.uminho.haslab: ltl tokens
+terminal Pos ONCE;             //  once   	 	  // pt.uminho.haslab: ltl tokens
+terminal Pos HISTORICALLY;     //  historically	  // pt.uminho.haslab: ltl tokens
+terminal Pos PREVIOUS;    	   //  previous		  // pt.uminho.haslab: ltl tokens
 terminal Pos OPEN;             //  open
 terminal Pos OR;               //  ||     or
 terminal Pos PART;             //  part   partition
@@ -497,7 +496,7 @@ terminal Pos STRING;           //  String
 terminal Pos SUM2;             //  sum       // The filter enables us to disambiguate
 terminal Pos SUM;              //  sum       // The filter enables us to disambiguate
 terminal Pos THIS;             //  this
-terminal Pos TIME;         	   //  Time		 // pt.uminho.haslab: time tokens
+//terminal Pos TIME;         	   //  Time		  //pt.haslab.uminho: time scopes currently managed at the options
 terminal Pos TILDE;            //  ~
 terminal Pos UNIV;             //  univ
 
@@ -670,10 +669,10 @@ Typescope  ::= TypeNumber:e UNIV:f    {: if (1==1) throw new ErrorSyntax(e.pos.m
 
 Typescope  ::= TypeNumber:a STRING:b  {: RESULT = new CommandScope(a.pos.merge(b), new PrimSig("String", AttrType.WHERE.make(a.pos.merge(b))), a.isExact, a.startingScope, a.endingScope, a.increment); :};
 
-Typescope  ::= TypeNumber:a TIME:b    {: // pt.uminho.haslab: time scope
-    Pos p = a.pos.merge(b);
-	RESULT = new CommandScope(p, new PrimSig("Time", AttrType.WHERE.make(p)), a.isExact, a.startingScope, a.endingScope, a.increment); 
-:};
+//Typescope  ::= TypeNumber:a TIME:b    {: // pt.uminho.haslab: time scope currently managed at the options
+//    Pos p = a.pos.merge(b);
+//	RESULT = new CommandScope(p, new PrimSig("Time", AttrType.WHERE.make(p)), a.isExact, a.startingScope, a.endingScope, a.increment); 
+//:};
 
 
 //[AM] Typescope  ::= TypeNumber:e SIGINT:f  {: if (1==1) throw new ErrorSyntax(e.pos.merge(f), "You can no longer set a scope on Int; the number of Int atoms is always exactly equal to 2^(integer bitwidth).\n"); :};
@@ -749,7 +748,7 @@ SigIn    ::=                          {: RESULT=null;                           
 SigRef   ::= Name:x                   {: RESULT=x;                                    :};
 SigRef   ::= UNIV:x                   {: RESULT=ExprVar.make(x, "univ");              :};
 SigRef   ::= STRING:x                 {: RESULT=ExprVar.make(x, "String");            :};
-SigRef   ::= TIME:x                   {: RESULT=ExprVar.make(x, "Time");              :};  //pt.uminho.haslab: time sig
+//SigRef   ::= TIME:x                   {: RESULT=ExprVar.make(x, "Time");              :};  //pt.uminho.haslab: time scopes currently managed in the options
 SigRef   ::= SIGINT:x                 {: RESULT=ExprVar.make(x, "Int");               :};
 SigRef   ::= SEQ:a SLASH SIGINT:b     {: RESULT=ExprVar.make(a.merge(b), "seq/Int");  :};
 SigRef   ::= NONE:x                   {: RESULT=ExprVar.make(x, "none");              :};
@@ -790,7 +789,7 @@ Decla ::=                  Names:a COLON                 Expr:b  {: RESULT=new D
 Decla ::= VAR:v 		  DISJ:k Names:a COLON                 Expr:b  {: RESULT=new Decl(v,    null, k,    null, a, mult(b)); :}; //pt.uminho.haslab: variable decls
 Decla ::= VAR:v PRIVATE:p DISJ:k Names:a COLON                 Expr:b  {: RESULT=new Decl(v,    p,    k,    null, a, mult(b)); :}; //pt.uminho.haslab: variable decls
 Decla ::= VAR:v PRIVATE:p        Names:a COLON                 Expr:b  {: RESULT=new Decl(v,    p,    null, null, a, mult(b)); :}; //pt.uminho.haslab: variable decls
-Decla ::= VAR:v                  Names:a COLON                 Expr:b  {: RESULT=new Decl(v,   null, null, null, a, mult(b)); :}; //pt.uminho.haslab: variable decls
+Decla ::= VAR:v                  Names:a COLON                 Expr:b  {: RESULT=new Decl(v,    null, null, null, a, mult(b)); :}; //pt.uminho.haslab: variable decls
 
 Decla ::=           PART:k Names   COLON DISJ            Expr    {: if (1==1) throw CompModule.hint(k, "part");        :};
 Decla ::=           EXH:k  Names   COLON DISJ            Expr    {: if (1==1) throw CompModule.hint(k, "exh");         :};
@@ -868,15 +867,18 @@ Expr ::= OrExprB:x                    {: RESULT = x;                            
 Expr ::= Bind:x                       {: RESULT = x;                                  :};
 
 Bind ::= LET      Let:x                {: RESULT = x;                                  		    :};
-Bind ::= ALL2:o   Declp:a SuperOrBar:b {: RESULT = ExprQt.Op.ALL     	 .make(o, null, a, b); 	:};
-Bind ::= NO2:o    Declp:a SuperOrBar:b {: RESULT = ExprQt.Op.NO      	 .make(o, null, a, b); 	:};
-Bind ::= SOME2:o  Declp:a SuperOrBar:b {: RESULT = ExprQt.Op.SOME    	 .make(o, null, a, b); 	:};
-Bind ::= LONE2:o  Declp:a SuperOrBar:b {: RESULT = ExprQt.Op.LONE    	 .make(o, null, a, b); 	:};
-Bind ::= ONE2:o   Declp:a SuperOrBar:b {: RESULT = ExprQt.Op.ONE     	 .make(o, null, a, b); 	:};
-Bind ::= SUM2:o   Declp:a SuperOrBar:b {: RESULT = ExprQt.Op.SUM     	 .make(o, null, a, b); 	:};
-Bind ::= ALWAYS:o SuperOrBar:b 		   {: RESULT = ExprTemp.Op.ALWAYS	 .make(o, null, b); 	:}; //pt.uminho.haslab: ltl ops
-Bind ::= EVENTUALLY:o SuperOrBar:b 	   {: RESULT = ExprTemp.Op.EVENTUALLY.make(o, null, b); 	:}; //pt.uminho.haslab: ltl ops
-Bind ::= AFTER:o SuperOrBar:b 	   	   {: RESULT = ExprTemp.Op.AFTER	 .make(o, null, b); 	:}; //pt.uminho.haslab: ltl ops
+Bind ::= ALL2:o   Declp:a SuperOrBar:b {: RESULT = ExprQt.Op.ALL     	   .make(o, null, a, b); 	:};
+Bind ::= NO2:o    Declp:a SuperOrBar:b {: RESULT = ExprQt.Op.NO      	   .make(o, null, a, b); 	:};
+Bind ::= SOME2:o  Declp:a SuperOrBar:b {: RESULT = ExprQt.Op.SOME    	   .make(o, null, a, b); 	:};
+Bind ::= LONE2:o  Declp:a SuperOrBar:b {: RESULT = ExprQt.Op.LONE    	   .make(o, null, a, b); 	:};
+Bind ::= ONE2:o   Declp:a SuperOrBar:b {: RESULT = ExprQt.Op.ONE     	   .make(o, null, a, b); 	:};
+Bind ::= SUM2:o   Declp:a SuperOrBar:b {: RESULT = ExprQt.Op.SUM     	   .make(o, null, a, b); 	:};
+Bind ::= ALWAYS:o SuperOrBar:b 		   {: RESULT = ExprTemp.Op.ALWAYS	   .make(o, null, b); 	:}; //pt.uminho.haslab: ltl ops
+Bind ::= EVENTUALLY:o SuperOrBar:b 	   {: RESULT = ExprTemp.Op.EVENTUALLY  .make(o, null, b); 	:}; //pt.uminho.haslab: ltl ops
+Bind ::= AFTER:o SuperOrBar:b 	   	   {: RESULT = ExprTemp.Op.AFTER	   .make(o, null, b); 	:}; //pt.uminho.haslab: ltl ops
+Bind ::= HISTORICALLY:o SuperOrBar:b   {: RESULT = ExprTemp.Op.HISTORICALLY.make(o, null, b); 	:}; //pt.uminho.haslab: ltl ops
+Bind ::= ONCE:o SuperOrBar:b 	   	   {: RESULT = ExprTemp.Op.ONCE        .make(o, null, b); 	:}; //pt.uminho.haslab: ltl ops
+Bind ::= PREVIOUS:o SuperOrBar:b 	   {: RESULT = ExprTemp.Op.PREVIOUS	   .make(o, null, b); 	:}; //pt.uminho.haslab: ltl ops
 
 OrExprA ::=                EquivExprA:a  {: RESULT=a;                                    :};
 OrExprA ::= OrExprB:a OR:o Bind:b        {: RESULT=ExprBinary.Op.OR.make(o, null, a, b); :};
@@ -1081,10 +1083,6 @@ BaseExpr ::= THIS:o                                 {: RESULT = ExprVar.make(o, 
 BaseExpr ::= INTMIN:o                               {: RESULT = ExprConstant.Op.MIN.make(o, 0);                           :};
 BaseExpr ::= INTMAX:o                               {: RESULT = ExprConstant.Op.MAX.make(o, 0);                           :};
 BaseExpr ::= INTNEXT:o                              {: RESULT = ExprConstant.Op.NEXT.make(o, 0);                          :};
-BaseExpr ::= TIMENEXT:o                             {: RESULT = ExprConstant.Op.NEXTTIME.make(o, 0);                      :}; // pt.uminho.haslab: time constants
-BaseExpr ::= TIMEEND:o                              {: RESULT = ExprConstant.Op.END.make(o, 0);                      	  :}; // pt.uminho.haslab: time constants
-BaseExpr ::= TIMELOOP:o                             {: RESULT = ExprConstant.Op.LOOP.make(o, 0);                      	  :}; // pt.uminho.haslab: time constants
-BaseExpr ::= TIMEINIT:o                             {: RESULT = ExprConstant.Op.INIT.make(o, 0);                          :}; // pt.uminho.haslab: time constants
 BaseExpr ::= LPAREN Expr:x RPAREN                   {: RESULT = x;                                                        :};
 BaseExpr ::= SigRef:x                               {: RESULT = x;                                                        :};
 BaseExpr ::= AT:o Name:x                            {: nod(x); RESULT = ExprVar.make(o.merge(x.pos), "@"+x.label);        :};

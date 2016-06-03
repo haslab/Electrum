@@ -162,6 +162,9 @@ import java_cup.runtime.*;
 "always"              { return alloy_sym(yytext(), CompSym.ALWAYS      );} //pt.uminho.haslab: ltl tokens
 "after"               { return alloy_sym(yytext(), CompSym.AFTER       );} //pt.uminho.haslab: ltl tokens
 "eventually"          { return alloy_sym(yytext(), CompSym.EVENTUALLY  );} //pt.uminho.haslab: ltl tokens
+"historically"        { return alloy_sym(yytext(), CompSym.HISTORICALLY);} //pt.uminho.haslab: ltl tokens
+"previous"            { return alloy_sym(yytext(), CompSym.PREVIOUS    );} //pt.uminho.haslab: ltl tokens
+"once"                { return alloy_sym(yytext(), CompSym.ONCE        );} //pt.uminho.haslab: ltl tokens
 "and"                 { return alloy_sym(yytext(), CompSym.AND         );}
 "assert"              { return alloy_sym(yytext(), CompSym.ASSERT      );}
 "as"                  { return alloy_sym(yytext(), CompSym.AS          );}
@@ -207,8 +210,8 @@ import java_cup.runtime.*;
 "String"              { return alloy_sym(yytext(), CompSym.STRING      );}
 "sum"                 { return alloy_sym(yytext(), CompSym.SUM         );}
 "this"                { return alloy_sym(yytext(), CompSym.THIS        );}
-"Time"                { return alloy_sym(yytext(), CompSym.TIME        );} //pt.uminho.haslab: time tokens
 "univ"                { return alloy_sym(yytext(), CompSym.UNIV        );}
+//"Time"                { return alloy_sym(yytext(), CompSym.TIME        );} //pt.uminho.haslab: time scopes currently managed at the options
 
 [\"] ([^\\\"] | ("\\" .))* [\"] [\$0-9a-zA-Z_\'\"] [\$0-9a-zA-Z_\'\"]* { throw new ErrorSyntax(alloy_here(yytext()),"String literal cannot be followed by a legal identifier character."); }
 [\"] ([^\\\"] | ("\\" .))* [\"]                                        { return alloy_string(yytext()); }

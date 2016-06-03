@@ -1,5 +1,4 @@
 /* Alloy Analyzer 4 -- Copyright (c) 2006-2009, Felix Chang
- * Electrum -- Copiright (c) 2015-present, Nuno Macedo
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files
  * (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify,
@@ -91,9 +90,6 @@ import static edu.mit.csail.sdg.alloy4compiler.parser.CompSym.STR;
 import static edu.mit.csail.sdg.alloy4compiler.parser.CompSym.SUM;
 import static edu.mit.csail.sdg.alloy4compiler.parser.CompSym.SUM2;
 import static edu.mit.csail.sdg.alloy4compiler.parser.CompSym.THIS;
-import static edu.mit.csail.sdg.alloy4compiler.parser.CompSym.TIMEEND;
-import static edu.mit.csail.sdg.alloy4compiler.parser.CompSym.TIMEINIT;
-import static edu.mit.csail.sdg.alloy4compiler.parser.CompSym.TIMENEXT;
 import static edu.mit.csail.sdg.alloy4compiler.parser.CompSym.TOTALORDER;
 import static edu.mit.csail.sdg.alloy4compiler.parser.CompSym.UNIV;
 
@@ -192,7 +188,6 @@ final class CompFilter implements Scanner {
    }
 
    /** Construct a filter for the tokens from the given file. */
-   // pt.uminho.haslab: extended with time ops
    public CompFilter(CompModule module, List<Object> seenDollar, String filename, int lineOffset, Reader i) throws Err {
       final CompLexer L = new CompLexer(i);
       L.alloy_module = module;
@@ -251,11 +246,6 @@ final class CompFilter implements Scanner {
                if (z.sym==ID && ((ExprVar)(z.value)).label.equals("min"))   return merge(x, z, INTMIN);
                if (z.sym==ID && ((ExprVar)(z.value)).label.equals("max"))   return merge(x, z, INTMAX);
                if (z.sym==ID && ((ExprVar)(z.value)).label.equals("next"))  return merge(x, z, INTNEXT);
-               // TODO: does this ever happen?
-               if (z.sym==ID && ((ExprVar)(z.value)).label.equals("init"))  return merge(x, z, TIMEINIT); // pt.uminho.haslab: time ops
-               if (z.sym==ID && ((ExprVar)(z.value)).label.equals("end"))   return merge(x, z, TIMEEND); // pt.uminho.haslab: time ops
-//               if (z.sym==ID && ((ExprVar)(z.value)).label.equals("loop"))  return merge(x, z, TIMELOOP); // pt.uminho.haslab: time ops
-               if (z.sym==ID && ((ExprVar)(z.value)).label.equals("nextt")) return merge(x, z, TIMENEXT); // pt.uminho.haslab: time ops
             } else if (x.sym==ONE) {
                Symbol y = A.next_token();
                if (y.sym!=ARROW) { undo=y; return x; }
