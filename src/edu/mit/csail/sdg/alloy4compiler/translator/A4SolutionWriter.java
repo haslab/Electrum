@@ -1,4 +1,5 @@
 /* Alloy Analyzer 4 -- Copyright (c) 2006-2009, Felix Chang
+ * Electrum -- Copyright (c) 2015-present, Nuno Macedo
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files
  * (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify,
@@ -37,7 +38,10 @@ import edu.mit.csail.sdg.alloy4compiler.ast.Sig.PrimSig;
 import edu.mit.csail.sdg.alloy4compiler.ast.Sig.SubsetSig;
 import edu.mit.csail.sdg.alloy4compiler.ast.Type;
 
-/** This helper class contains helper routines for writing an A4Solution object out as an XML file. */
+/** This helper class contains helper routines for writing an A4Solution object out as an XML file. 
+ * 
+ * @modified: nmm
+ * */
 
 public final class A4SolutionWriter {
 
@@ -108,6 +112,7 @@ public final class A4SolutionWriter {
     }
 
     /** Write the given Sig. */
+    // pt.uminho.haslab: extended with time sigs
     private A4TupleSet writesig(final Sig x) throws Err {
        A4TupleSet ts = null, ts2 = null;
        if (x==Sig.NONE) return null; // should not happen, but we test for it anyway
@@ -130,7 +135,7 @@ public final class A4SolutionWriter {
        if (x.isEnum!=null) out.print("\" enum=\"yes");
        out.print("\">\n");
        try {
-           if (sol!=null && x!=Sig.UNIV && x!=Sig.SIGINT && x!=Sig.SEQIDX && x!=Sig.TIME) { // pt.uminho.haslab
+           if (sol!=null && x!=Sig.UNIV && x!=Sig.SIGINT && x!=Sig.SEQIDX && x!=Sig.TIME) { // pt.uminho.haslab: time sigs
               ts = (A4TupleSet)(sol.eval(x));
               for(A4Tuple t: ts.minus(ts2))  Util.encodeXMLs(out, "   <atom label=\"", t.atom(0), "\"/>\n");
            }
@@ -174,6 +179,7 @@ public final class A4SolutionWriter {
     }
 
     /** If sol==null, write the list of Sigs as a Metamodel, else write the solution as an XML file. */
+    // pt.uminho.haslab: extended with time scopes and sigs
     private A4SolutionWriter(A4Reporter rep, A4Solution sol, Iterable<Sig> sigs, int bitwidth, int maxseq, int time, int loop, String originalCommand, String originalFileName, PrintWriter out, Iterable<Func> extraSkolems) throws Err {
     	this.rep = rep;
         this.out = out;
@@ -181,8 +187,8 @@ public final class A4SolutionWriter {
         for (Sig s:sigs) if (s instanceof PrimSig && ((PrimSig)s).parent==Sig.UNIV) toplevels.add((PrimSig)s);
         out.print("<instance bitwidth=\""); out.print(bitwidth);
         out.print("\" maxseq=\""); out.print(maxseq);
-        out.print("\" time=\""); out.print(time); // pt.uminho.haslab
-        out.print("\" loop=\""); out.print(loop); // pt.uminho.haslab
+        out.print("\" time=\""); out.print(time); // pt.uminho.haslab: time scopes
+        out.print("\" loop=\""); out.print(loop); // pt.uminho.haslab: time scopes
         out.print("\" command=\""); Util.encodeXML(out, originalCommand);
         out.print("\" filename=\""); Util.encodeXML(out, originalFileName);
         if (sol==null) out.print("\" metamodel=\"yes");
@@ -223,11 +229,12 @@ public final class A4SolutionWriter {
     }
 
     /** If this solution is a satisfiable solution, this method will write it out in XML format. */
+    // pt.uminho.haslab: extended with time scopes and sigs
     static void writeInstance(A4Reporter rep, A4Solution sol, PrintWriter out, Iterable<Func> extraSkolems, Map<String,String> sources) throws Err {
         if (!sol.satisfiable()) throw new ErrorAPI("This solution is unsatisfiable.");
         try {
             Util.encodeXMLs(out, "<alloy builddate=\"", Version.buildDate(), "\">\n\n");
-            new A4SolutionWriter(rep, sol, sol.getAllReachableSigs(), sol.getBitwidth(), sol.getMaxSeq(), sol.getTime(), sol.getLoop(), sol.getOriginalCommand(), sol.getOriginalFilename(), out, extraSkolems);  // pt.uminho.haslab
+            new A4SolutionWriter(rep, sol, sol.getAllReachableSigs(), sol.getBitwidth(), sol.getMaxSeq(), sol.getTime(), sol.getLoop(), sol.getOriginalCommand(), sol.getOriginalFilename(), out, extraSkolems);  // pt.uminho.haslab: time scopes
             if (sources!=null) for(Map.Entry<String,String> e: sources.entrySet()) {
                 Util.encodeXMLs(out, "\n<source filename=\"", e.getKey(), "\" content=\"", e.getValue(), "\"/>\n");
             }
@@ -239,9 +246,10 @@ public final class A4SolutionWriter {
     }
 
     /** Write the metamodel as &lt;instance&gt;..&lt;/instance&gt; in XML format. */
+    // pt.uminho.haslab: extended with time scopes and sigs
     public static void writeMetamodel(ConstList<Sig> sigs, String originalFilename, PrintWriter out) throws Err {
         try {
-            new A4SolutionWriter(null, null, sigs, 4, 4, 4, 4, "show metamodel", originalFilename, out, null);  // pt.uminho.haslab
+            new A4SolutionWriter(null, null, sigs, 4, 4, 4, 4, "show metamodel", originalFilename, out, null);  // pt.uminho.haslab: time scopes
         } catch(Throwable ex) {
             if (ex instanceof Err) throw (Err)ex; else throw new ErrorFatal("Error writing the solution XML file.", ex);
         }

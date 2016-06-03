@@ -1,4 +1,5 @@
 /* Alloy Analyzer 4 -- Copyright (c) 2006-2009, Felix Chang
+ * Electrum -- Copyright (c) 2015-present, Nuno Macedo
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files
  * (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify,
@@ -94,7 +95,7 @@ public final class StaticInstanceReader {
 
    /** Create a new AlloySet whose label is unambiguous with any existing one. */
    private AlloySet makeSet(String label, boolean isPrivate, boolean isMeta, AlloyType type) {
-      while(label.equals(Sig.UNIV.label) || label.equals(Sig.SIGINT.label) || label.equals(Sig.SEQIDX.label) || label.equals(Sig.STRING.label) || label.equals(Sig.TIME.label)) label=label+"'"; // pt.uminho.haslab
+      while(label.equals(Sig.UNIV.label) || label.equals(Sig.SIGINT.label) || label.equals(Sig.SEQIDX.label) || label.equals(Sig.STRING.label) || label.equals(Sig.TIME.label)) label=label+"'"; // pt.uminho.haslab: time sigs
       while(true) {
          AlloySet ans = new AlloySet(label, isPrivate, isMeta, type);
          if (!sets.contains(ans)) return ans;
@@ -104,7 +105,7 @@ public final class StaticInstanceReader {
 
    /** Create a new AlloyRelation whose label is unambiguous with any existing one. */
    private AlloyRelation makeRel(String label, boolean isPrivate, boolean isMeta, List<AlloyType> types) {
-      while(label.equals(Sig.UNIV.label) || label.equals(Sig.SIGINT.label) || label.equals(Sig.SEQIDX.label) || label.equals(Sig.STRING.label) || label.equals(Sig.TIME.label)) label=label+"'"; // pt.uminho.haslab
+      while(label.equals(Sig.UNIV.label) || label.equals(Sig.SIGINT.label) || label.equals(Sig.SEQIDX.label) || label.equals(Sig.STRING.label) || label.equals(Sig.TIME.label)) label=label+"'"; // pt.uminho.haslab: time sigs
       while(true) {
          AlloyRelation ans = new AlloyRelation(label, isPrivate, isMeta, types);
          if (!rels.containsKey(ans)) return ans;
@@ -212,6 +213,7 @@ public final class StaticInstanceReader {
    }
 
    /** Parse the file into an AlloyInstance if possible. */
+   // pt.uminho.haslab: extended with time sigs
    private StaticInstanceReader(XMLNode root) throws Err {
       XMLNode inst = null;
       for(XMLNode sub: root) if (sub.is("instance")) { inst=sub; break; }
@@ -224,7 +226,7 @@ public final class StaticInstanceReader {
          sig2type.put(Sig.SIGINT, AlloyType.INT);
          sig2type.put(Sig.SEQIDX, AlloyType.SEQINT);
          sig2type.put(Sig.STRING, AlloyType.STRING);
-         sig2type.put(Sig.TIME, AlloyType.TIME); // pt.uminho.haslab
+         sig2type.put(Sig.TIME, AlloyType.TIME); // pt.uminho.haslab: time sigs
          ts.put(AlloyType.SEQINT, AlloyType.INT);
          for(int i=sol.min(), max=sol.max(), maxseq=sol.getMaxSeq(); i<=max; i++) {
             AlloyAtom at = new AlloyAtom(i>=0 && i<maxseq ? AlloyType.SEQINT : AlloyType.INT, i, ""+i);
@@ -262,7 +264,7 @@ public final class StaticInstanceReader {
          AlloyAtom intAtom = sig2atom.get(Sig.SIGINT);
          AlloyAtom seqAtom = sig2atom.get(Sig.SEQIDX);
          AlloyAtom strAtom = sig2atom.get(Sig.STRING);
-         AlloyAtom timAtom = sig2atom.get(Sig.TIME); // pt.uminho.haslab
+         AlloyAtom timAtom = sig2atom.get(Sig.TIME); // pt.uminho.haslab: time sigs
          for(Set<AlloyTuple> t: rels.values()) for(AlloyTuple at: t) if (at.getAtoms().contains(univAtom)) { univAtom=null; break; }
          for(Set<AlloyTuple> t: rels.values()) for(AlloyTuple at: t) if (at.getAtoms().contains(intAtom)) { intAtom=null; break; }
          for(Set<AlloyTuple> t: rels.values()) for(AlloyTuple at: t) if (at.getAtoms().contains(seqAtom)) { seqAtom=null; break; }
@@ -282,7 +284,7 @@ public final class StaticInstanceReader {
             }
             atom2sets.remove(strAtom);
          }
-         if (timAtom!=null) { // pt.uminho.haslab
+         if (timAtom!=null) { // pt.uminho.haslab: time sigs
              for(Iterator<AlloyTuple> it=exts.iterator(); it.hasNext();) {
                 AlloyTuple at=it.next();
                 if (at.getStart()==timAtom || at.getEnd()==timAtom) it.remove();

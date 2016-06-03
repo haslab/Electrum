@@ -1,4 +1,5 @@
 /* Alloy Analyzer 4 -- Copyright (c) 2006-2009, Felix Chang
+ * Electrum -- Copyright (c) 2014-present, Nuno Macedo
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files
  * (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify,
@@ -49,7 +50,10 @@ import edu.mit.csail.sdg.alloy4compiler.ast.Sig.Field;
 import edu.mit.csail.sdg.alloy4compiler.ast.Sig.PrimSig;
 import edu.mit.csail.sdg.alloy4compiler.ast.Sig.SubsetSig;
 
-/** This helper class contains helper routines for reading an A4Solution object from an XML file. */
+/** This helper class contains helper routines for reading an A4Solution object from an XML file. 
+ * 
+ * @modified: nmm
+ * */
 
 public final class A4SolutionReader {
 
@@ -72,7 +76,7 @@ public final class A4SolutionReader {
     private final Map<String,Sig> id2sig = new LinkedHashMap<String,Sig>();
 
     /** Stores the set of all sigs. */
-    private final Set<Sig> allsigs = Util.asSet((Sig)UNIV, SIGINT, SEQIDX, STRING, NONE, TIME);  //pt.uminho.haslab
+    private final Set<Sig> allsigs = Util.asSet((Sig)UNIV, SIGINT, SEQIDX, STRING, NONE, TIME);  //pt.uminho.haslab: time sigs
 
     /** Mapes each expression we've seen to its TupleSet. */
     private final Map<Expr,TupleSet> expr2ts = new LinkedHashMap<Expr,TupleSet>();
@@ -138,7 +142,7 @@ public final class A4SolutionReader {
            if (label.equals(SIGINT.label)) { id2sig.put(id, SIGINT); return SIGINT; }
            if (label.equals(SEQIDX.label)) { id2sig.put(id, SEQIDX); return SEQIDX; }
            if (label.equals(STRING.label)) { id2sig.put(id, STRING); return STRING; }
-           if (label.equals(TIME.label))   { id2sig.put(id, TIME);   return TIME; } // pt.uminho.haslab
+           if (label.equals(TIME.label))   { id2sig.put(id, TIME);   return TIME; } // pt.uminho.haslab: time sigs
            throw new IOException("Unknown builtin sig: "+label+" (id="+id+")");
         }
         if (depth > nmap.size()) throw new IOException("Sig "+label+" (id="+id+") is in a cyclic inheritance relationship.");

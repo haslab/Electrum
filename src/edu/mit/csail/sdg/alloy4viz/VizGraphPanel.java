@@ -1,4 +1,5 @@
 /* Alloy Analyzer 4 -- Copyright (c) 2006-2009, Felix Chang
+ * Electrum -- Copyright (c) 2015-present, Nuno Macedo
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files
  * (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify,
@@ -56,6 +57,8 @@ import edu.mit.csail.sdg.alloy4graph.GraphViewer;
 /** GUI panel that houses the actual graph, as well as any projection comboboxes.
  *
  * <p><b>Thread Safety:</b> Can be called only by the AWT event thread.
+ * 
+ * @modifed: nmm
  */
 
 public final class VizGraphPanel extends JPanel {
@@ -118,6 +121,7 @@ public final class VizGraphPanel extends JPanel {
        * @param type - the type being projected
        * @param atoms - the list of possible projection atom choices
        */
+      // pt.uminho.haslab: extended to allow loops
       private TypePanel(AlloyType type, List<AlloyAtom> atoms, AlloyAtom initialValue) {
          super();
     	 System.out.println("Combo atoms: "+atoms);
@@ -135,7 +139,7 @@ public final class VizGraphPanel extends JPanel {
             if (this.atoms.get(i).equals(initialValue)) initialIndex=i;
          }
 
-         final int backIndex = vizState.getOriginalInstance().loop;  // pt.uminho.haslab
+         final int backIndex = vizState.getOriginalInstance().loop;  // pt.uminho.haslab: loop times
          add(left = new JButton("<<"));
          add(Box.createRigidArea(new Dimension(2,2)));
          add(atomCombo = new OurCombobox(atomnames.length<1 ? new String[]{" "} : atomnames));
@@ -147,7 +151,7 @@ public final class VizGraphPanel extends JPanel {
          int idealWidth = Util.onMac() ? 120 : 80;
          if (dim.width<idealWidth) { dim.width=idealWidth+20; atomCombo.setMinimumSize(dim); atomCombo.setPreferredSize(dim); }
          left.setEnabled(initialIndex>0);
-         right.setEnabled(initialIndex<atomnames.length-1||backIndex!=-1); // pt.uminho.haslab
+         right.setEnabled(initialIndex<atomnames.length-1||backIndex!=-1); // pt.uminho.haslab: loop times
          atomCombo.setSelectedIndex(initialIndex);
          if (Util.onMac()) atomCombo.setBorder(BorderFactory.createEmptyBorder(4,1,0,1));
          left.addActionListener(new ActionListener() {

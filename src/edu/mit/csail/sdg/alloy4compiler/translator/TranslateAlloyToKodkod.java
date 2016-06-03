@@ -1,4 +1,5 @@
 /* Alloy Analyzer 4 -- Copyright (c) 2006-2009, Felix Chang
+ * Electrum -- Copyright (c) 2015-present, Nuno Macedo
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files
  * (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify,
@@ -75,7 +76,10 @@ import edu.mit.csail.sdg.alloy4compiler.ast.Sig.Field;
 import edu.mit.csail.sdg.alloy4compiler.ast.Type;
 import edu.mit.csail.sdg.alloy4compiler.ast.VisitReturn;
 
-/** Translate an Alloy AST into Kodkod AST then attempt to solve it using Kodkod. */
+/** Translate an Alloy AST into Kodkod AST then attempt to solve it using Kodkod. 
+ * 
+ * @modifed: nmm
+ * */
 
 public final class TranslateAlloyToKodkod extends VisitReturn<Object> {
 
@@ -414,6 +418,7 @@ public final class TranslateAlloyToKodkod extends VisitReturn<Object> {
      * <p> If the return value X is satisfiable, you can call X.next() to get the next satisfying solution X2;
      * and you can call X2.next() to get the next satisfying solution X3... until you get an unsatisfying solution.
      */
+    // pt.uminho.haslab: extended for timed iterations
     public static A4Solution execute_commandFromBook (A4Reporter rep, Iterable<Sig> sigs, Command cmd, A4Options opt) throws Err {
         if (rep==null) rep = A4Reporter.NOP;
         TranslateAlloyToKodkod tr = null;
@@ -599,10 +604,10 @@ public final class TranslateAlloyToKodkod extends VisitReturn<Object> {
           case MIN: return IntConstant.constant(min); //TODO
           case MAX: return IntConstant.constant(max); //TODO
           case NEXT: return A4Solution.KK_NEXT;
-          case NEXTTIME: return A4Solution.KK_TIMENEXT; // pt.uminho.haslab
-          case END: return A4Solution.KK_TIMEEND; // pt.uminho.haslab
-          case LOOP: return A4Solution.KK_TIMELOOP; // pt.uminho.haslab
-          case INIT: return A4Solution.KK_TIMEINIT; // pt.uminho.haslab
+          case NEXTTIME: return A4Solution.KK_TIMENEXT; // pt.uminho.haslab: time relations (deprecated)
+          case END: return A4Solution.KK_TIMEEND; // pt.uminho.haslab: time relations (deprecated)
+          case LOOP: return A4Solution.KK_TIMELOOP; // pt.uminho.haslab: time relations (deprecated)
+          case INIT: return A4Solution.KK_TIMEINIT; // pt.uminho.haslab: time relations (deprecated)
           case TRUE: return Formula.TRUE;
           case FALSE: return Formula.FALSE;
           case EMPTYNESS: return Expression.NONE;
