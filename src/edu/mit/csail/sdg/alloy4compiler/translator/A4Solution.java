@@ -1,5 +1,5 @@
 /* Alloy Analyzer 4 -- Copyright (c) 2006-2009, Felix Chang
- * Electrum -- Copyright (c) 2014-present, Nuno Macedo
+ * Electrum -- Copyright (c) 2015-present, Nuno Macedo
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files
  * (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify,
@@ -330,18 +330,19 @@ public final class A4Solution {
 		int sym = (expected==1 ? 0 : opt.symmetry);
 		solver = new Solver();
 		solver.options().setNoOverflow(opt.noOverflow);
-		solver.options().setFlatten(false); // added for now, since multiplication and division circuit takes forever to flatten
+//		solver.options().setFlatten(false); // added for now, since multiplication and division circuit takes forever to flatten // pt.uminho.haslab: kodkod 2.0+
 		if (opt.solver.external()!=null) {
 			String ext = opt.solver.external();
 			if (opt.solverDirectory.length()>0 && ext.indexOf(File.separatorChar)<0) ext=opt.solverDirectory+File.separatorChar+ext;
 			try {
 				File tmp = File.createTempFile("tmp", ".cnf", new File(opt.tempDirectory));
 				tmp.deleteOnExit(); 
-				solver.options().setSolver(SATFactory.externalFactory(ext, tmp.getAbsolutePath(), "", opt.solver.options()));
-				//solver.options().setSolver(SATFactory.externalFactory(ext, tmp.getAbsolutePath(), opt.solver.options()));
+//				solver.options().setSolver(SATFactory.externalFactory(ext, tmp.getAbsolutePath(), "", opt.solver.options())); // pt.uminho.haslab: kodkod 2.0+
+				solver.options().setSolver(SATFactory.externalFactory(ext, tmp.getAbsolutePath(), opt.solver.options()));
 			} catch(IOException ex) { throw new ErrorFatal("Cannot create temporary directory.", ex); }
-		} else if (opt.solver.equals(A4Options.SatSolver.ZChaffJNI)) {
-			solver.options().setSolver(SATFactory.ZChaff);
+		} else if (opt.solver.equals(A4Options.SatSolver.ZChaffJNI)) { // pt.uminho.haslab: kodkod 2.0+
+//			solver.options().setSolver(SATFactory.ZChaff);
+			throw new UnsupportedOperationException("Kodkod no longer supports ZChaff.");
 		} else if (opt.solver.equals(A4Options.SatSolver.MiniSatJNI)) {
 			solver.options().setSolver(SATFactory.MiniSat);
 		} else if (opt.solver.equals(A4Options.SatSolver.MiniSatProverJNI)) {
@@ -1008,12 +1009,12 @@ public final class A4Solution {
 			rep.resultCNF(out);
 			return null;
 		}
-		if (solver.options().solver()==SATFactory.ZChaffMincost || !solver.options().solver().incremental()) {
-			if (sol==null) sol = solver.solve(fgoal, bounds);
-		} else {
-			kEnumerator = new Peeker<Solution>(solver.solveAll(fgoal, bounds));
-			if (sol==null) sol = kEnumerator.next();
-		}
+//		if (solver.options().solver()==SATFactory.ZChaffMincost || !solver.options().solver().incremental()) {
+//			if (sol==null) sol = solver.solve(fgoal, bounds);
+//		} else { // pt.uminho.haslab: kodkod 2.0+
+		kEnumerator = new Peeker<Solution>(solver.solveAll(fgoal, bounds));
+		if (sol==null) sol = kEnumerator.next();
+//		}
 		if (!solved[0]) rep.solve(0, 0, 0);
 		final Instance inst = sol.instance();
 		// To ensure no more output during SolutionEnumeration
