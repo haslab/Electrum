@@ -1,5 +1,6 @@
 /* Alloy Analyzer 4 -- Copyright (c) 2006-2009, Felix Chang
- *
+ * Electrum -- Copyright (c) 2015-present, Nuno Macedo
+ * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files
  * (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify,
  * merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
@@ -140,6 +141,8 @@ import edu.mit.csail.sdg.alloy4whole.SimpleReporter.SimpleTask2;
  * <p> The methods that might get called from other threads are:
  * <br> (1) the run() method in SatRunner is launched from a fresh thread
  * <br> (2) the run() method in the instance watcher (in constructor) is launched from a fresh thread
+ * 
+ * @modified: nmm
  */
 
 public final class SimpleGUI implements ComponentListener, Listener {
@@ -691,7 +694,7 @@ public final class SimpleGUI implements ComponentListener, Listener {
     /** This method performs File->Open. */
     private Runner doOpen() {
         if (wrap) return wrapMe();
-        File file=OurDialog.askFile(true, null, "", ".als files"); //pt.uminho.haslab
+        File file=OurDialog.askFile(true, null, "", ".als files"); //pt.uminho.haslab: allow .ele files
         if (file!=null) {
             Util.setCurrentDirectory(file.getParentFile());
             doOpenFile(file.getPath());
