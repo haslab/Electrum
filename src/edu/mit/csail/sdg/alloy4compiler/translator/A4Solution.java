@@ -55,8 +55,10 @@ import kodkod.engine.Proof;
 import kodkod.engine.Solution;
 import kodkod.engine.Solver;
 import kodkod.engine.config.AbstractReporter;
+import kodkod.engine.config.ExtendedOptions;
 import kodkod.engine.config.Options;
 import kodkod.engine.config.Reporter;
+import kodkod.engine.config.TemporalOptions;
 import kodkod.engine.fol2sat.TranslationRecord;
 import kodkod.engine.fol2sat.Translator;
 import kodkod.engine.satlab.SATFactory;
@@ -306,7 +308,9 @@ public final class A4Solution {
 //		bounds.boundExactly(KK_TIME, this.timeBounds);
 		int sym = (expected==1 ? 0 : opt.symmetry);
 		solver = new Solver();
-		solver.options().setNoOverflow(opt.noOverflow);
+		solver.options().setNoOverflow(opt.noOverflow); // pt.uminho.haslab: propagate options
+		if (solver.options() instanceof TemporalOptions<?>) // TODO: should be in Solver interface
+			((TemporalOptions<?>) solver.options()).setMaxTraceLength(opt.maxTraceLength);
 //		solver.options().setFlatten(false); // added for now, since multiplication and division circuit takes forever to flatten // pt.uminho.haslab: kodkod 2.0+
 		if (opt.solver.external()!=null) {
 			String ext = opt.solver.external();
