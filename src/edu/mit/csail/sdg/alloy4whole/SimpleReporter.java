@@ -1,5 +1,4 @@
 /* Alloy Analyzer 4 -- Copyright (c) 2006-2009, Felix Chang
- * Electrum -- Copyright (c) 2015-present, Nuno Macedo
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files
  * (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify,
@@ -57,15 +56,10 @@ import edu.mit.csail.sdg.alloy4compiler.translator.A4Solution;
 import edu.mit.csail.sdg.alloy4compiler.translator.A4SolutionReader;
 import edu.mit.csail.sdg.alloy4compiler.translator.A4SolutionWriter;
 import edu.mit.csail.sdg.alloy4compiler.translator.TranslateAlloyToKodkod;
-import edu.mit.csail.sdg.alloy4compiler.translator.TranslateTAlloyToAlloy;
-import edu.mit.csail.sdg.alloy4compiler.translator.TranslateTAlloyToInit;
 import edu.mit.csail.sdg.alloy4viz.StaticInstanceReader;
 import edu.mit.csail.sdg.alloy4viz.VizGUI;
 
-/** This helper method is used by SimpleGUI. 
- * 
- * @modified: nmm
- * */
+/** This helper method is used by SimpleGUI. */
 
 final class SimpleReporter extends A4Reporter {
 
