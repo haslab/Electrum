@@ -95,7 +95,7 @@ public final class StaticInstanceReader {
 
    /** Create a new AlloySet whose label is unambiguous with any existing one. */
    private AlloySet makeSet(String label, boolean isPrivate, boolean isMeta, AlloyType type) {
-      while(label.equals(Sig.UNIV.label) || label.equals(Sig.SIGINT.label) || label.equals(Sig.SEQIDX.label) || label.equals(Sig.STRING.label) || label.equals(Sig.TIME.label)) label=label+"'"; // pt.uminho.haslab: time sigs
+      while(label.equals(Sig.UNIV.label) || label.equals(Sig.SIGINT.label) || label.equals(Sig.SEQIDX.label) || label.equals(Sig.STRING.label)) label=label+"'"; // || label.equals(Sig.TIME.label) // pt.uminho.haslab: time handled internally
       while(true) {
          AlloySet ans = new AlloySet(label, isPrivate, isMeta, type);
          if (!sets.contains(ans)) return ans;
@@ -105,7 +105,7 @@ public final class StaticInstanceReader {
 
    /** Create a new AlloyRelation whose label is unambiguous with any existing one. */
    private AlloyRelation makeRel(String label, boolean isPrivate, boolean isMeta, List<AlloyType> types) {
-      while(label.equals(Sig.UNIV.label) || label.equals(Sig.SIGINT.label) || label.equals(Sig.SEQIDX.label) || label.equals(Sig.STRING.label) || label.equals(Sig.TIME.label)) label=label+"'"; // pt.uminho.haslab: time sigs
+      while(label.equals(Sig.UNIV.label) || label.equals(Sig.SIGINT.label) || label.equals(Sig.SEQIDX.label) || label.equals(Sig.STRING.label)) label=label+"'"; // || label.equals(Sig.TIME.label) // pt.uminho.haslab: time handled internally
       while(true) {
          AlloyRelation ans = new AlloyRelation(label, isPrivate, isMeta, types);
          if (!rels.containsKey(ans)) return ans;
@@ -226,18 +226,18 @@ public final class StaticInstanceReader {
          sig2type.put(Sig.SIGINT, AlloyType.INT);
          sig2type.put(Sig.SEQIDX, AlloyType.SEQINT);
          sig2type.put(Sig.STRING, AlloyType.STRING);
-         sig2type.put(Sig.TIME, AlloyType.TIME); // pt.uminho.haslab: time sigs
+//       sig2type.put(Sig.TIME, AlloyType.TIME); // pt.uminho.haslab: time handled internally
          ts.put(AlloyType.SEQINT, AlloyType.INT);
          for(int i=sol.min(), max=sol.max(), maxseq=sol.getMaxSeq(); i<=max; i++) {
             AlloyAtom at = new AlloyAtom(i>=0 && i<maxseq ? AlloyType.SEQINT : AlloyType.INT, i, ""+i);
             atom2sets.put(at, new LinkedHashSet<AlloySet>());
             string2atom.put(""+i, at);
          }
-         for(int i=0; i<sol.getTime(); i++) {
-             AlloyAtom at = new AlloyAtom(AlloyType.TIME, i, "Time$"+i);
-             atom2sets.put(at, new LinkedHashSet<AlloySet>());
-             string2atom.put("Time$"+i, at);
-          }
+//       for(int i=0; i<sol.getTime(); i++) { // pt.uminho.haslab: time handled internally
+//       	AlloyAtom at = new AlloyAtom(AlloyType.TIME, i, "Time$"+i);
+//          atom2sets.put(at, new LinkedHashSet<AlloySet>());
+//          string2atom.put("Time$"+i, at);
+//       }
          for(Sig s:sol.getAllReachableSigs()) if (!s.builtin && s instanceof PrimSig) sig((PrimSig)s);
          for(Sig s:toplevels)                 if (!s.builtin || s==Sig.STRING)        atoms(sol, (PrimSig)s);
          for(Sig s:sol.getAllReachableSigs()) if (s instanceof SubsetSig)             setOrRel(sol, s.label, s, s.isPrivate!=null, s.isMeta!=null);
@@ -264,12 +264,12 @@ public final class StaticInstanceReader {
          AlloyAtom intAtom = sig2atom.get(Sig.SIGINT);
          AlloyAtom seqAtom = sig2atom.get(Sig.SEQIDX);
          AlloyAtom strAtom = sig2atom.get(Sig.STRING);
-         AlloyAtom timAtom = sig2atom.get(Sig.TIME); // pt.uminho.haslab: time sigs
+//       AlloyAtom timAtom = sig2atom.get(Sig.TIME); // pt.uminho.haslab: time handled internally
          for(Set<AlloyTuple> t: rels.values()) for(AlloyTuple at: t) if (at.getAtoms().contains(univAtom)) { univAtom=null; break; }
          for(Set<AlloyTuple> t: rels.values()) for(AlloyTuple at: t) if (at.getAtoms().contains(intAtom)) { intAtom=null; break; }
          for(Set<AlloyTuple> t: rels.values()) for(AlloyTuple at: t) if (at.getAtoms().contains(seqAtom)) { seqAtom=null; break; }
          for(Set<AlloyTuple> t: rels.values()) for(AlloyTuple at: t) if (at.getAtoms().contains(strAtom)) { strAtom=null; break; }
-         for(Set<AlloyTuple> t: rels.values()) for(AlloyTuple at: t) if (at.getAtoms().contains(timAtom)) { timAtom=null; break; }
+//       for(Set<AlloyTuple> t: rels.values()) for(AlloyTuple at: t) if (at.getAtoms().contains(timAtom)) { timAtom=null; break; } // pt.uminho.haslab: time handled internally
          if (univAtom!=null) {
             for(Iterator<AlloyTuple> it=exts.iterator(); it.hasNext();) {
                AlloyTuple at=it.next();
@@ -284,13 +284,13 @@ public final class StaticInstanceReader {
             }
             atom2sets.remove(strAtom);
          }
-         if (timAtom!=null) { // pt.uminho.haslab: time sigs
-             for(Iterator<AlloyTuple> it=exts.iterator(); it.hasNext();) {
-                AlloyTuple at=it.next();
-                if (at.getStart()==timAtom || at.getEnd()==timAtom) it.remove();
-             }
-             atom2sets.remove(timAtom);
-         }
+//       if (timAtom!=null) { // pt.uminho.haslab: time handled internally
+//           for(Iterator<AlloyTuple> it=exts.iterator(); it.hasNext();) {
+//              AlloyTuple at=it.next();
+//              if (at.getStart()==timAtom || at.getEnd()==timAtom) it.remove();
+//           }
+//           atom2sets.remove(timAtom);
+//       }
          if (intAtom!=null && seqAtom!=null) {
             for(Iterator<AlloyTuple> it=exts.iterator(); it.hasNext();) {
                AlloyTuple at=it.next();

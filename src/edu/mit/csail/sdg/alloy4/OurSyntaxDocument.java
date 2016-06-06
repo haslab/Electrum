@@ -91,11 +91,11 @@ class OurSyntaxDocument extends DefaultStyledDocument {
 	private final MutableAttributeSet tabset = new SimpleAttributeSet();
 
 	/** This stores the currently recognized set of reserved keywords. */
-	private static final String[] keywords = new String[] {"abstract", "var", "all", "eventually", "always", "after", "and", "as", "assert", "but", "check", "disj",
+	private static final String[] keywords = new String[] {"abstract", "var", "all", "and", "as", "assert", "but", "check", "disj",
 		"disjoint", "else", "enum", "exactly", "exh", "exhaustive", "expect", "extends", "fact", "for", "fun", "iden",
 		"iff", "implies", "in", "Int", "int", "let", "lone", "module", "no", "none", "not", "one", "open", "or", "part",
-		"partition", "pred", "private", "run", "seq", "set", "sig", "some", "String", "sum", "this", "univ", "Time"  
-		// pt.uminho.haslab: temporal keywords
+		"partition", "pred", "private", "run", "seq", "set", "sig", "some", "String", "sum", "this", "univ", 
+		"eventually", "always", "after", "once", "historically", "previous" // pt.uminho.haslab: temporal keywords
 	};
 
 	/** Returns true if array[start .. start+len-1] matches one of the reserved keyword. */

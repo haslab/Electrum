@@ -1,5 +1,4 @@
 /* Alloy Analyzer 4 -- Copyright (c) 2006-2009, Felix Chang
- * Electrum -- Copyright (c) 2015-present, Nuno Macedo
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files
  * (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify,
@@ -27,8 +26,6 @@ import edu.mit.csail.sdg.alloy4.ErrorWarning;
 import edu.mit.csail.sdg.alloy4.Pos;
 
 /** Immutable; represents a constant in the AST. 
- * 
- * @modified: nmm
  */
 
 public final class ExprConstant extends Expr {
@@ -65,15 +62,12 @@ public final class ExprConstant extends Expr {
 	 * @param op - the choice of which constant it is
 	 * @param num - the number (this argument is ignored if op!=NUMBER)
 	 */
-	//pt.uminho.haslab: extended with time constants
 	private ExprConstant(Pos pos, Op op, int num, String string) {
 		super(pos, null, false,
 				(op==Op.IDEN ? Type.make2(UNIV) :
 					(op==Op.NEXT ? Type.make2(Sig.SIGINT) :
-						(op==Op.NEXTTIME || op==Op.LOOP ? Type.make2(Sig.TIME) : // pt.uminho.haslab: time constant types
-							(op==Op.INIT || op==Op.END ? Sig.TIME.type : // pt.uminho.haslab: time constant types
-								(op==Op.TRUE || op==Op.FALSE ? Type.FORMULA :
-									(op==Op.EMPTYNESS ? UNIV.type : (op==Op.STRING ? Sig.STRING.type : Type.smallIntType()))))))), 0, 0, null);
+						(op==Op.TRUE || op==Op.FALSE ? Type.FORMULA :
+							(op==Op.EMPTYNESS ? UNIV.type : (op==Op.STRING ? Sig.STRING.type : Type.smallIntType()))))), 0, 0, null);
 		this.op = op;
 		this.num = (op==Op.NUMBER ? num : 0);
 		this.string = (op==Op.STRING ? string : "");
@@ -106,11 +100,6 @@ public final class ExprConstant extends Expr {
 	/** The "next" relation relating each integer to its next larger integer. */
 	public static final Expr NEXT = new ExprConstant(null, Op.NEXT, 0, "");
 
-	public static final Expr NEXTTIME = new ExprConstant(null, Op.NEXTTIME, 0, ""); // pt.uminho.haslab: time constants
-	public static final Expr INIT = new ExprConstant(null, Op.INIT, 0, ""); // pt.uminho.haslab: time constants
-	public static final Expr LOOP = new ExprConstant(null, Op.LOOP, 0, ""); // pt.uminho.haslab: time constants
-	public static final Expr END = new ExprConstant(null, Op.END, 0, ""); // pt.uminho.haslab: time constants
-
 	/** The "0" integer. */
 	public static final Expr ZERO = new ExprConstant(null, Op.NUMBER, 0, "");
 
@@ -128,7 +117,6 @@ public final class ExprConstant extends Expr {
 	}
 
 	/** This class contains all possible constant types. */
-	// pt.uminho.haslab: extended with time constants
 	public enum Op {
 		/** true                                      */  TRUE("true"),
 		/** false                                     */  FALSE("false"),
@@ -138,11 +126,7 @@ public final class ExprConstant extends Expr {
 		/** the "next" relation between integers      */  NEXT("next"),
 		/** the emptyness relation whose type is UNIV */  EMPTYNESS("none"),
 		/** a String constant                         */  STRING("STRING"),
-		/** an integer constant                       */  NUMBER("NUMBER"),
-		/** the "next" relation between times		  */  NEXTTIME("nextt"), // pt.uminho.haslab: time constants
-		/** the "init" time relation 				  */  INIT("init"), // pt.uminho.haslab: time constants
-		/** the "loop" time relation				  */  LOOP("loop"), // pt.uminho.haslab: time constants
-		/** the "end" time relation 				  */  END("end"); // pt.uminho.haslab: time constants
+		/** an integer constant                       */  NUMBER("NUMBER");
 
 		/** The constructor. */
 		private Op(String label) {this.label=label;}
@@ -176,7 +160,6 @@ public final class ExprConstant extends Expr {
 	public int getDepth() { return 1; }
 
 	/** {@inheritDoc} */
-	// pt.uminho.haslab: extended with time constants
 	@Override public String getHTML() {
 		switch(op) {
 		case TRUE: return "<b>true</b>";
@@ -185,10 +168,6 @@ public final class ExprConstant extends Expr {
 		case MAX: return "<b>fun/max</b>";
 		case MIN: return "<b>fun/min</b>";
 		case NEXT: return "<b>fun/next</b>";
-		case NEXTTIME: return "<b>fun/nexttime</b>"; // pt.uminho.haslab: time constants
-		case INIT: return "<b>fun/init</b>"; // pt.uminho.haslab: time constants
-		case END: return "<b>fun/end</b>"; // pt.uminho.haslab: time constants
-		case LOOP: return "<b>fun/loop</b>"; // pt.uminho.haslab: time constants
 		case EMPTYNESS: return "<b>none</b>";
 		case STRING: return "<b>\"" + string + "\"</b>";
 		}

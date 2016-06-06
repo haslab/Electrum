@@ -20,7 +20,6 @@ import static edu.mit.csail.sdg.alloy4compiler.ast.Sig.NONE;
 import static edu.mit.csail.sdg.alloy4compiler.ast.Sig.SEQIDX;
 import static edu.mit.csail.sdg.alloy4compiler.ast.Sig.SIGINT;
 import static edu.mit.csail.sdg.alloy4compiler.ast.Sig.STRING;
-import static edu.mit.csail.sdg.alloy4compiler.ast.Sig.TIME;
 import static edu.mit.csail.sdg.alloy4compiler.ast.Sig.UNIV;
 
 import java.io.IOException;
@@ -76,7 +75,7 @@ public final class A4SolutionReader {
     private final Map<String,Sig> id2sig = new LinkedHashMap<String,Sig>();
 
     /** Stores the set of all sigs. */
-    private final Set<Sig> allsigs = Util.asSet((Sig)UNIV, SIGINT, SEQIDX, STRING, NONE, TIME);  //pt.uminho.haslab: time sigs
+    private final Set<Sig> allsigs = Util.asSet((Sig)UNIV, SIGINT, SEQIDX, STRING, NONE); //, TIME);  //pt.uminho.haslab: time scopes currently managed in the options
 
     /** Mapes each expression we've seen to its TupleSet. */
     private final Map<Expr,TupleSet> expr2ts = new LinkedHashMap<Expr,TupleSet>();
@@ -142,7 +141,7 @@ public final class A4SolutionReader {
            if (label.equals(SIGINT.label)) { id2sig.put(id, SIGINT); return SIGINT; }
            if (label.equals(SEQIDX.label)) { id2sig.put(id, SEQIDX); return SEQIDX; }
            if (label.equals(STRING.label)) { id2sig.put(id, STRING); return STRING; }
-           if (label.equals(TIME.label))   { id2sig.put(id, TIME);   return TIME; } // pt.uminho.haslab: time sigs
+//         if (label.equals(TIME.label))   { id2sig.put(id, TIME);   return TIME; } //pt.uminho.haslab: time scopes currently managed in the options
            throw new IOException("Unknown builtin sig: "+label+" (id="+id+")");
         }
         if (depth > nmap.size()) throw new IOException("Sig "+label+" (id="+id+") is in a cyclic inheritance relationship.");
@@ -279,7 +278,7 @@ public final class A4SolutionReader {
        // create the A4Solution object
        A4Options opt = new A4Options();
        opt.originalFilename = inst.getAttribute("filename");
-       sol = new A4Solution(inst.getAttribute("command"), bitwidth, maxseq, strings, time, loop, atoms, null, opt, 1);
+       sol = new A4Solution(inst.getAttribute("command"), bitwidth, maxseq, strings, atoms, null, opt, 1);
        factory = sol.getFactory();
        // parse all the sigs, fields, and skolems
        for(Map.Entry<String,XMLNode> e:nmap.entrySet()) if (e.getValue().is("sig")) parseSig(e.getKey(), 0);

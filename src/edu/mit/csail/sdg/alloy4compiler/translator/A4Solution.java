@@ -20,7 +20,6 @@ import static edu.mit.csail.sdg.alloy4compiler.ast.Sig.NONE;
 import static edu.mit.csail.sdg.alloy4compiler.ast.Sig.SEQIDX;
 import static edu.mit.csail.sdg.alloy4compiler.ast.Sig.SIGINT;
 import static edu.mit.csail.sdg.alloy4compiler.ast.Sig.STRING;
-import static edu.mit.csail.sdg.alloy4compiler.ast.Sig.TIME;
 import static edu.mit.csail.sdg.alloy4compiler.ast.Sig.UNIV;
 import static kodkod.engine.Solution.Outcome.UNSATISFIABLE;
 
@@ -124,15 +123,8 @@ public final class A4Solution {
 	/** The constant unary relation representing the set of all String atoms. */
 	static final Relation KK_STRING = Relation.unary("String");
 
-	/** The constant unary relation representing the set of all Time atoms. */
-	static final Relation KK_TIME = Relation.unary("Time"); // pt.uminho.haslab: time relations (deprecated)
-
-	/** The constant binary relation representing the "next" relation from each Time atom to its successor. */
-	static final Relation KK_TIMENEXT = Relation.binary("Time/next"); // pt.uminho.haslab: time relations (deprecated)
-	static final Relation KK_TIMEINIT = Relation.unary("Time/init"); // pt.uminho.haslab: time relations (deprecated)
-	static final Relation KK_TIMEEND = Relation.unary("Time/end"); // pt.uminho.haslab: time relations (deprecated)
-	static final Relation KK_TIMELOOP = Relation.binary("Time/loop"); // pt.uminho.haslab: time relations (deprecated)
-
+//	/** The constant unary relation representing the set of all Time atoms. */
+//	static final Relation KK_TIME = Relation.unary("Time"); // pt.uminho.haslab: time relations (deprecated)
 
 	//====== immutable fields ===========================================================================//
 
@@ -148,10 +140,9 @@ public final class A4Solution {
 	/** The maximum allowed sequence length; always between 0 and 2^(bitwidth-1)-1. */
 	private final int maxseq;
 
-	/** The maximum allowed sequence length; always between 0 and 2^(bitwidth-1)-1. */
-	private final int time; // pt.uminho.haslab: time scopes
-	private int loop; // pt.uminho.haslab: time scopes
-
+//	/** The maximum allowed sequence length; always between 0 and 2^(bitwidth-1)-1. */
+//	private final int time; //pt.uminho.haslab: time scopes handled by options
+//	private int loop; //pt.uminho.haslab: time scopes handled by options
 
 	/** The maximum allowed number of loop unrolling and recursion level. */
 	private final int unrolls;
@@ -171,8 +162,8 @@ public final class A4Solution {
 	/** The set of all String atoms; immutable. */
 	private final TupleSet stringBounds;
 
-	/** The set of all String atoms; immutable. */
-	private final TupleSet timeBounds; // pt.uminho.haslab: time scopes
+//	/** The set of all String atoms; immutable. */
+//	private final TupleSet timeBounds; //pt.uminho.haslab: time scopes handled by options
 
 	/** The Kodkod Solver object. */
 	private final Solver solver;
@@ -237,12 +228,11 @@ public final class A4Solution {
 	 * @param opt - the Alloy options that will affect the solution and the solver
 	 * @param expected - whether the user expected an instance or not (1 means yes, 0 means no, -1 means the user did not express an expectation)
 	 */
-	// pt.uminho.haslab: extended with time scopes
-	A4Solution(String originalCommand, int bitwidth, int maxseq, Set<String> stringAtoms, int time, int loop, Collection<String> atoms, final A4Reporter rep, A4Options opt, int expected) throws Err {
+	A4Solution(String originalCommand, int bitwidth, int maxseq, Set<String> stringAtoms, Collection<String> atoms, final A4Reporter rep, A4Options opt, int expected) throws Err {
 		opt = opt.dup();
 		this.unrolls = opt.unrolls;
-		this.sigs = new SafeList<Sig>(Arrays.asList(UNIV, SIGINT, SEQIDX, STRING, NONE, TIME)); //pt.uminho.haslab: time sig
-		this.a2k = Util.asMap(new Expr[]{UNIV, SIGINT, SEQIDX, STRING, NONE, TIME}, Relation.INTS.union(KK_STRING).union(KK_TIME), Relation.INTS, KK_SEQIDX, KK_STRING, Relation.NONE, KK_TIME);  //pt.uminho.haslab: time sig
+		this.sigs = new SafeList<Sig>(Arrays.asList(UNIV, SIGINT, SEQIDX, STRING, NONE)); //, TIME)); //pt.uminho.haslab: time scopes handled by options
+		this.a2k = Util.asMap(new Expr[]{UNIV, SIGINT, SEQIDX, STRING, NONE/*, TIME*/}, Relation.INTS.union(KK_STRING)/*.union(KK_TIME)*/, Relation.INTS, KK_SEQIDX, KK_STRING, Relation.NONE/*, KK_TIME*/);  //pt.uminho.haslab: time scopes handled by options
 		this.k2pos = new LinkedHashMap<Formula,Object>();
 		this.rel2type = new LinkedHashMap<Relation,Type>();
 		this.decl2type = new LinkedHashMap<Variable,Pair<Type,Pos>>();
@@ -250,8 +240,8 @@ public final class A4Solution {
 		this.originalCommand = (originalCommand==null ? "" : originalCommand);
 		this.bitwidth = bitwidth;
 		this.maxseq = maxseq;
-		this.time = time;   //pt.uminho.haslab: time scopes
-		this.loop = loop;   //pt.uminho.haslab: time scopes
+//		this.time = time;   //pt.uminho.haslab: time scopes handled by options
+//		this.loop = loop;   //pt.uminho.haslab: time scopes handled by options
 		if (bitwidth < 0)   throw new ErrorSyntax("Cannot specify a bitwidth less than 0");
 		if (bitwidth > 30)  throw new ErrorSyntax("Cannot specify a bitwidth greater than 30");
 		if (maxseq < 0)     throw new ErrorSyntax("The maximum sequence length cannot be negative.");
@@ -266,10 +256,7 @@ public final class A4Solution {
 		TupleSet sigintBounds = factory.noneOf(1);
 		TupleSet seqidxBounds = factory.noneOf(1);
 		TupleSet stringBounds = factory.noneOf(1);
-		TupleSet timeBounds = factory.noneOf(1);
 		final TupleSet next = factory.noneOf(2);
-		final TupleSet timenext = factory.noneOf(2);
-		final TupleSet timeback = factory.noneOf(2);
 		int min=min(), max=max();
 		if (max >= min) for(int i=min; i<=max; i++) { // Safe since we know 1 <= bitwidth <= 30
 			Tuple ii = factory.tuple(""+i);
@@ -297,36 +284,26 @@ public final class A4Solution {
 		this.s2k = ConstMap.make(s2k);
 		this.stringBounds = stringBounds.unmodifiableView();
 		bounds.boundExactly(KK_STRING, this.stringBounds);
-		// pt.uminho.haslab: create time bounds (deprecated)
-		if (time < 1) {
-			bounds.boundExactly(KK_TIMEINIT, factory.noneOf(1));
-			bounds.boundExactly(KK_TIMEEND, factory.noneOf(1));
-			bounds.boundExactly(KK_TIMELOOP, factory.noneOf(2));
-			bounds.boundExactly(KK_TIMENEXT, factory.noneOf(2));
-		} else {
-			for(int i=0; i<time; i++) {
-				Tuple ii = factory.tuple("Time$"+i);
-				TupleSet is = factory.range(ii, ii);
-				//            bounds.boundExactly(i, is);
-				timeBounds.add(ii);
-				if (i+1<time) timenext.add(factory.tuple("Time$"+i, "Time$"+(i+1)));
-				if (loop < 0) timeback.add(factory.tuple("Time$"+(time-1),"Time$"+i));
-				if (i==0) bounds.boundExactly(KK_TIMEINIT,  is);
-				if (i==time-1) bounds.boundExactly(KK_TIMEEND,  is);
-			}
-			if (loop >= 0) {
-				timeback.add(factory.tuple("Time$"+(time-1),"Time$"+loop));
-				bounds.boundExactly(KK_TIMELOOP, timeback);
-				timeback.addAll(timenext);
-				bounds.boundExactly(KK_TIMENEXT, timeback);
-			} else {
-				bounds.bound(KK_TIMELOOP, timeback);
-				timeback.addAll(timenext);
-				bounds.bound(KK_TIMENEXT, timenext, timeback);
-			}
-		}
-		this.timeBounds = timeBounds.unmodifiableView();
-		bounds.boundExactly(KK_TIME, this.timeBounds);
+		//pt.uminho.haslab: time scopes handled by options
+//		if (time < 1) {
+//		} else {
+//			for(int i=0; i<time; i++) {
+//				Tuple ii = factory.tuple("Time$"+i);
+//				TupleSet is = factory.range(ii, ii);
+//				//            bounds.boundExactly(i, is);
+//				timeBounds.add(ii);
+//				if (i+1<time) timenext.add(factory.tuple("Time$"+i, "Time$"+(i+1)));
+//				if (loop < 0) timeback.add(factory.tuple("Time$"+(time-1),"Time$"+i));
+//			}
+//			if (loop >= 0) {
+//				timeback.add(factory.tuple("Time$"+(time-1),"Time$"+loop));
+//				timeback.addAll(timenext);
+//			} else {
+//				timeback.addAll(timenext);
+//			}
+//		}
+//		this.timeBounds = timeBounds.unmodifiableView();
+//		bounds.boundExactly(KK_TIME, this.timeBounds);
 		int sym = (expected==1 ? 0 : opt.symmetry);
 		solver = new Solver();
 		solver.options().setNoOverflow(opt.noOverflow);
@@ -370,15 +347,15 @@ public final class A4Solution {
 		originalOptions = old.originalOptions;
 		originalCommand = old.originalCommand;
 		bitwidth = old.bitwidth;
-		time = old.time; // pt.uminho.haslab: time scopes
-		loop = old.loop; // pt.uminho.haslab: time scopes
+//		time = old.time; //pt.uminho.haslab: time scopes handled by options
+//		loop = old.loop; //pt.uminho.haslab: time scopes handled by options
+//		timeBounds = old.timeBounds; //pt.uminho.haslab: time scopes handled by options
 		maxseq = old.maxseq;
 		kAtoms = old.kAtoms;
 		factory = old.factory;
 		sigintBounds = old.sigintBounds;
 		seqidxBounds = old.seqidxBounds;
 		stringBounds = old.stringBounds;
-		timeBounds = old.timeBounds; // pt.uminho.haslab: time scopes
 		solver = old.solver;
 		bounds = old.bounds;
 		formulas = old.formulas;
@@ -432,9 +409,8 @@ public final class A4Solution {
 	/** Returns the maximum allowed sequence length; always between 0 and 2^(bitwidth-1)-1. */
 	public int getMaxSeq() { return maxseq; }
 
-	public int getTime() { return time; } // pt.uminho.haslab: time scopes
-
-	public int getLoop() { return loop; } // pt.uminho.haslab: time scopes
+//	public int getTime() { return time; } // pt.uminho.haslab: time scopes handled in the options
+//	public int getLoop() { return loop; } // pt.uminho.haslab: time scopes handled in the options
 
 	/** Returns the largest allowed integer, or -1 if no integers are allowed. */
 	public int max() { return Util.max(bitwidth); }
@@ -579,7 +555,7 @@ public final class A4Solution {
 		if (expr==Relation.INTS) return makeMutable ? sigintBounds.clone() : sigintBounds;
 		if (expr==KK_SEQIDX) return makeMutable ? seqidxBounds.clone() : seqidxBounds;
 		if (expr==KK_STRING) return makeMutable ? stringBounds.clone() : stringBounds;
-		if (expr==KK_TIME) return makeMutable ? timeBounds.clone() : timeBounds; // pt.uminho.haslab: time bounds (deprecated)
+//		if (expr==KK_TIME) return makeMutable ? timeBounds.clone() : timeBounds; // pt.uminho.haslab: time scopes handled in the options
 		if (expr instanceof Relation) {
 			TupleSet ans = findUpper ? bounds.upperBound((Relation)expr) : bounds.lowerBound((Relation)expr);
 			if (ans!=null) return makeMutable ? ans.clone() : ans;
@@ -893,7 +869,7 @@ public final class A4Solution {
 			for(Tuple t:frame.eval.evaluate(Relation.INTS)) { frame.atom2sig.put(t.atom(0), SIGINT); }
 			for(Tuple t:frame.eval.evaluate(KK_SEQIDX))     { frame.atom2sig.put(t.atom(0), SEQIDX); }
 			for(Tuple t:frame.eval.evaluate(KK_STRING))     { frame.atom2sig.put(t.atom(0), STRING); }
-			for(Tuple t:frame.eval.evaluate(KK_TIME))       { frame.atom2sig.put(t.atom(0), TIME); } // pt.uminho.haslab: time sig (deprecated)
+//			for(Tuple t:frame.eval.evaluate(KK_TIME))       { frame.atom2sig.put(t.atom(0), TIME); } // pt.uminho.haslab: time sig (deprecated)
 			for(Sig sig:frame.sigs) if (sig instanceof PrimSig && !sig.builtin && ((PrimSig)sig).isTopLevel()) rename(frame, (PrimSig)sig, nexts, un);
 			// These are redundant atoms that were not chosen to be in the final instance
 			int unused=0;
@@ -936,7 +912,6 @@ public final class A4Solution {
 	//===================================================================================================//
 
 	/** Solve for the solution if not solved already; if cmd==null, we will simply use the lowerbound of each relation as its value. */
-	// pt.uminho.haslab: extended with time
 	A4Solution solve(final A4Reporter rep, Command cmd, Simplifier simp, boolean tryBookExamples) throws Err, IOException {
 		// If already solved, then return this object as is
 		if (solved) return this;
@@ -1051,15 +1026,6 @@ public final class A4Solution {
 		// report the result
 		solved();
 		time = System.currentTimeMillis() - time;
-		if (eval!=null) {
-			String[] aux0 = eval(PrimSig.TIME.join(ExprConstant.LOOP)).toString().split("\\$"); // pt.uminho.haslab
-			if (aux0.length > 1) {
-				String aux = aux0[1];
-				//		        rep.debug("LOOP: "+eval((ExprConstant.LOOP)).toString());
-				//		        rep.debug("NEXT: "+eval((ExprConstant.NEXTTIME)).toString());
-				loop = Integer.parseInt(aux.substring(0, aux.length()-1));
-			}
-		}
 
 		if (inst!=null) rep.resultSAT(cmd, time, this); else rep.resultUNSAT(cmd, time, this);
 		return this;
@@ -1071,7 +1037,6 @@ public final class A4Solution {
 	private String toStringCache = null;
 
 	/** Dumps the Kodkod solution into String. */
-	// pt.uminho.haslab: extended with time
 	@Override public String toString() {
 		if (!solved) return "---OUTCOME---\nUnknown.\n";
 		if (eval == null) return "---OUTCOME---\nUnsatisfiable.\n";
@@ -1096,9 +1061,6 @@ public final class A4Solution {
 			for(ExprVar v:skolems) {
 				sb.append("skolem ").append(v.label).append("=").append(eval(v)).append("\n");
 			}
-			sb.append("loop ").append(eval(ExprConstant.LOOP)).append("\n"); // pt.uminho.haslab: time relations
-			sb.append("next ").append(eval(ExprConstant.NEXTTIME)).append("\n"); // pt.uminho.haslab: time relations
-			sb.append("next ").append(eval.evaluate(KK_TIMEINIT)).append("\n"); // pt.uminho.haslab: time relations
 
 			return toStringCache = sb.toString();
 		} catch(Err er) {

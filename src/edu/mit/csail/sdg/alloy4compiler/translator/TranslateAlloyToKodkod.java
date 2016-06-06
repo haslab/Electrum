@@ -418,7 +418,7 @@ public final class TranslateAlloyToKodkod extends VisitReturn<Object> {
      * <p> If the return value X is satisfiable, you can call X.next() to get the next satisfying solution X2;
      * and you can call X2.next() to get the next satisfying solution X3... until you get an unsatisfying solution.
      */
-    // pt.uminho.haslab: extended for timed iterations
+    // pt.uminho.haslab: extended for timed iterations, deprecated, will be handled by Kodkod
     public static A4Solution execute_commandFromBook (A4Reporter rep, Iterable<Sig> sigs, Command cmd, A4Options opt) throws Err {
         if (rep==null) rep = A4Reporter.NOP;
         TranslateAlloyToKodkod tr = null;
@@ -442,7 +442,6 @@ public final class TranslateAlloyToKodkod extends VisitReturn<Object> {
 	        		rep.debug("Iteration "+currenttime+": "+(System.currentTimeMillis() - startit));
 //	        		System.out.println("Iteration "+currenttime+": "+(System.currentTimeMillis() - startit));
 	        	}
-       	 		rep.resultT(System.currentTimeMillis() - start);
        	 	}
         } catch(UnsatisfiedLinkError ex) {
             throw new ErrorFatal("The required JNI library cannot be found: "+ex.toString().trim(), ex);
@@ -604,10 +603,6 @@ public final class TranslateAlloyToKodkod extends VisitReturn<Object> {
           case MIN: return IntConstant.constant(min); //TODO
           case MAX: return IntConstant.constant(max); //TODO
           case NEXT: return A4Solution.KK_NEXT;
-          case NEXTTIME: return A4Solution.KK_TIMENEXT; // pt.uminho.haslab: time relations (deprecated)
-          case END: return A4Solution.KK_TIMEEND; // pt.uminho.haslab: time relations (deprecated)
-          case LOOP: return A4Solution.KK_TIMELOOP; // pt.uminho.haslab: time relations (deprecated)
-          case INIT: return A4Solution.KK_TIMEINIT; // pt.uminho.haslab: time relations (deprecated)
           case TRUE: return Formula.TRUE;
           case FALSE: return Formula.FALSE;
           case EMPTYNESS: return Expression.NONE;

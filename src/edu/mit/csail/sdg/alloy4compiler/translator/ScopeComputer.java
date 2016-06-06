@@ -20,7 +20,6 @@ import static edu.mit.csail.sdg.alloy4compiler.ast.Sig.NONE;
 import static edu.mit.csail.sdg.alloy4compiler.ast.Sig.SEQIDX;
 import static edu.mit.csail.sdg.alloy4compiler.ast.Sig.SIGINT;
 import static edu.mit.csail.sdg.alloy4compiler.ast.Sig.STRING;
-import static edu.mit.csail.sdg.alloy4compiler.ast.Sig.TIME;
 import static edu.mit.csail.sdg.alloy4compiler.ast.Sig.UNIV;
 
 import java.util.ArrayList;
@@ -94,7 +93,7 @@ final class ScopeComputer {
     /** The number of STRING atoms to allocate; -1 if it was not specified. */
     private int maxstring = (-1);
     
-    private int time = (-1); // pt.uminho.haslab: time scopes
+//    private int time = (-1); // pt.uminho.haslab: time atoms managed by kodkod
 
     /** The scope for each sig. */
     private final IdentityHashMap<PrimSig,Integer> sig2scope = new IdentityHashMap<PrimSig,Integer>();
@@ -113,7 +112,7 @@ final class ScopeComputer {
         if (sig==SIGINT) return 1<<bitwidth;
         if (sig==SEQIDX) return maxseq;
         if (sig==STRING) return maxstring;
-        if (sig==TIME) return time;  // pt.uminho.haslab: time scopes
+//      if (sig==TIME) return time;  //pt.uminho.haslab: time scopes currently managed in the options
         Integer y = sig2scope.get(sig);
         return (y==null) ? (-1) : y;
     }
@@ -132,7 +131,7 @@ final class ScopeComputer {
 
     /** Returns whether the scope of a sig is exact or not. */
     public boolean isExact(Sig sig) {
-        return sig==SIGINT || sig==SEQIDX || sig==STRING || sig==TIME || ((sig instanceof PrimSig) && exact.containsKey(sig)); // pt.uminho.haslab: time scopes
+        return sig==SIGINT || sig==SEQIDX || sig==STRING || ((sig instanceof PrimSig) && exact.containsKey(sig)); // || sig==TIME); // pt.uminho.haslab: time scopes currently managed in the options
     }
 
     /** Make the given sig "exact". */
@@ -274,7 +273,6 @@ final class ScopeComputer {
     //===========================================================================================================================//
 
     /** Compute the scopes, based on the settings in the "cmd", then log messages to the reporter. */
-    // pt.uminho.haslab: extended with time scopes
     private ScopeComputer(A4Reporter rep, Iterable<Sig> sigs, Command cmd) throws Err {
         this.rep = rep;
         this.cmd = cmd;
@@ -333,9 +331,9 @@ final class ScopeComputer {
         for(Sig s:sigs) if (s.isTopLevel()) computeLowerBound((PrimSig)s);
         int max = max(), min = min();
         if (max >= min) for(int i=min; i<=max; i++) atoms.add(""+i);
-        time = cmd.time; // pt.uminho.haslab: time scopes
-        sig2scope.put(TIME, time < 1 ? 0 : time); // pt.uminho.haslab: time scopes
-        if (time > 0) for(int i=0; i<time; i++) atoms.add("Time$"+i); // pt.uminho.haslab: time scopes
+//        time = cmd.time; // pt.uminho.haslab: time atoms managed by kodkod
+//        sig2scope.put(TIME, time < 1 ? 0 : time); // pt.uminho.haslab: time atoms managed by kodkod
+//        if (time > 0) for(int i=0; i<time; i++) atoms.add("Time$"+i); // pt.uminho.haslab: time atoms managed by kodkod
     }
 
     /** Whether or not Int appears in the relation types found in these sigs */
@@ -410,7 +408,7 @@ final class ScopeComputer {
         for(int i=0; set.size()<sc.maxstring; i++) set.add("\"String" + i + "\"");
         sc.atoms.addAll(set);
 //        rep.debug("atoms at this point: "+sc.atoms);
-        A4Solution sol = new A4Solution(cmd.toString(), sc.bitwidth, sc.maxseq, set, sc.time, -1, sc.atoms, rep, opt, cmd.expects);
+        A4Solution sol = new A4Solution(cmd.toString(), sc.bitwidth, sc.maxseq, set, sc.atoms, rep, opt, cmd.expects);
         return new Pair<A4Solution,ScopeComputer>(sol, sc);
     }
 }

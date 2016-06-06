@@ -52,8 +52,8 @@ public abstract class Sig extends Expr {
 	/** The built-in "String" signature. */
 	public static final PrimSig STRING = new PrimSig("String", UNIV, true);
 
-	/** The built-in "Time" signature. */ // pt.uminho.haslab: time signature
-	public static final PrimSig TIME = new PrimSig("Time", UNIV, true);
+//	/** The built-in "Time" signature. */ // pt.uminho.haslab: time scopes currently managed in the options
+//	public static final PrimSig TIME = new PrimSig("Time", UNIV, true);
 
 	/** The built-in "none" signature. */
 	public static final PrimSig NONE = new PrimSig("none", null, false);
@@ -221,7 +221,7 @@ public abstract class Sig extends Expr {
 		if (isOne!=null  && isSome!=null) throw new ErrorSyntax(isOne.merge(isSome),  "You cannot declare a sig to be both one and some.");
 		if (isSubset!=null && isAbstract!=null) throw new ErrorSyntax(isAbstract,  "Subset signature cannot be abstract.");
 		if (isSubset!=null && isSubsig!=null)   throw new ErrorSyntax(isAbstract,  "Subset signature cannot be a regular subsignature.");
-		//      if (isSubset!=null && isVariable!=null) throw new ErrorSyntax(isAbstract,  "Dynamic subset signatures not supported.");   //pt.uminho.haslab
+//      if (isSubset!=null && isVariable!=null) throw new ErrorSyntax(isAbstract,  "Dynamic subset signatures not supported.");   //pt.uminho.haslab
 	}
 
 	/** Returns true if we can determine the two expressions are equivalent; may sometimes return false. */
@@ -328,13 +328,13 @@ public abstract class Sig extends Expr {
 		 * @throws ErrorSyntax if the signature has two or more multiplicities
 		 * @throws ErrorType if you attempt to extend the builtin sigs NONE, SIGINT, SEQIDX, or STRING
 		 */
-		//pt.uminho.haslab: extended with time and variable sigs
+		//pt.uminho.haslab: extended with variable sigs
 		public PrimSig (String label, PrimSig parent, Attr... attributes) throws Err {
 			super(((parent!=null && parent.isEnum!=null) ? parent.type : null), label, Util.append(attributes, Attr.SUBSIG));
 			if (parent==SIGINT) throw new ErrorSyntax(pos, "sig "+label+" cannot extend the builtin \"Int\" signature");
 			if (parent==SEQIDX) throw new ErrorSyntax(pos, "sig "+label+" cannot extend the builtin \"seq/Int\" signature");
 			if (parent==STRING) throw new ErrorSyntax(pos, "sig "+label+" cannot extend the builtin \"String\" signature");
-			if (parent==TIME)   throw new ErrorSyntax(pos, "sig "+label+" cannot extend the builtin \"Time\" signature");  //pt.uminho.haslab: time sig
+//			if (parent==TIME)   throw new ErrorSyntax(pos, "sig "+label+" cannot extend the builtin \"Time\" signature");  //pt.uminho.haslab: time scopes currently managed in the options
 			if (parent==NONE)   throw new ErrorSyntax(pos, "sig "+label+" cannot extend the builtin \"none\" signature");
 			if (parent!=null && parent.isVariable!=null && !(isVariable!=null))  //pt.uminho.haslab: variable sig
 				throw new ErrorSyntax(isAbstract,  "Static signature cannot extend dynamic signature.");
@@ -425,7 +425,6 @@ public abstract class Sig extends Expr {
 		 * @throws ErrorSyntax if the signature has two or more multiplicities
 		 * @throws ErrorType if parents only contains NONE
 		 */
-		//pt.uminho.haslab: extended with time sig
 		public SubsetSig(String label, Collection<Sig> parents, Attr... attributes) throws Err {
 			super(getType(label,parents), label, Util.append(attributes, Attr.SUBSET));
 			if (isEnum!=null) throw new ErrorType(pos, "Subset signature cannot be an enum.");
@@ -441,7 +440,7 @@ public abstract class Sig extends Expr {
 						if (parent==SIGINT) throw new ErrorSyntax(pos, "sig "+label+" cannot be a subset of the builtin \"Int\" signature");
 						if (parent==SEQIDX) throw new ErrorSyntax(pos, "sig "+label+" cannot be a subset of the builtin \"seq/Int\" signature");
 						if (parent==STRING) throw new ErrorSyntax(pos, "sig "+label+" cannot be a subset of the builtin \"String\" signature");
-						if (parent==TIME)   throw new ErrorSyntax(pos, "sig "+label+" cannot be a subset of the builtin \"Time\" signature"); // pt.uminho.haslab: time sig
+//						if (parent==TIME)   throw new ErrorSyntax(pos, "sig "+label+" cannot be a subset of the builtin \"Time\" signature"); // pt.uminho.haslab: time scope currently managed in the options
 					}
 					if (parent==Sig.UNIV) {temp.clear(); temp.add(UNIV); break;}
 					if (parent!=Sig.NONE && !temp.contains(parent)) temp.add(parent);

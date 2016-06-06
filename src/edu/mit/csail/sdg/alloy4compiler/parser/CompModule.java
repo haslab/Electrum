@@ -26,7 +26,6 @@ import static edu.mit.csail.sdg.alloy4compiler.ast.Sig.NONE;
 import static edu.mit.csail.sdg.alloy4compiler.ast.Sig.SEQIDX;
 import static edu.mit.csail.sdg.alloy4compiler.ast.Sig.SIGINT;
 import static edu.mit.csail.sdg.alloy4compiler.ast.Sig.STRING;
-import static edu.mit.csail.sdg.alloy4compiler.ast.Sig.TIME;
 import static edu.mit.csail.sdg.alloy4compiler.ast.Sig.UNIV;
 
 import java.io.FileNotFoundException;

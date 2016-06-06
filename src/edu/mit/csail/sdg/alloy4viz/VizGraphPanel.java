@@ -139,7 +139,7 @@ public final class VizGraphPanel extends JPanel {
             if (this.atoms.get(i).equals(initialValue)) initialIndex=i;
          }
 
-         final int backIndex = vizState.getOriginalInstance().loop;  // pt.uminho.haslab: loop times
+         final int backIndex = 0; // TODO: how to retrieve the loop from the instance? vizState.getOriginalInstance().loop;  // pt.uminho.haslab: loop times
          add(left = new JButton("<<"));
          add(Box.createRigidArea(new Dimension(2,2)));
          add(atomCombo = new OurCombobox(atomnames.length<1 ? new String[]{" "} : atomnames));

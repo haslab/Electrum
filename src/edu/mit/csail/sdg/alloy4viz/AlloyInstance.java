@@ -37,8 +37,6 @@ public final class AlloyInstance {
    /** The original A4Solution object. */
    final A4Solution originalA4; // FIXTHIS: eventually we shouldn't need this field...
 
-   public final int loop;
-   
    /** If true, it is a metamodel, else it is not a metamodel. */
    public final boolean isMetamodel;
 
@@ -101,7 +99,6 @@ public final class AlloyInstance {
    public AlloyInstance(A4Solution originalA4, String filename, String commandname, AlloyModel model,
          Map<AlloyAtom,Set<AlloySet>> atom2sets, Map<AlloyRelation,Set<AlloyTuple>> rel2tuples, boolean isMetamodel) {
       this.originalA4 = originalA4;
-      this.loop = originalA4.getLoop();
       this.filename = filename;
       this.commandname = commandname;
       this.model = model;

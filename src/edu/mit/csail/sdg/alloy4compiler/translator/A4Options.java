@@ -180,6 +180,9 @@ public final class A4Options implements Serializable {
     /** This option constrols how deep we unroll loops and unroll recursive predicate/function/macros (negative means it's disallowed) */
     public int unrolls = (-1);
 
+    /** pt.uminho.haslab */
+	public int maxTraceLength;
+
     /** This method makes a copy of this Options object. */
     public A4Options dup() {
         A4Options x = new A4Options();
@@ -194,6 +197,7 @@ public final class A4Options implements Serializable {
         x.recordKodkod = recordKodkod;
         x.noOverflow = noOverflow;
         x.coreGranularity = coreGranularity;
+        x.maxTraceLength = maxTraceLength; // pt.uminho.haslab
         return x;
     }
 }

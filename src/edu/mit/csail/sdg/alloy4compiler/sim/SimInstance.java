@@ -98,7 +98,6 @@ public final class SimInstance extends VisitReturn<Object> {
     
     private final int maxtime = 10; // pt.uminho.haslab: time scope
 
-
     /** The shiftmask based on the chosen bitwidth. */
     private final int shiftmask;
 
@@ -245,6 +244,7 @@ public final class SimInstance extends VisitReturn<Object> {
 
     /** Construct a new simulation context with the given bitwidth and the given maximum sequence length. */
     public SimInstance(Module root, int bitwidth, int maxseq) throws Err {
+    	// TODO: nmm add maxtime
         if (bitwidth<0 || bitwidth>32) throw new ErrorType("Bitwidth must be between 0 and 32.");
         this.root = root;
         this.bitwidth = bitwidth;
@@ -616,7 +616,7 @@ public final class SimInstance extends VisitReturn<Object> {
        if (x.isSame(Sig.NONE)) return SimTupleset.EMPTY;
        if (x.isSame(Sig.SEQIDX)) return SimTupleset.make(0, maxseq-1);
        if (x.isSame(Sig.SIGINT)) return SimTupleset.make(min, max);
-       if (x.isSame(Sig.TIME)) throw new UnsupportedOperationException("Time");
+//     if (x.isSame(Sig.TIME)) throw new UnsupportedOperationException("Time"); // pt.uminho.haslab: time scopes are currently managed in the options
        if (x.isSame(Sig.STRING)) {
           if (cacheSTRING == null) {
              cacheSTRING = SimTupleset.EMPTY;
@@ -725,7 +725,7 @@ public final class SimInstance extends VisitReturn<Object> {
            if (b.isSame(Sig.SEQIDX)) { Integer i = a.get(0).toInt(null); return i!=null && i>=0 && i<maxseq; }
            if (b.isSame(Sig.SIGINT)) { Integer i = a.get(0).toInt(null); return i!=null; }
            if (b.isSame(Sig.STRING)) { String at = a.get(0).toString(); return at.length()>0 && (at.charAt(0)=='\"'); }
-           if (b.isSame(Sig.TIME)) throw new UnsupportedOperationException("Time should not be called.");
+//         if (b.isSame(Sig.TIME)) throw new UnsupportedOperationException("Time should not be called."); // pt.uminho.haslab: time scopes are currently managed in the options
         }
         if (b instanceof ExprBinary && ((ExprBinary)b).op==ExprBinary.Op.ARROW) {
            Expr left = ((ExprBinary)b).left, right = ((ExprBinary)b).right;

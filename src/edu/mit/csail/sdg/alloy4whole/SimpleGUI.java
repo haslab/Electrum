@@ -128,7 +128,6 @@ import edu.mit.csail.sdg.alloy4compiler.translator.A4Solution;
 import edu.mit.csail.sdg.alloy4compiler.translator.A4SolutionReader;
 import edu.mit.csail.sdg.alloy4compiler.translator.A4Tuple;
 import edu.mit.csail.sdg.alloy4compiler.translator.A4TupleSet;
-import edu.mit.csail.sdg.alloy4viz.AlloyType;
 import edu.mit.csail.sdg.alloy4viz.VizGUI;
 import edu.mit.csail.sdg.alloy4whole.SimpleReporter.SimpleCallback1;
 import edu.mit.csail.sdg.alloy4whole.SimpleReporter.SimpleTask1;
@@ -142,7 +141,7 @@ import edu.mit.csail.sdg.alloy4whole.SimpleReporter.SimpleTask2;
  * <br> (1) the run() method in SatRunner is launched from a fresh thread
  * <br> (2) the run() method in the instance watcher (in constructor) is launched from a fresh thread
  * 
- * @modified: nmm
+ * @modified: nmm (max trace length options)
  */
 
 public final class SimpleGUI implements ComponentListener, Listener {
@@ -229,6 +228,10 @@ public final class SimpleGUI implements ComponentListener, Listener {
     /** The unsat core granularity. */
     private static final IntPref CoreGranularity = new IntPref("CoreGranularity",0,0,3);
 
+    /** The temporal trace length.
+     * pt.uminho.haslab */
+    private static final IntPref MaxTraceLength = new IntPref("MaxTraceLength",1,20,100);
+
     /** The amount of memory (in M) to allocate for Kodkod and the SAT solvers. */
     private static final IntPref SubMemory = new IntPref("SubMemory",16,768,65535);
 
@@ -289,7 +292,7 @@ public final class SimpleGUI implements ComponentListener, Listener {
     private JToolBar toolbar;
 
     /** The various toolbar buttons. */
-    private JButton runbutton, stopbutton, showbutton, untempbutton;
+    private JButton runbutton, stopbutton, showbutton;
 
     /** The Splitpane. */
     private JSplitPane splitpane;
@@ -1010,6 +1013,7 @@ public final class SimpleGUI implements ComponentListener, Listener {
         opt.skolemDepth = SkolemDepth.get();
         opt.coreMinimization = CoreMinimization.get();
         opt.coreGranularity = CoreGranularity.get();
+        opt.maxTraceLength = MaxTraceLength.get(); // pt.uminho.haslab
         opt.originalFilename = Util.canon(text.get().getFilename());
         opt.solver = SatSolver.get();
         task.bundleIndex = i;
@@ -1076,18 +1080,6 @@ public final class SimpleGUI implements ComponentListener, Listener {
         if (latestCommand<0) latestCommand=0;
         return doRun(latestCommand);
     }
-    
-    private Runner doUntempLatest() {
-        if (wrap) return wrapMe();
-        doRefreshRun();
-        OurUtil.enableAll(runmenu);
-        if (commands==null) return null;
-        int n=commands.size();
-        if (n<=0) { log.logRed("There are no commands to execute.\n\n"); return null; }
-        if (latestCommand>=n) latestCommand=n-1;
-        if (latestCommand<0) latestCommand=0;
-        return doUntemp(latestCommand);
-    }
 
     /** This method displays the parse tree. */
     private Runner doShowParseTree() {
@@ -1132,71 +1124,6 @@ public final class SimpleGUI implements ComponentListener, Listener {
         return null;
     }
     
-    private Runner doUntemp(Integer commandIndex) {
-        if (wrap) return wrapMe(commandIndex);
-        final int index = commandIndex;
-        if (WorkerEngine.isBusy()) return null;
-        if (index==(-2)) subrunningTask=1; else subrunningTask=0;
-        latestAutoInstance="";
-        if (index>=0) latestCommand=index;
-        if (index==-1 && commands!=null) {
-            latestCommand=commands.size()-1;
-            if (latestCommand<0) latestCommand=0;
-        }
-        // To update the accelerator to point to the command actually chosen
-        doRefreshRun();
-        OurUtil.enableAll(runmenu);
-        if (commands==null) return null;
-        if (commands.size()==0 && index!=-2 && index!=-3) { log.logRed("There are no commands to execute.\n\n"); return null; }
-        int i=index;
-        if (i>=commands.size()) i=commands.size()-1;
-        SimpleCallback1 cb = new SimpleCallback1(this, null, log, Verbosity.get().ordinal(), latestAlloyVersionName, latestAlloyVersion);
-        SimpleTask1 task = new SimpleTask1();
-        A4Options opt = new A4Options();
-        opt.tempDirectory = alloyHome() + fs + "tmp";
-        opt.solverDirectory = alloyHome() + fs + "binary";
-        opt.recordKodkod = RecordKodkod.get();
-        opt.noOverflow = NoOverflow.get();
-        opt.unrolls = Version.experimental ? Unrolls.get() : (-1);
-        opt.skolemDepth = SkolemDepth.get();
-        opt.coreMinimization = CoreMinimization.get();
-        opt.coreGranularity = CoreGranularity.get();
-        opt.originalFilename = Util.canon(text.get().getFilename());
-        opt.solver = SatSolver.get();
-        task.bundleIndex = i;
-        task.bundleWarningNonFatal = WarningNonfatal.get();
-        task.map = text.takeSnapshot();
-        task.options = opt.dup();
-        task.resolutionMode = (Version.experimental && ImplicitThis.get()) ? 2 : 1;
-        task.tempdir = maketemp();
-        
-        try {
-            runmenu.setEnabled(false);
-            runbutton.setVisible(false);
-            showbutton.setEnabled(false);
-            stopbutton.setVisible(true);
-            int newmem = SubMemory.get(), newstack = SubStack.get();
-            if (newmem != subMemoryNow || newstack != subStackNow) WorkerEngine.stop();
-            if ("yes".equals(System.getProperty("debug")) && Verbosity.get()==Verbosity.FULLDEBUG)
-                WorkerEngine.runLocally(task, cb);
-            else
-                WorkerEngine.run(task, newmem, newstack, alloyHome() + fs + "binary", "", cb);
-            subMemoryNow = newmem;
-            subStackNow = newstack;
-        } catch(Throwable ex) {
-            WorkerEngine.stop();
-            log.logBold("Fatal Error: Solver failed due to unknown reason.\n" +
-              "One possible cause is that, in the Options menu, your specified\n" +
-              "memory size is larger than the amount allowed by your OS.\n" +
-              "Also, please make sure \"java\" is in your program path.\n");
-            log.logDivider();
-            log.flush();
-            doStop(2);
-        }
-
-        return null;
-    }
-
     /** This method happens when the user tries to load the evaluator from the main GUI. */
     private Runner doLoadEvaluator() {
         if (wrap) return wrapMe();
@@ -1344,6 +1271,13 @@ public final class SimpleGUI implements ComponentListener, Listener {
             for(int n=0; n<granLabelLong.length; n++) { menuItem(cgMenu, granLabelLong[n], doCoreGran(n), n==gran?iconYes:iconNo); }
             if (now!=SatSolver.MiniSatProverJNI) cgMenu.setEnabled(false);
             optmenu.add(cgMenu);
+            // pt.uminho.haslab: trace length
+            final int traceLength = MaxTraceLength.get();
+            final JMenu length = new JMenu("Max trace length: "+traceLength);
+            for(int n: new Integer[]{5,10,15,20,25,30,35,40}) {
+               menuItem(length, ""+n, doOptMaxTraceLength(n), n==traceLength?iconYes:iconNo);
+            }
+            optmenu.add(length);
             //
             menuItem(optmenu, "Visualize Automatically: "+(AutoVisualize.get()?"Yes":"No"), doOptAutoVisualize());
             menuItem(optmenu, "Record the Kodkod Input/Output: "+(RecordKodkod.get()?"Yes":"No"), doOptRecordKodkod());
@@ -1484,6 +1418,13 @@ public final class SimpleGUI implements ComponentListener, Listener {
             text.enableSyntax(flag);
             SyntaxDisabled.set(!flag);
         }
+        return wrapMe();
+    }
+    
+    /** This method changes the trace length of temporal rns. 
+     pt.uminho.haslab */
+    private Runner doOptMaxTraceLength(Integer length) {
+        if (!wrap) MaxTraceLength.set(length.intValue());
         return wrapMe();
     }
 
@@ -1653,10 +1594,6 @@ public final class SimpleGUI implements ComponentListener, Listener {
         }
         if (arg.startsWith("XML: ")) { // XML: filename
             viz.loadXML(Util.canon(arg.substring(5)), false);
-            for (AlloyType t : viz.getVizState().getCurrentModel().getTypes()) {
-            	if (t.equals(AlloyType.TIME)) 
-            		viz.getVizState().project(t);
-            }
             viz.doShowViz();
         }
         return null;
