@@ -58,6 +58,9 @@ public abstract class VisitReturn<T> {
     /** Visits an ExprQt node. */
     public abstract T visit(ExprQt x) throws Err;
 
+    /** Visits a BinaryExprTemp node. */
+    public abstract T visit(BinaryExprTemp x) throws Err;
+
     /** Visits an ExprTemp node. */
     public abstract T visit(ExprTemp x) throws Err;
 
@@ -72,6 +75,7 @@ public abstract class VisitReturn<T> {
 
     /** Visits a Field node. */
     public abstract T visit(Field x) throws Err;
+
 
 
 }

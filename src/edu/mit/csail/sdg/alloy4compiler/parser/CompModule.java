@@ -55,35 +55,10 @@ import edu.mit.csail.sdg.alloy4.Pos;
 import edu.mit.csail.sdg.alloy4.SafeList;
 import edu.mit.csail.sdg.alloy4.Util;
 import edu.mit.csail.sdg.alloy4.Version;
-import edu.mit.csail.sdg.alloy4compiler.ast.Attr;
-import edu.mit.csail.sdg.alloy4compiler.ast.Browsable;
-import edu.mit.csail.sdg.alloy4compiler.ast.Command;
-import edu.mit.csail.sdg.alloy4compiler.ast.CommandScope;
-import edu.mit.csail.sdg.alloy4compiler.ast.Decl;
-import edu.mit.csail.sdg.alloy4compiler.ast.Expr;
-import edu.mit.csail.sdg.alloy4compiler.ast.ExprBad;
-import edu.mit.csail.sdg.alloy4compiler.ast.ExprBadCall;
-import edu.mit.csail.sdg.alloy4compiler.ast.ExprBadJoin;
-import edu.mit.csail.sdg.alloy4compiler.ast.ExprBinary;
-import edu.mit.csail.sdg.alloy4compiler.ast.ExprCall;
-import edu.mit.csail.sdg.alloy4compiler.ast.ExprChoice;
-import edu.mit.csail.sdg.alloy4compiler.ast.ExprConstant;
-import edu.mit.csail.sdg.alloy4compiler.ast.ExprHasName;
-import edu.mit.csail.sdg.alloy4compiler.ast.ExprITE;
-import edu.mit.csail.sdg.alloy4compiler.ast.ExprLet;
-import edu.mit.csail.sdg.alloy4compiler.ast.ExprList;
-import edu.mit.csail.sdg.alloy4compiler.ast.ExprQt;
-import edu.mit.csail.sdg.alloy4compiler.ast.ExprTemp;
-import edu.mit.csail.sdg.alloy4compiler.ast.ExprUnary;
-import edu.mit.csail.sdg.alloy4compiler.ast.ExprVar;
-import edu.mit.csail.sdg.alloy4compiler.ast.Func;
-import edu.mit.csail.sdg.alloy4compiler.ast.Module;
-import edu.mit.csail.sdg.alloy4compiler.ast.Sig;
+import edu.mit.csail.sdg.alloy4compiler.ast.*;
 import edu.mit.csail.sdg.alloy4compiler.ast.Sig.Field;
 import edu.mit.csail.sdg.alloy4compiler.ast.Sig.PrimSig;
 import edu.mit.csail.sdg.alloy4compiler.ast.Sig.SubsetSig;
-import edu.mit.csail.sdg.alloy4compiler.ast.Type;
-import edu.mit.csail.sdg.alloy4compiler.ast.VisitReturn;
 
 /** Mutable; this class represents an Alloy module; equals() uses object identity. */
 
@@ -447,6 +422,8 @@ public final class CompModule extends Browsable implements Module {
 			return x.op.make(x.pos, x.closingBracket, decls.makeConst(), sub);
 		}
 
+
+
 		/** {@inheritDoc} */
 		//pt.uminho.haslab: extended with post operator
 		@Override public Expr visit(ExprVar x) throws Err {
@@ -479,6 +456,13 @@ public final class CompModule extends Browsable implements Module {
 			Expr sub = visitThis(x.sub);
 			sub=sub.resolve_as_formula(warns);
 			return x.op.make(x.pos, x.closingBracket, sub);
+		}
+
+		/** {@inheritDoc} */
+		@Override public Expr visit(BinaryExprTemp x) throws Err {
+			Expr left = visitThis(x.left);
+			Expr right = visitThis(x.right);
+			return x.op.make(x.pos, x.closingBracket, left, right);
 		}
 
 	}

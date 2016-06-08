@@ -199,6 +199,8 @@ parser code {:
     ch.put(CompSym.PREVIOUS, "previous"); 			// pt.uminho.haslab: ltl tokens
     ch.put(CompSym.HISTORICALLY, "historically"); 	// pt.uminho.haslab: ltl tokens
     ch.put(CompSym.ONCE, "once");					// pt.uminho.haslab: ltl tokens
+    ch.put(CompSym.RELEASE, "release");					// pt.uminho.haslab: ltl tokens
+    ch.put(CompSym.UNTIL, "until");					// pt.uminho.haslab: ltl tokens
     ch.put(CompSym.OPEN, "open");
     ch.put(CompSym.OR, "||");
     ch.put(CompSym.PART, "part");
@@ -469,6 +471,8 @@ terminal Pos AFTER;       	   //  after  	  	  // pt.uminho.haslab: ltl tokens
 terminal Pos ONCE;             //  once   	 	  // pt.uminho.haslab: ltl tokens
 terminal Pos HISTORICALLY;     //  historically	  // pt.uminho.haslab: ltl tokens
 terminal Pos PREVIOUS;    	   //  previous		  // pt.uminho.haslab: ltl tokens
+terminal Pos RELEASE;    	   //  release		  // pt.uminho.haslab: ltl tokens
+terminal Pos UNTIL;    	       //  until		  // pt.uminho.haslab: ltl tokens
 terminal Pos OPEN;             //  open
 terminal Pos OR;               //  ||     or
 terminal Pos PART;             //  part   partition
@@ -879,6 +883,10 @@ Bind ::= AFTER:o SuperOrBar:b 	   	   {: RESULT = ExprTemp.Op.AFTER	   .make(o, 
 Bind ::= HISTORICALLY:o SuperOrBar:b   {: RESULT = ExprTemp.Op.HISTORICALLY.make(o, null, b); 	:}; //pt.uminho.haslab: ltl ops
 Bind ::= ONCE:o SuperOrBar:b 	   	   {: RESULT = ExprTemp.Op.ONCE        .make(o, null, b); 	:}; //pt.uminho.haslab: ltl ops
 Bind ::= PREVIOUS:o SuperOrBar:b 	   {: RESULT = ExprTemp.Op.PREVIOUS	   .make(o, null, b); 	:}; //pt.uminho.haslab: ltl ops
+
+Bind ::= Super:a UNTIL:o Super:b 	   {: RESULT = BinaryExprTemp.Op.UNTIL	   .make(o, null,a, b); 	:}; //pt.uminho.haslab: ltl ops
+Bind ::= Super:a RELEASE:o Super:b 	   {: RESULT = BinaryExprTemp.Op.RELEASE   .make(o, null,a, b); 	:}; //pt.uminho.haslab: ltl ops
+
 
 OrExprA ::=                EquivExprA:a  {: RESULT=a;                                    :};
 OrExprA ::= OrExprB:a OR:o Bind:b        {: RESULT=ExprBinary.Op.OR.make(o, null, a, b); :};

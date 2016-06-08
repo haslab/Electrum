@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import edu.mit.csail.sdg.alloy4compiler.ast.*;
 import kodkod.ast.BinaryExpression;
 import kodkod.ast.Decls;
 import kodkod.ast.ExprToIntCast;
@@ -40,6 +41,8 @@ import kodkod.ast.Variable;
 import kodkod.ast.operator.ExprOperator;
 import kodkod.engine.CapacityExceededException;
 import kodkod.engine.fol2sat.HigherOrderDeclException;
+import kodkod.engine.ltl2fol.AddTimeToFormula;
+import kodkod.engine.ltl2fol.TemporalFormulaExtension;
 import kodkod.instance.Tuple;
 import kodkod.instance.TupleFactory;
 import kodkod.instance.TupleSet;
@@ -55,26 +58,7 @@ import edu.mit.csail.sdg.alloy4.ErrorType;
 import edu.mit.csail.sdg.alloy4.Pair;
 import edu.mit.csail.sdg.alloy4.Pos;
 import edu.mit.csail.sdg.alloy4.Util;
-import edu.mit.csail.sdg.alloy4compiler.ast.Command;
-import edu.mit.csail.sdg.alloy4compiler.ast.CommandScope;
-import edu.mit.csail.sdg.alloy4compiler.ast.Decl;
-import edu.mit.csail.sdg.alloy4compiler.ast.Expr;
-import edu.mit.csail.sdg.alloy4compiler.ast.ExprBinary;
-import edu.mit.csail.sdg.alloy4compiler.ast.ExprCall;
-import edu.mit.csail.sdg.alloy4compiler.ast.ExprConstant;
-import edu.mit.csail.sdg.alloy4compiler.ast.ExprHasName;
-import edu.mit.csail.sdg.alloy4compiler.ast.ExprITE;
-import edu.mit.csail.sdg.alloy4compiler.ast.ExprLet;
-import edu.mit.csail.sdg.alloy4compiler.ast.ExprList;
-import edu.mit.csail.sdg.alloy4compiler.ast.ExprQt;
-import edu.mit.csail.sdg.alloy4compiler.ast.ExprTemp;
-import edu.mit.csail.sdg.alloy4compiler.ast.ExprUnary;
-import edu.mit.csail.sdg.alloy4compiler.ast.ExprVar;
-import edu.mit.csail.sdg.alloy4compiler.ast.Func;
-import edu.mit.csail.sdg.alloy4compiler.ast.Sig;
 import edu.mit.csail.sdg.alloy4compiler.ast.Sig.Field;
-import edu.mit.csail.sdg.alloy4compiler.ast.Type;
-import edu.mit.csail.sdg.alloy4compiler.ast.VisitReturn;
 
 /** Translate an Alloy AST into Kodkod AST then attempt to solve it using Kodkod. 
  * 
@@ -186,6 +170,7 @@ public final class TranslateAlloyToKodkod extends VisitReturn<Object> {
    /** Conjoin the constraints for "field declarations" and "fact" paragraphs */
    private void makeFacts(Expr facts) throws Err {
       rep.debug("Generating facts...\n");
+       System.out.println("AQUIIIIIIII"+facts.toString());
       // convert into a form that hopefully gives better unsat core
       facts = (Expr) (new ConvToConjunction()).visitThis(facts);
       // add the field facts and appended facts
@@ -197,6 +182,9 @@ public final class TranslateAlloyToKodkod extends VisitReturn<Object> {
                Expr form = s.decl.get().join(f).in(d.expr);
                form = s.isOne==null ? form.forAll(s.decl) : ExprLet.make(null, (ExprVar)(s.decl.get()), s, form);
                frame.addFormula(cform(form), f);
+                if (s.isVariable !=null)  {
+                    System.out.println(s.toString());
+                }
                // Given the above, we can be sure that every column is well-bounded (except possibly the first column).
                // Thus, we need to add a bound that the first column is a subset of s.
                if (s.isOne==null) {
@@ -389,6 +377,8 @@ public final class TranslateAlloyToKodkod extends VisitReturn<Object> {
         try {
             if (cmd.parent!=null || !cmd.getGrowableSigs().isEmpty()) return execute_greedyCommand(rep, sigs, cmd, opt);
             tr = new TranslateAlloyToKodkod(rep, opt, sigs, cmd);
+            //System.out.println(tr.frame.toString());
+            //System.out.println(tr.a2k.toString());
             tr.makeFacts(cmd.formula);
             return tr.frame.solve(rep, cmd, new Simplifier(), false);
         } catch(UnsatisfiedLinkError ex) {
@@ -429,7 +419,7 @@ public final class TranslateAlloyToKodkod extends VisitReturn<Object> {
         		rep.debug("Iteration start: "+cmd.time);
         		tr = new TranslateAlloyToKodkod(rep, opt, sigs, cmd);
         		tr.makeFacts(cmd.formula);
-        		sol = tr.frame.solve(rep, cmd, new Simplifier(), true); 
+        		sol = tr.frame.solve(rep, cmd, new Simplifier(), true);
        	 	}
        	 	else {
        	 		long start = System.currentTimeMillis();
@@ -681,8 +671,9 @@ public final class TranslateAlloyToKodkod extends VisitReturn<Object> {
 
     /** {@inheritDoc} */
     @Override public Object visit(Sig x) throws Err {
+       // p(x.isVariable.toString());
         Expression ans = a2k(x);
-        if (ans==null) 
+        if (ans==null)
             throw new ErrorFatal(x.pos, "Sig \""+x+"\" is not bound to a legal value during translation.\n");
         return ans;
     }
@@ -1070,8 +1061,40 @@ public final class TranslateAlloyToKodkod extends VisitReturn<Object> {
         return ans;
     }
 
+    // expansion of unary temporal operators
 	@Override
 	public Object visit(ExprTemp x) throws Err {
-		throw new UnsupportedOperationException();
+        switch (x.op) {
+            case ALWAYS:
+                return ((Formula) x.sub.accept(this)).always();
+            case EVENTUALLY:
+                return ((Formula) x.sub.accept(this)).eventually();
+            case HISTORICALLY:
+                return ((Formula) x.sub.accept(this)).historically();
+            case ONCE:
+                return ((Formula) x.sub.accept(this)).once();
+            case PREVIOUS:
+                return ((Formula) x.sub.accept(this)).previous();
+            case AFTER:
+                return ((Formula) x.sub.accept(this)).next();
+            default: return x;
+        }
 	}
+
+
+    // expansion of binary temporal operators
+    @Override
+    public Object visit(BinaryExprTemp x) throws Err {
+        switch (x.op) {
+            case UNTIL:
+                return ((Formula)x.left.accept(this)).until(((Formula) x.right.accept(this)));
+            case RELEASE:
+                return ((Formula)x.left.accept(this)).release(((Formula) x.right.accept(this)));
+            default: return x;
+        }
+    }
+
+    public void p(String s){
+        System.out.println(s);
+    }
 }

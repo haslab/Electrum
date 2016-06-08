@@ -141,6 +141,12 @@ public final class ExprCall extends Expr {
             for(Decl d: x.decls) for(ExprHasName v: d.names) env.remove((ExprVar)v);
             return (ans==null) ? EMPTY : ans;
         }
+
+        @Override
+        public Type visit(BinaryExprTemp x) throws Err {
+            return Type.FORMULA;
+        }
+
         @Override public Type visit(ExprTemp x) throws Err {
             return Type.FORMULA;
         }

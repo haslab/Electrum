@@ -38,26 +38,10 @@ import edu.mit.csail.sdg.alloy4.ErrorSyntax;
 import edu.mit.csail.sdg.alloy4.ErrorType;
 import edu.mit.csail.sdg.alloy4.Pair;
 import edu.mit.csail.sdg.alloy4.Util;
-import edu.mit.csail.sdg.alloy4compiler.ast.Decl;
-import edu.mit.csail.sdg.alloy4compiler.ast.Expr;
-import edu.mit.csail.sdg.alloy4compiler.ast.ExprBinary;
-import edu.mit.csail.sdg.alloy4compiler.ast.ExprCall;
-import edu.mit.csail.sdg.alloy4compiler.ast.ExprConstant;
-import edu.mit.csail.sdg.alloy4compiler.ast.ExprHasName;
-import edu.mit.csail.sdg.alloy4compiler.ast.ExprITE;
-import edu.mit.csail.sdg.alloy4compiler.ast.ExprLet;
-import edu.mit.csail.sdg.alloy4compiler.ast.ExprList;
-import edu.mit.csail.sdg.alloy4compiler.ast.ExprQt;
-import edu.mit.csail.sdg.alloy4compiler.ast.ExprTemp;
-import edu.mit.csail.sdg.alloy4compiler.ast.ExprUnary;
-import edu.mit.csail.sdg.alloy4compiler.ast.ExprVar;
-import edu.mit.csail.sdg.alloy4compiler.ast.Func;
-import edu.mit.csail.sdg.alloy4compiler.ast.Module;
-import edu.mit.csail.sdg.alloy4compiler.ast.Sig;
+import edu.mit.csail.sdg.alloy4compiler.ast.*;
 import edu.mit.csail.sdg.alloy4compiler.ast.Sig.Field;
 import edu.mit.csail.sdg.alloy4compiler.ast.Sig.PrimSig;
 import edu.mit.csail.sdg.alloy4compiler.ast.Sig.SubsetSig;
-import edu.mit.csail.sdg.alloy4compiler.ast.VisitReturn;
 
 /** Mutable; represents an instance. 
  * 
@@ -897,5 +881,10 @@ public final class SimInstance extends VisitReturn<Object> {
     /** {@inheritDoc} */
     @Override public Object visit(ExprTemp x) throws Err {
         throw new ErrorFatal(x.pos, "Unsupported operator ("+x.op+") encountered during ExprTemp.accept()");
+    }
+
+    @Override
+    public Object visit(BinaryExprTemp x) throws Err {
+        throw new ErrorFatal(x.pos, "Unsupported operator ("+x.op+") encountered during BinaryExprTemp.accept()");
     }
 }
