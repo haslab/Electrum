@@ -170,7 +170,6 @@ public final class TranslateAlloyToKodkod extends VisitReturn<Object> {
    /** Conjoin the constraints for "field declarations" and "fact" paragraphs */
    private void makeFacts(Expr facts) throws Err {
       rep.debug("Generating facts...\n");
-       System.out.println("AQUIIIIIIII"+facts.toString());
       // convert into a form that hopefully gives better unsat core
       facts = (Expr) (new ConvToConjunction()).visitThis(facts);
       // add the field facts and appended facts
@@ -380,6 +379,7 @@ public final class TranslateAlloyToKodkod extends VisitReturn<Object> {
             //System.out.println(tr.frame.toString());
             //System.out.println(tr.a2k.toString());
             tr.makeFacts(cmd.formula);
+            p(cmd.formula.toString());
             return tr.frame.solve(rep, cmd, new Simplifier(), false);
         } catch(UnsatisfiedLinkError ex) {
             throw new ErrorFatal("The required JNI library cannot be found: "+ex.toString().trim(), ex);
@@ -621,6 +621,7 @@ public final class TranslateAlloyToKodkod extends VisitReturn<Object> {
             case EXACTLYOF: case SOMEOF: case LONEOF: case ONEOF: case SETOF: return cset(x.sub);
             case NOOP: return visitThis(x.sub);
             case NOT:  return k2pos( cform(x.sub).not() , x );
+            case POST:  return ((Expression)x.sub.accept(this)).post(); //Post operator expansion.
             case SOME: return k2pos( cset(x.sub).some() , x);
             case LONE: return k2pos( cset(x.sub).lone() , x);
             case ONE:  return k2pos( cset(x.sub).one() , x);
@@ -671,7 +672,6 @@ public final class TranslateAlloyToKodkod extends VisitReturn<Object> {
 
     /** {@inheritDoc} */
     @Override public Object visit(Sig x) throws Err {
-       // p(x.isVariable.toString());
         Expression ans = a2k(x);
         if (ans==null)
             throw new ErrorFatal(x.pos, "Sig \""+x+"\" is not bound to a legal value during translation.\n");
@@ -1094,7 +1094,7 @@ public final class TranslateAlloyToKodkod extends VisitReturn<Object> {
         }
     }
 
-    public void p(String s){
+    public static void p(String s){
         System.out.println(s);
     }
 }
