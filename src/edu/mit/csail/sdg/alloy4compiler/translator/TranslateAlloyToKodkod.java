@@ -19,26 +19,13 @@ package edu.mit.csail.sdg.alloy4compiler.translator;
 import static edu.mit.csail.sdg.alloy4.Util.tail;
 import static edu.mit.csail.sdg.alloy4compiler.ast.Sig.UNIV;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.IdentityHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import edu.mit.csail.sdg.alloy4compiler.ast.*;
-import kodkod.ast.BinaryExpression;
-import kodkod.ast.Decls;
-import kodkod.ast.ExprToIntCast;
-import kodkod.ast.Expression;
-import kodkod.ast.Formula;
-import kodkod.ast.IntConstant;
-import kodkod.ast.IntExpression;
-import kodkod.ast.IntToExprCast;
-import kodkod.ast.QuantifiedFormula;
-import kodkod.ast.Relation;
-import kodkod.ast.Variable;
+import edu.mit.csail.sdg.alloy4compiler.ast.Decl;
+import kodkod.ast.*;
 import kodkod.ast.operator.ExprOperator;
+import kodkod.ast.visitor.AbstractDetector;
 import kodkod.engine.CapacityExceededException;
 import kodkod.engine.fol2sat.HigherOrderDeclException;
 import kodkod.engine.ltl2fol.AddTimeToFormula;
@@ -96,10 +83,10 @@ public final class TranslateAlloyToKodkod extends VisitReturn<Object> {
     private final int bitwidth;
 
     /** The minimum allowed integer. */
-    private final int min;
+    public final int min;
 
     /** The maximum allowed integer. */
-    private final int max;
+    public final int max;
 
     /** The maximum allowed loop unrolling and recursion. */
     private final int unrolls;
@@ -144,7 +131,7 @@ public final class TranslateAlloyToKodkod extends VisitReturn<Object> {
     }
 
     /** Associate the given formula with the given expression, then return the formula as-is. */
-    private Formula k2pos(Formula f, Expr e) throws Err {
+    public Formula k2pos(Formula f, Expr e) throws Err {
         if (k2pos_enabled) if (frame!=null) frame.k2pos(f, e);
         return f;
     }
@@ -167,48 +154,105 @@ public final class TranslateAlloyToKodkod extends VisitReturn<Object> {
     /** Stores the list of "totalOrder predicates" that we constructed. */
     private final List<Relation> totalOrderPredicates = new ArrayList<Relation>();
 
-   /** Conjoin the constraints for "field declarations" and "fact" paragraphs */
-   private void makeFacts(Expr facts) throws Err {
-      rep.debug("Generating facts...\n");
-      // convert into a form that hopefully gives better unsat core
-      facts = (Expr) (new ConvToConjunction()).visitThis(facts);
-      // add the field facts and appended facts
-      for(Sig s: frame.getAllReachableSigs()) {
-         for(Decl d: s.getFieldDecls()) {
-            k2pos_enabled = false;
-            for(ExprHasName n: d.names) {
-               Field f = (Field)n;
-               Expr form = s.decl.get().join(f).in(d.expr);
-               form = s.isOne==null ? form.forAll(s.decl) : ExprLet.make(null, (ExprVar)(s.decl.get()), s, form);
-               frame.addFormula(cform(form), f);
-                if (s.isVariable !=null)  {
-                    System.out.println(s.toString());
-                }
-               // Given the above, we can be sure that every column is well-bounded (except possibly the first column).
-               // Thus, we need to add a bound that the first column is a subset of s.
-               if (s.isOne==null) {
-                   Expression sr = a2k(s), fr = a2k(f);
-                   for(int i=f.type().arity(); i>1; i--) fr=fr.join(Relation.UNIV);
-                   frame.addFormula(fr.in(sr), f);
-               }
-            }
-            if (s.isOne==null && d.disjoint2!=null) for(ExprHasName f: d.names) {
-               Decl that = s.oneOf("that");
-               Expr formula = s.decl.get().equal(that.get()).not().implies(s.decl.get().join(f).intersect(that.get().join(f)).no());
-               frame.addFormula(cform(formula.forAll(that).forAll(s.decl)), d.disjoint2);
-            }
-            if (d.names.size()>1 && d.disjoint!=null) {  frame.addFormula(cform(ExprList.makeDISJOINT(d.disjoint, null, d.names)), d.disjoint);  }
-         }
-         k2pos_enabled = true;
-         for(Expr f: s.getFacts()) {
-            Expr form = s.isOne==null ? f.forAll(s.decl) : ExprLet.make(null, (ExprVar)(s.decl.get()), s, f);
-            frame.addFormula(cform(form), f);
-         }
-      }
-      k2pos_enabled = true;
-      recursiveAddFormula(facts);
-   }
+    /** Conjoin the constraints for "field declarations" and "fact" paragraphs */
+    private void makeFacts(Expr facts) throws Err {
+        rep.debug("Generating facts...\n");
+        // convert into a form that hopefully gives better unsat core
+        facts = (Expr) (new ConvToConjunction()).visitThis(facts);
+        // add the field facts and appended facts
+        for(Sig s: frame.getAllReachableSigs()) {
 
+            // if a signature s is not  temporal a formula always(s' = s) is created. Contants (s.attibutes = []) not considered (String,Int....)
+            if (s.isVariable == null && s.attributes.size()>0) {
+                Expression expression = a2k(s);
+                frame.addFormula(expression.post().eq(expression).always(),s);
+            }
+
+            //get subsignatures (if exist) of s
+            List list = frame.getSubSigs(s);
+            if (list != null) {
+                Formula f = this.getAllExpressionsCombination(list);
+                if (f != null) frame.addFormula(f.always(),s);
+            }
+
+            for(Decl d: s.getFieldDecls()) {
+                k2pos_enabled = false;
+                for(ExprHasName n: d.names) {
+                    Field f = (Field)n;
+
+                    //handles the multiplicity and the typing of 's' and 'f'
+                    Multiplicity multiplicity =  new Multiplicity(this,f,s,d.expr);
+                    if (multiplicity.finalFormula != null)  frame.addFormula(multiplicity.finalFormula,f);
+
+                    // Given the above, we can be sure that every column is well-bounded (except possibly the first column).
+                    // Thus, we need to add a bound that the first column is a subset of s.
+                    if (s.isOne==null) {
+                        Expression sr = a2k(s), fr = a2k(f);
+                        for(int i=f.type().arity(); i>1; i--) fr=fr.join(Relation.UNIV);
+                        frame.addFormula(fr.in(sr).always(), f);
+                    }
+                }
+                if (s.isOne==null && d.disjoint2!=null) for(ExprHasName f: d.names) {
+                    Decl that = s.oneOf("that");
+                    Expr formula = s.decl.get().equal(that.get()).not().implies(s.decl.get().join(f).intersect(that.get().join(f)).no());
+                    frame.addFormula(cform(formula.forAll(that).forAll(s.decl)).always(), d.disjoint2);
+                }
+                if (d.names.size()>1 && d.disjoint!=null) {  frame.addFormula(cform(ExprList.makeDISJOINT(d.disjoint, null, d.names)).always(), d.disjoint);  }
+            }
+            k2pos_enabled = true;
+            for(Expr f: s.getFacts()) {
+                Expr form = s.isOne==null ? f.forAll(s.decl) : ExprLet.make(null, (ExprVar)(s.decl.get()), s, f);
+                frame.addFormula(cform(form).always(), f);
+            }
+        }
+        k2pos_enabled = true;
+        recursiveAddFormula(facts);
+    }
+
+
+    /*
+    * function responsible for returning a formula with all combinations par in a list of kk expressions
+    *
+    * #example:
+    *
+    * sig a1,a2,a3 {}
+    *
+    * The output of applying this is function in  [a1,a2,a3] is
+    * ((no (a1 & a2) && no (a1 & a3)) && no (a2 & a3))
+    *
+    * */
+    private Formula getAllExpressionsCombination(List<Expression> list){
+        Formula f = null;
+        for(int i = 0;i < list.size();i++){
+            for(int j = i+1;j<list.size();j++){
+                if (f != null){
+                    f = f.and(list.get(i).intersection(list.get(j)).no());
+                } else{
+                    f = list.get(i).intersection(list.get(j)).no();
+                }
+            }
+        }
+        return f;
+    }
+
+    /*
+    * function responsible for returning the union of all signatures presented on 'list'
+    *
+    * #example:
+    * sig a1,a2,a3  {}
+    *
+    * The output of applying this is function in  [a1,a2,a3] is (a1 + a2 + a3)
+    *
+    * */
+    private Expression getUnionOfSubSignatures(List<Expression> list){
+        Expression expression = null;
+        for(Expression e : list){
+            if(expression == null){expression = e;}
+            else{expression = expression.union(e);}
+        }
+        return expression;
+
+    }
     /** Break up x into conjuncts then add them each as a fact. */
     private void recursiveAddFormula(Expr x) throws Err {
         if (x instanceof ExprList && ((ExprList)x).op==ExprList.Op.AND) {
@@ -376,10 +420,7 @@ public final class TranslateAlloyToKodkod extends VisitReturn<Object> {
         try {
             if (cmd.parent!=null || !cmd.getGrowableSigs().isEmpty()) return execute_greedyCommand(rep, sigs, cmd, opt);
             tr = new TranslateAlloyToKodkod(rep, opt, sigs, cmd);
-            //System.out.println(tr.frame.toString());
-            //System.out.println(tr.a2k.toString());
             tr.makeFacts(cmd.formula);
-            p(cmd.formula.toString());
             return tr.frame.solve(rep, cmd, new Simplifier(), false);
         } catch(UnsatisfiedLinkError ex) {
             throw new ErrorFatal("The required JNI library cannot be found: "+ex.toString().trim(), ex);
@@ -478,7 +519,7 @@ public final class TranslateAlloyToKodkod extends VisitReturn<Object> {
      * @return the formula - if x evaluates to a Formula
      * @throws ErrorFatal - if x does not evaluate to a Formula
      */
-    private Formula cform(Expr x) throws Err {
+    public Formula cform(Expr x) throws Err {
         if (!x.errors.isEmpty()) throw x.errors.pick();
         Object y=visitThis(x);
         if (y instanceof Formula) return (Formula)y;
@@ -489,7 +530,7 @@ public final class TranslateAlloyToKodkod extends VisitReturn<Object> {
      * @return the integer expression - if x evaluates to an IntExpression
      * @throws ErrorFatal - if x does not evaluate to an IntExpression
      */
-    private IntExpression cint(Expr x) throws Err {
+    public IntExpression cint(Expr x) throws Err {
         if (!x.errors.isEmpty()) throw x.errors.pick();
         return toInt(x, visitThis(x));
     }
@@ -515,12 +556,12 @@ public final class TranslateAlloyToKodkod extends VisitReturn<Object> {
      * @return the expression - if x evaluates to an Expression
      * @throws ErrorFatal - if x does not evaluate to an Expression
      */
-    private Expression cset(Expr x) throws Err {
+    public Expression cset(Expr x) throws Err {
         if (!x.errors.isEmpty()) throw x.errors.pick();
         return toSet(x, visitThis(x));
     }
 
-    private Expression toSet(Expr x, Object y) throws Err, ErrorFatal {
+    public Expression toSet(Expr x, Object y) throws Err, ErrorFatal {
         if (y instanceof Expression) return (Expression)y;
         if (y instanceof IntExpression) return ((IntExpression) y).toExpression();
         throw new ErrorFatal(x.span(), "This should have been a set or a relation.\nInstead it is "+y);
@@ -750,7 +791,7 @@ public final class TranslateAlloyToKodkod extends VisitReturn<Object> {
         if (x.op == ExprList.Op.TOTALORDER) {
             Expression elem = cset(x.args.get(0)), first = cset(x.args.get(1)), next = cset(x.args.get(2));
             if (elem instanceof Relation && first instanceof Relation && next instanceof Relation) {
-                Relation lst = frame.addRel("", null, frame.query(true, (Relation)elem, false));
+                Relation lst = frame.addRel("", null, frame.query(true, (Relation)elem, false),null);
                 totalOrderPredicates.add((Relation)elem); totalOrderPredicates.add((Relation)first); totalOrderPredicates.add(lst); totalOrderPredicates.add((Relation)next);
                 return k2pos(((Relation)next).totalOrder((Relation)elem, (Relation)first, lst), x);
             }
@@ -785,7 +826,7 @@ public final class TranslateAlloyToKodkod extends VisitReturn<Object> {
         Expression s, s2, eL, eR; IntExpression i; Formula f; Object objL, objR;
         switch(x.op) {
             case IMPLIES: f=cform(a).not().or(cform(b)); return k2pos(f,x);
-            case IN:      return k2pos(isIn(cset(a),b), x);
+            case IN:       return k2pos(isIn(cset(a), b), x);
             case NOT_IN:  return k2pos(isIn(cset(a),b).not(), x);
             case LT:  i=cint(a);  f=i.lt(cint(b));   return k2pos(f,x);
             case LTE: i=cint(a);  f=i.lte(cint(b));  return k2pos(f,x);
@@ -883,17 +924,17 @@ public final class TranslateAlloyToKodkod extends VisitReturn<Object> {
           // Handles possible "binary" or higher-arity multiplicity
           return isInBinary(a, (ExprBinary)right);
        }
-       switch(right.mult()) {
-          case EXACTLYOF: b=cset(right); return a.eq(b);
-          case ONEOF:     b=cset(right); return a.one().and(a.in(b));
-          case LONEOF:    b=cset(right); return a.lone().and(a.in(b));
-          case SOMEOF:    b=cset(right); return a.some().and(a.in(b));
-          default:        b=cset(right); return a.in(b);
-       }
+        switch(right.mult()) {
+                case EXACTLYOF: b=cset(right); return a.eq(b);
+                case ONEOF:     b=cset(right); return a.one().and(a.in(b));
+                case LONEOF:    b=cset(right); return a.lone().and(a.in(b));
+                case SOMEOF:    b=cset(right); return a.some().and(a.in(b));
+                default:        b=cset(right); return a.in(b);
+            }
     }
     
     //[AM]
-    private static boolean am = true;
+    public static boolean am = true;
 
     /** Helper method that translates the formula "r in (a ?->? b)" into a Kodkod formula. */
     private Formula isInBinary(Expression r, ExprBinary ab) throws Err {
@@ -951,7 +992,7 @@ public final class TranslateAlloyToKodkod extends VisitReturn<Object> {
         return ans;
     }
 
-    private Decls am(final Expression a, Decls d, int i, Variable v) {
+    public Decls am(final Expression a, Decls d, int i, Variable v) {
         kodkod.ast.Decl ddd;
         if (a.arity() == 1) {
             assert i == 1; 
@@ -1098,3 +1139,200 @@ public final class TranslateAlloyToKodkod extends VisitReturn<Object> {
         System.out.println(s);
     }
 }
+
+
+
+class Multiplicity extends VisitQuery<Formula> {
+    private Field f;
+    private Expr range;
+    private final TranslateAlloyToKodkod frame;
+    private Expression field;
+    private Expression domain;
+    Sig s;
+
+    private Expr multiplicityExpression;
+    public Formula finalFormula;
+
+
+    public Multiplicity(TranslateAlloyToKodkod a4Solution, Field f, Sig domain, Expr range) throws Err {
+        this.range = range;
+        this.frame = a4Solution;
+        this.f = f;
+        this.s = domain;
+
+        this.field = frame.cset(f);
+        this.domain = frame.cset(domain);
+
+        this.multiplicityExpression = domain.decl.get().join(f).in(range);
+        this.multiplicityExpression = domain.isOne==null ? this.multiplicityExpression.forAll(domain.decl) : ExprLet.make(null, (ExprVar)(domain.decl.get()), domain, this.multiplicityExpression);
+        this.finalFormula = this.convert();
+    }
+
+    public Formula convert() throws Err {
+        Formula multiplicityFormula = this.multiplicityExpression.accept(this);
+        Formula typingFormula = this.typing(range,s,f);
+        if (multiplicityFormula != null) {return typingFormula.always().and(multiplicityFormula.always());}
+        else {return typingFormula.always();}
+    }
+
+    @Override
+    public Formula visit(ExprUnary x) throws Err {
+        Formula formula = null;
+        Variable v = Variable.unary("V");
+        if (s.isOne != null) {
+            formula = isIn(frame.cset(s).join(field), range);}
+        else {
+            Formula f = isIn(v.join(field), range);
+            if (f != null) formula = f.forAll(v.oneOf(domain));
+        }
+        if (formula != null) return frame.k2pos(formula, x);
+        return null;
+    }
+
+    @Override
+    public Formula visit(ExprBinary x) throws Err {
+        Formula formula = null;
+        Variable v = Variable.unary("V");
+        if (s.isOne != null) {
+            formula = isIn(frame.cset(s).join(field), range);}
+        else {
+            Formula f = isIn(v.join(field), range);
+            if (f != null) formula = f.forAll(v.oneOf(domain));
+           }
+        if (formula != null) return frame.k2pos(formula, x);
+        return null;
+    }
+
+    /**
+     * Helper method that translates a signature declaration into a Kodkod formula.
+     */
+    private Formula isIn(Expression a, Expr right) throws Err {
+        Expression b;
+        if (right instanceof ExprBinary && right.mult != 0 && ((ExprBinary) right).op.isArrow) {
+            // Handles possible "binary" or higher-arity multiplicity
+            return isBinary(a, (ExprBinary) right);
+        }
+        switch (right.mult()) {
+            case EXACTLYOF:
+                b = frame.cset(right);
+                return a.eq(b);
+            case ONEOF:
+                b = frame.cset(right);
+                return a.one();
+            case LONEOF:
+                b = frame.cset(right);
+                return a.lone();
+            case SOMEOF:
+                b = frame.cset(right);
+                return a.some();
+            default: return null;
+        }
+    }
+
+    private Formula isBinary(Expression r, ExprBinary ab) throws Err {
+        final Expression a=frame.cset(ab.left), b=frame.cset(ab.right);
+        Decls d=null, d2=null;
+        Formula ans1 = null, ans2 = null;
+
+
+        // "R in A ->op B" means for each tuple a in A, there are "op" tuples in r that begins with a.
+        Expression atuple=null, ar=r;
+        for(int i=a.arity(); i>0; i--) {
+            Variable v=Variable.unary("v" + Integer.toString(frame.cnt++));
+            d = frame.am(a, d, i, v);
+            ar=v.join(ar);
+            if (atuple==null) atuple=v; else atuple=atuple.product(v);
+        }
+
+        Formula f1 = isIn(ar, ab.right);
+        if (f1 != null) ans1 =  f1; ans1 = this.createFormulaWithRightMultiplicity(ar, ans1, ab, d);
+
+
+
+
+
+       // "R in A op-> B" means for each tuple b in B, there are "op" tuples in r that end with b.
+        Expression btuple=null, rb=r;
+        for(int i=b.arity(); i>0; i--) {
+            Variable v=Variable.unary("v" + Integer.toString(frame.cnt++));
+            d2 = frame.am(b, d2, i, v);
+            rb=rb.join(v);
+            if (btuple==null) btuple=v; else btuple=v.product(btuple);
+        }
+
+        Formula f2 =  isIn(rb, ab.left);
+        if (f2 != null) ans2 =  f2; ans2 = this.createFormulaWithLeftMultiplicity(rb, ans2, ab, d2);
+
+        // Now, put everything together
+        Formula ans;
+        if (ans2 != null && ans1 != null){ans=ans1.and(ans2);}
+        else {
+            if (ans1 != null) {ans=ans1;}
+            else {ans = ans2;}
+        }
+        return ans;
+    }
+
+
+    /*
+    * given 'mult -> expression' and a declaration this function returns a kk formula with 'Declaration | mult expresion' if
+    * the formula 'temp' is not null.
+    *
+    * */
+    private Formula createFormulaWithLeftMultiplicity(Expression expression,Formula formula,ExprBinary ab,Decls d2){
+        switch(ab.op) {
+            case LONE_ARROW_ANY: case LONE_ARROW_SOME: case LONE_ARROW_ONE: case LONE_ARROW_LONE:
+                if (formula == null) {formula=expression.lone();break;}
+                else{formula=expression.lone().and(formula); break;}
+            case ONE_ARROW_ANY:  case ONE_ARROW_SOME:  case ONE_ARROW_ONE:  case ONE_ARROW_LONE:
+                if (formula == null) {formula=expression.one();break;}
+                else{formula=expression.one().and(formula); break;}
+            case SOME_ARROW_ANY: case SOME_ARROW_SOME: case SOME_ARROW_ONE: case SOME_ARROW_LONE:
+                if (formula == null) {formula=expression.some();break;}
+                else{formula=expression.some().and(formula); break;}
+        }
+        if (formula != null) formula=formula.forAll(d2);
+        return formula;
+    }
+
+    /*
+    * given ' -> mult expression' and a declaration this function returns a kk formula with 'Declaration | mult expresion' if
+    * the formula 'temp' is not null.
+    *
+    * */
+    private Formula createFormulaWithRightMultiplicity(Expression expression,Formula formula,ExprBinary ab,Decls d2){
+        switch(ab.op) {
+            case ISSEQ_ARROW_LONE:
+            case ANY_ARROW_LONE: case SOME_ARROW_LONE: case ONE_ARROW_LONE: case LONE_ARROW_LONE:
+                if (formula == null) {formula=expression.lone();break;}
+                else{formula=expression.lone().and(formula); break;}
+            case ANY_ARROW_ONE:  case SOME_ARROW_ONE:  case ONE_ARROW_ONE:  case LONE_ARROW_ONE:
+                if (formula == null) {formula=expression.one();break;}
+                else{formula=expression.one().and(formula); break;}
+            case ANY_ARROW_SOME: case SOME_ARROW_SOME: case ONE_ARROW_SOME: case LONE_ARROW_SOME:
+                if (formula == null) {formula=expression.some();break;}
+                else{formula=expression.some().and(formula); break;}
+        }
+        if (formula != null) formula=formula.forAll(d2);
+        return formula;
+    }
+
+
+    /*
+    * function responsible for constraint a relation's typing
+    *
+    * sig A {r : D} :toKK: always(r in A -> D)
+    *
+    * */
+    private Formula typing(Expr type, Sig s, Field f) throws Err {
+        Expression relTokk = frame.cset(f);
+        return relTokk.in(frame.cset(s).product(frame.cset(type)));
+    }
+
+    public static void p(String s) {
+        System.out.println(s);
+    }
+
+
+}
+
