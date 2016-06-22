@@ -25,42 +25,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import kodkod.ast.BinaryExpression;
-import kodkod.ast.BinaryFormula;
-import kodkod.ast.BinaryIntExpression;
-import kodkod.ast.BinaryTempFormula;
-import kodkod.ast.ComparisonFormula;
-import kodkod.ast.Comprehension;
-import kodkod.ast.ConstantExpression;
-import kodkod.ast.ConstantFormula;
-import kodkod.ast.Decl;
-import kodkod.ast.Decls;
-import kodkod.ast.ExprToIntCast;
-import kodkod.ast.Expression;
-import kodkod.ast.Formula;
-import kodkod.ast.IfExpression;
-import kodkod.ast.IfIntExpression;
-import kodkod.ast.IntComparisonFormula;
-import kodkod.ast.IntConstant;
-import kodkod.ast.IntExpression;
-import kodkod.ast.IntToExprCast;
-import kodkod.ast.MultiplicityFormula;
-import kodkod.ast.NaryExpression;
-import kodkod.ast.NaryFormula;
-import kodkod.ast.NaryIntExpression;
-import kodkod.ast.Node;
-import kodkod.ast.NotFormula;
-import kodkod.ast.ProjectExpression;
-import kodkod.ast.QuantifiedFormula;
-import kodkod.ast.Relation;
-import kodkod.ast.RelationPredicate;
+import kodkod.ast.*;
 import kodkod.ast.RelationPredicate.Function;
-import kodkod.ast.SumExpression;
-import kodkod.ast.TempExpression;
-import kodkod.ast.UnaryExpression;
-import kodkod.ast.UnaryIntExpression;
-import kodkod.ast.UnaryTempFormula;
-import kodkod.ast.Variable;
 import kodkod.ast.visitor.ReturnVisitor;
 import kodkod.ast.visitor.VoidVisitor;
 import kodkod.instance.Bounds;
@@ -68,6 +34,8 @@ import kodkod.instance.Tuple;
 import kodkod.instance.TupleSet;
 import kodkod.util.ints.IndexedEntry;
 import kodkod.util.nodes.PrettyPrinter;
+
+
 
 /** Translate a Kodkod formula node to an equivalent Java program that solves the formula.
  *
@@ -217,10 +185,12 @@ public final class TranslateKodkodToJava implements VoidVisitor {
 		for(Relation r:bounds.relations()) {
 			String name=makename(r);
 			int a=r.arity();
+			String relationType = "Relation";
+			if (r instanceof VarRelation) relationType = "VarRelation";
 			if (a==1)
-				file.printf("Relation %s = Relation.unary(\"%s\");%n", name, r.name());
+				file.printf(relationType + " %s = " + relationType + ".unary(\"%s\");%n", name, r.name());
 			else
-				file.printf("Relation %s = Relation.nary(\"%s\", %d);%n", name, r.name(), a);
+				file.printf(relationType + " %s = " + relationType + ".nary(\"%s\", %d);%n", name, r.name(), a);
 		}
 		file.printf("%nList<String> atomlist = Arrays.asList(%n");
 		int j=(-1);
@@ -642,19 +612,42 @@ public final class TranslateKodkodToJava implements VoidVisitor {
 
 	@Override
 	// pt.uminho.haslab: temporal nodes
-	public void visit(UnaryTempFormula temporalFormula) { 
-		throw new UnsupportedOperationException("Temporal Kodkod");
+	public void visit(UnaryTempFormula temporalFormula) {
+		String newname = makename(temporalFormula);
+		if (newname == null) return;
+		String sub = make(temporalFormula.formula());
+		switch (temporalFormula.op()) {
+			case ALWAYS: file.printf("Formula %s=%s.always();%n", newname, sub); break;
+			case EVENTUALLY: file.printf("Formula %s=%s.eventually();%n", newname, sub); break;
+			case HISTORICALLY: file.printf("Formula %s=%s.historically();%n", newname, sub); break;
+			case ONCE: file.printf("Formula %s=%s.once();%n", newname, sub); break;
+			case PREVIOUS: file.printf("Formula %s=%s.previous();%n", newname, sub); break;
+			case NEXT: file.printf("Formula %s=%s.next();%n", newname, sub); break;
+			default: throw new RuntimeException("Unknown temporal kodkod operator \""+temporalFormula.op()+"\" encountered");
+		}
 	}
 
 	@Override
 	// pt.uminho.haslab: temporal nodes
 	public void visit(BinaryTempFormula temporalFormula) {
-		throw new UnsupportedOperationException("Temporal Kodkod");
+		String newname=makename(temporalFormula); if (newname==null) return;
+		String left=make(temporalFormula.left());
+		String right=make(temporalFormula.right());
+		switch(temporalFormula.op()) {
+			case RELEASE: file.printf("Expression %s=%s.release(%s);%n", newname, left, right); break;
+			case UNTIL: file.printf("Expression %s=%s.until(%s);%n", newname, left, right); break;
+			default: throw new RuntimeException("Unknown temporal kodkod operator \""+temporalFormula.op()+"\" encountered");
+		}
 	}
 
 	@Override
 	// pt.uminho.haslab: temporal nodes
 	public void visit(TempExpression temporalExpr) {
-		throw new UnsupportedOperationException("Temporal Kodkod");
+		String newname=makename(temporalExpr); if (newname==null) return;
+		String sub=make(temporalExpr.expression());
+		switch(temporalExpr.op()) {
+			case POST:file.printf("Formula %s=%s.post();%n", newname, sub);break;
+			default:throw new RuntimeException("Unknown temporal kodkod operator \"" + temporalExpr.op() + "\" encountered");
+		}
 	}
 }
