@@ -168,11 +168,38 @@ public final class TranslateAlloyToKodkod extends VisitReturn<Object> {
                 frame.addFormula(expression.post().eq(expression).always(),s);
             }
 
+
+            //the next block of code handles the hierarchy of the signatures
+            Formula hierarchy = null;
             //get subsignatures (if exist) of s
             List list = frame.getSubSigs(s);
             if (list != null) {
-                Formula f = this.getAllExpressionsCombination(list);
-                if (f != null) frame.addFormula(f.always(),s);
+                // ex: hierarchy = no (A & B)
+                hierarchy = this.getAllExpressionsCombination(list);
+
+                // get the respective kk relation if there exists.
+                // Just the not abstract signatures have it
+                Expression relation = frame.getKKRelationGivenaSig(s);
+                if (relation != null) {
+                    if (hierarchy == null){
+                        //the case where we have for instance:
+                        //sig A
+                        //sig a1 extends A{}
+                        //hierarchy = a1 in A
+                        hierarchy = this.getUnionOfSubSignatures(list).in(relation);
+                    }
+                    else{
+                        //the case where we have for instance:
+                        //sig A
+                        //sig a1,a2 extends A{}
+                        //hierarchy = (a1 + a2) in A and no (a1 & a2)
+                        hierarchy = this.getUnionOfSubSignatures(list).in(relation).and(hierarchy);
+                    }
+                    frame.addFormula(hierarchy.always(),s);
+                }else{
+                    //if the signature is abstract and has at least two sub-sigs (ex : no (X & Y))
+                    if (hierarchy != null) frame.addFormula(hierarchy.always(),s);
+                }
             }
 
             for(Decl d: s.getFieldDecls()) {

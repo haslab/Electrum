@@ -130,7 +130,7 @@ final class BoundsComputer {
             }
 
             //new...
-            //create a kk relation and a map between a certain sig and its subsigs.
+            //creates a map between a certain sig and its subsigs.
             sol.addSubSignatures(sig,listOfSubSings);
         }
 
@@ -149,7 +149,12 @@ final class BoundsComputer {
               lower.removeAll(childTS);
               upper.removeAll(childTS);
            }
-            sum = sum.union(sol.addRel(sig.label+" remainder", lower, upper,sig));
+            Expression relation = sol.addRel(sig.label+" remainder", lower, upper,sig);
+            sum = sum.union(relation);
+
+            //new
+            // add the respective kk relation of sig to the list. It's a map between the sig and its kk relation
+            sol.addKKRelToSig(sig, (Relation) relation);
         }
         sol.addSig(sig, sum);
         return sum;

@@ -200,6 +200,10 @@ public final class A4Solution {
 	/** The map from each Sig to its sub signatures. *///new
 	private Map<Sig,List<Expression>> subSigstoGivenaSig;
 
+	/** The map from each Sig to its kodkod relation. *///new
+	private Map<Sig,Relation> sigToKKRelation;
+
+
 	/** The map from each String literal to its corresponding Kodkod expression. */
 	private final ConstMap<String,Expression> s2k;
 
@@ -238,6 +242,7 @@ public final class A4Solution {
 		this.bitwidth = bitwidth;
 		this.maxseq = maxseq;
 		this.subSigstoGivenaSig = new LinkedHashMap<Sig, List<Expression>>();//new
+		this.sigToKKRelation = new LinkedHashMap<Sig, Relation>();//new
 //		this.time = time;   //pt.uminho.haslab: time scopes handled by options
 //		this.loop = loop;   //pt.uminho.haslab: time scopes handled by options
 		if (bitwidth < 0)   throw new ErrorSyntax("Cannot specify a bitwidth less than 0");
@@ -358,6 +363,7 @@ public final class A4Solution {
 		stringBounds = old.stringBounds;
 		solver = old.solver;
 		subSigstoGivenaSig = old.subSigstoGivenaSig;//new
+		sigToKKRelation = old.sigToKKRelation;//new
 		bounds = old.bounds;
 		formulas = old.formulas;
 		sigs = old.sigs;
@@ -509,14 +515,27 @@ public final class A4Solution {
 	}
 
 
+	//add a list of an kk expression of a sig
 	 void addSubSignatures(Sig s, List<Expression> list) throws ErrorFatal {
 		this.subSigstoGivenaSig.put(s, list);
-	}
+	 }
 
+	//returns a list of expression given a signature
 	public List getSubSigs(Sig s){
 		if (this.subSigstoGivenaSig.containsKey(s)) return this.subSigstoGivenaSig.get(s);
 		return null;
+	}//add a list of an kk expression of a sig
+
+	 void addKKRelToSig(Sig s, Relation rel) throws ErrorFatal {
+		this.sigToKKRelation.put(s, rel);
+	 }
+
+	//returns a list of expression given a signature
+	public Expression getKKRelationGivenaSig(Sig s){
+		if (this.sigToKKRelation.containsKey(s)) return this.sigToKKRelation.get(s);
+		return null;
 	}
+
 
 
 	/** Returns an unmodifiable copy of the map from each Sig/Field/Skolem/Atom to its corresponding Kodkod expression. */
