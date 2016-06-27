@@ -20,6 +20,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import edu.mit.csail.sdg.alloy4compiler.ast.*;
 import kodkod.ast.Decls;
 import kodkod.ast.Expression;
 import kodkod.ast.Formula;
@@ -32,16 +33,9 @@ import kodkod.instance.Universe;
 import edu.mit.csail.sdg.alloy4.A4Reporter;
 import edu.mit.csail.sdg.alloy4.Err;
 import edu.mit.csail.sdg.alloy4.Pos;
-import edu.mit.csail.sdg.alloy4compiler.ast.Expr;
-import edu.mit.csail.sdg.alloy4compiler.ast.ExprBinary;
-import edu.mit.csail.sdg.alloy4compiler.ast.ExprConstant;
-import edu.mit.csail.sdg.alloy4compiler.ast.ExprList;
-import edu.mit.csail.sdg.alloy4compiler.ast.ExprUnary;
-import edu.mit.csail.sdg.alloy4compiler.ast.Sig;
 import edu.mit.csail.sdg.alloy4compiler.ast.Sig.Field;
 import edu.mit.csail.sdg.alloy4compiler.ast.Sig.PrimSig;
 import edu.mit.csail.sdg.alloy4compiler.ast.Sig.SubsetSig;
-import edu.mit.csail.sdg.alloy4compiler.ast.Type;
 
 /** Immutable; this class assigns each sig and field to some Kodkod relation or expression, then set the bounds. */
 
@@ -278,9 +272,9 @@ final class BoundsComputer {
                  nextTS.addAll(me.product(lastTS).product(TS));
                  lastTS=TS;
               }
-              if (firstTS.size()!=(n>0 ? 1 : 0) || nextTS.size() != n-1) break;
-              sol.addField(f1, sol.addRel(s.label+"."+f1.label, firstTS, firstTS,s));
-              sol.addField(f2, sol.addRel(s.label+"."+f2.label, nextTS, nextTS,s));
+               if (firstTS.size()!=(n>0 ? 1 : 0) || nextTS.size() != n-1) break;
+              sol.addField(f1, sol.addRel(s.label+"."+f1.label, firstTS, firstTS,f1));
+              sol.addField(f2, sol.addRel(s.label+"."+f2.label, nextTS, nextTS,f2));
               rep.bound("Field "+s.label+"."+f1.label+" == "+firstTS+"\n");
               rep.bound("Field "+s.label+"."+f2.label+" == "+nextTS+"\n");
               continue again;
@@ -305,7 +299,7 @@ final class BoundsComputer {
                  }
                  ub.addAll(upper);
               }
-              Relation r = sol.addRel(s.label+"."+f.label, null, ub,s);
+               Relation r = sol.addRel(s.label+"."+f.label, null, ub,f);
               sol.addField(f, isOne ? sol.a2k(s).product(r) : r);
            }
         }
@@ -337,6 +331,10 @@ final class BoundsComputer {
                 sol.addFormula(size(s,n,false), Pos.UNKNOWN);
             }
         }
+    }
+
+    public void p(String s){
+        System.out.println(s);
     }
 
     //==============================================================================================================//

@@ -459,12 +459,20 @@ public final class A4Solution {
 	 * @param lower - the lowerbound; can be null if you want it to be the empty set
 	 * @param upper - the upperbound; cannot be null; must contain everything in lowerbound
 	 */
-	Relation addRel(String label, TupleSet lower, TupleSet upper, Sig s) throws ErrorFatal {
+	Relation addRel(String label, TupleSet lower, TupleSet upper, Expr expr) throws ErrorFatal {
 		if (solved) throw new ErrorFatal("Cannot add a Kodkod relation since solve() has completed.");
 		Relation rel;
-		if (s != null && s.isVariable != null){rel = VarRelation.nary(label, upper.arity());}
-		else{rel = Relation.nary(label, upper.arity());}
-
+		if (expr instanceof  Field){
+			if (((Field) expr).isVariable != null){rel = VarRelation.nary(label, upper.arity());}
+			else{rel = Relation.nary(label, upper.arity());}
+		}  else {
+			if (expr instanceof  Sig){
+				if (((Sig) expr).isVariable != null){rel = VarRelation.nary(label, upper.arity());}
+				else{rel = Relation.nary(label, upper.arity());}
+			}else{
+				rel = Relation.nary(label, upper.arity());
+			}
+		}
 		if (lower == upper) {
 			bounds.boundExactly(rel, upper);
 		} else if (lower == null) {
