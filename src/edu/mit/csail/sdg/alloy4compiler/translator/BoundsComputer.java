@@ -181,7 +181,8 @@ final class BoundsComputer {
         Relation r = sol.addRel(sig.label, null, ts, sig);
         sol.addSig(sig, r);
         // Add a constraint that it is INDEED a subset of the union of its parents
-        sol.addFormula(r.in(sum), sig.isSubset);
+        // modified  : if A in B then G (A in B)
+        sol.addFormula(r.in(sum).always(), sig.isSubset);
         return r;
     }
 
@@ -336,7 +337,6 @@ final class BoundsComputer {
                 sol.addFormula(size(s,n,false), Pos.UNKNOWN);
             }
         }
-        //System.out.println("LALALAL "+sol.a2k().toString());
     }
 
     //==============================================================================================================//

@@ -62,7 +62,7 @@ public final class TranslateAlloyToKodkod extends VisitReturn<Object> {
     private final List<Func> current_function = new ArrayList<Func>();
 
     /** This maps the current local variables (LET, QUANT, Function Param) to the actual Kodkod Expression/IntExpression/Formula. */
-    private Env<ExprVar,Object> env = new Env<ExprVar,Object>();
+    public Env<ExprVar,Object> env = new Env<ExprVar,Object>();
 
     /** If frame!=null, it stores the scope, bounds, and other settings necessary for performing a solve. */
     private final A4Solution frame;
@@ -154,6 +154,7 @@ public final class TranslateAlloyToKodkod extends VisitReturn<Object> {
     /** Stores the list of "totalOrder predicates" that we constructed. */
     private final List<Relation> totalOrderPredicates = new ArrayList<Relation>();
 
+    Expression expression = null;
     /** Conjoin the constraints for "field declarations" and "fact" paragraphs */
     private void makeFacts(Expr facts) throws Err {
         rep.debug("Generating facts...\n");
@@ -165,6 +166,7 @@ public final class TranslateAlloyToKodkod extends VisitReturn<Object> {
             // if a signature s is not  temporal a formula always(s' = s) is created. Contants (s.attibutes = []) not considered (String,Int....)
             if (s.isVariable == null && s.attributes.size()>0) {
                 Expression expression = a2k(s);
+                p("FORMULA: "+expression.post().eq(expression).always().toString()+"\n\n");
                 frame.addFormula(expression.post().eq(expression).always(),s);
             }
 
@@ -196,9 +198,10 @@ public final class TranslateAlloyToKodkod extends VisitReturn<Object> {
                         hierarchy = this.getUnionOfSubSignatures(list).in(relation).and(hierarchy);
                     }
                     frame.addFormula(hierarchy.always(),s);
+                    p("FORMULA: "+hierarchy.always().toString()+"\n\n");
                 }else{
                     //if the signature is abstract and has at least two sub-sigs (ex : no (X & Y))
-                    if (hierarchy != null) frame.addFormula(hierarchy.always(),s);
+                    if (hierarchy != null) p("FORMULA: "+hierarchy.always().toString()+"\n\n");frame.addFormula(hierarchy.always(),s);
                 }
             }
 
@@ -206,18 +209,18 @@ public final class TranslateAlloyToKodkod extends VisitReturn<Object> {
                 k2pos_enabled = false;
                 for(ExprHasName n: d.names) {
                     Field f = (Field)n;
-
-                    //handles the multiplicity and the typing of 's' and 'f'
                     Multiplicity multiplicity =  new Multiplicity(this,f,s,d.expr);
-                    if (multiplicity.finalFormula != null)  frame.addFormula(multiplicity.finalFormula,f);
-
+                    if (multiplicity.finalFormula != null) {
+                        p("FORMULA: "+multiplicity.finalFormula.toString()+"\n\n");
+                        frame.addFormula(multiplicity.finalFormula,f);
+                    }
                     // Given the above, we can be sure that every column is well-bounded (except possibly the first column).
                     // Thus, we need to add a bound that the first column is a subset of s.
-                    if (s.isOne==null) {
+                  /*  if (s.isOne==null) {
                         Expression sr = a2k(s), fr = a2k(f);
                         for(int i=f.type().arity(); i>1; i--) fr=fr.join(Relation.UNIV);
                         frame.addFormula(fr.in(sr).always(), f);
-                    }
+                    }*/
                 }
                 if (s.isOne==null && d.disjoint2!=null) for(ExprHasName f: d.names) {
                     Decl that = s.oneOf("that");
@@ -229,6 +232,7 @@ public final class TranslateAlloyToKodkod extends VisitReturn<Object> {
             k2pos_enabled = true;
             for(Expr f: s.getFacts()) {
                 Expr form = s.isOne==null ? f.forAll(s.decl) : ExprLet.make(null, (ExprVar)(s.decl.get()), s, f);
+                p("FORMULA: "+cform(form).always().toString()+"\n\n");
                 frame.addFormula(cform(form).always(), f);
             }
         }
@@ -599,7 +603,7 @@ public final class TranslateAlloyToKodkod extends VisitReturn<Object> {
     /** Given a variable name "name", prepend the current function name to form a meaningful "skolem name".
      * (Note: this function does NOT, and need NOT guarantee that the name it generates is unique)
      */
-    private String skolem(String name) {
+    public String skolem(String name) {
         if (current_function.size()==0) {
             if (cmd!=null && cmd.label.length()>0 && cmd.label.indexOf('$')<0) return cmd.label+"_"+name; else return name;
         }
@@ -951,6 +955,7 @@ public final class TranslateAlloyToKodkod extends VisitReturn<Object> {
           // Handles possible "binary" or higher-arity multiplicity
           return isInBinary(a, (ExprBinary)right);
        }
+        this.expression = cset(right);
         switch(right.mult()) {
                 case EXACTLYOF: b=cset(right); return a.eq(b);
                 case ONEOF:     b=cset(right); return a.one().and(a.in(b));
@@ -1039,7 +1044,7 @@ public final class TranslateAlloyToKodkod extends VisitReturn<Object> {
     /*===========================*/
 
     /** Adds a "one of" in front of X if X is unary and does not have a declared multiplicity. */
-    private static Expr addOne(Expr x) {
+    public static Expr addOne(Expr x) {
         Expr save = x;
         while(x instanceof ExprUnary) {
             switch(((ExprUnary)x).op) {
@@ -1086,9 +1091,12 @@ public final class TranslateAlloyToKodkod extends VisitReturn<Object> {
       Decls dd = null;
       List<Formula> guards = new ArrayList<Formula>();
       for(Decl dep: xvars) {
+          p("decl: " + dep.expr.toString());
         final Expr dexexpr = addOne(dep.expr);
         final Expression dv = cset(dexexpr);
+          p("dexexpr : "+dexexpr.toString()+"\t\tdv "+dv.toString()+"\tname: "+dep.names.toString());
         for(ExprHasName dex: dep.names) {
+            p("arity: "+dex.type().arity());
            final Variable v = Variable.nary(skolem(dex.label), dex.type().arity());
            final kodkod.ast.Decl newd;
            env.put((ExprVar)dex, v);
@@ -1168,9 +1176,8 @@ public final class TranslateAlloyToKodkod extends VisitReturn<Object> {
 }
 
 
-
 class Multiplicity extends VisitQuery<Formula> {
-    private Field f;
+    private Field ff;
     private Expr range;
     private final TranslateAlloyToKodkod frame;
     private Expression field;
@@ -1184,48 +1191,43 @@ class Multiplicity extends VisitQuery<Formula> {
     public Multiplicity(TranslateAlloyToKodkod a4Solution, Field f, Sig domain, Expr range) throws Err {
         this.range = range;
         this.frame = a4Solution;
-        this.f = f;
+        this.ff = f;
         this.s = domain;
 
         this.field = frame.cset(f);
         this.domain = frame.cset(domain);
 
         this.multiplicityExpression = domain.decl.get().join(f).in(range);
-        this.multiplicityExpression = domain.isOne==null ? this.multiplicityExpression.forAll(domain.decl) : ExprLet.make(null, (ExprVar)(domain.decl.get()), domain, this.multiplicityExpression);
         this.finalFormula = this.convert();
     }
 
     public Formula convert() throws Err {
+        kodkod.ast.Decl decl = null;
+        if (this.s.isOne == null) decl = this.addQuantification(s); //add quantification to variable this.
+        else frame.env.put((ExprVar)s.decl.get(), frame.visitThis(s.decl.expr)); // is one sig A{x : B} , so : this = A
+
         Formula multiplicityFormula = this.multiplicityExpression.accept(this);
-        Formula typingFormula = this.typing(range,s,f);
-        if (multiplicityFormula != null) {return typingFormula.always().and(multiplicityFormula.always());}
-        else {return typingFormula.always();}
+        frame.env.remove((ExprVar)s.decl.get()); //remove the environment variable
+        Formula typingFormula = this.typing(range,s,ff);
+           if (multiplicityFormula != null) {
+               Formula finalF = null;
+               if (decl == null) finalF = typingFormula.always().and(multiplicityFormula.always()); //if is "one sig A.."
+               else finalF = typingFormula.always().and(multiplicityFormula.forAll(decl).always()); //if is not one
+               return finalF;
+           }
+           else {return typingFormula.always();}
     }
 
     @Override
     public Formula visit(ExprUnary x) throws Err {
-        Formula formula = null;
-        Variable v = Variable.unary("V");
-        if (s.isOne != null) {
-            formula = isIn(frame.cset(s).join(field), range);}
-        else {
-            Formula f = isIn(v.join(field), range);
-            if (f != null) formula = f.forAll(v.oneOf(domain));
-        }
+        Formula formula = isIn(frame.cset(s).join(field), range);
         if (formula != null) return frame.k2pos(formula, x);
         return null;
     }
 
     @Override
     public Formula visit(ExprBinary x) throws Err {
-        Formula formula = null;
-        Variable v = Variable.unary("V");
-        if (s.isOne != null) {
-            formula = isIn(frame.cset(s).join(field), range);}
-        else {
-            Formula f = isIn(v.join(field), range);
-            if (f != null) formula = f.forAll(v.oneOf(domain));
-           }
+        Formula formula = isIn(frame.cset(x.left), x.right);
         if (formula != null) return frame.k2pos(formula, x);
         return null;
     }
@@ -1237,26 +1239,23 @@ class Multiplicity extends VisitQuery<Formula> {
         Expression b;
         if (right instanceof ExprBinary && right.mult != 0 && ((ExprBinary) right).op.isArrow) {
             // Handles possible "binary" or higher-arity multiplicity
-            return isBinary(a, (ExprBinary) right);
+            return isBinaryTest(a, (ExprBinary) right);
         }
         switch (right.mult()) {
             case EXACTLYOF:
                 b = frame.cset(right);
                 return a.eq(b);
             case ONEOF:
-                b = frame.cset(right);
                 return a.one();
             case LONEOF:
-                b = frame.cset(right);
                 return a.lone();
             case SOMEOF:
-                b = frame.cset(right);
                 return a.some();
             default: return null;
         }
     }
 
-    private Formula isBinary(Expression r, ExprBinary ab) throws Err {
+    private Formula isBinaryTest(Expression r, ExprBinary ab) throws Err {
         final Expression a=frame.cset(ab.left), b=frame.cset(ab.right);
         Decls d=null, d2=null;
         Formula ans1 = null, ans2 = null;
@@ -1350,10 +1349,38 @@ class Multiplicity extends VisitQuery<Formula> {
     *
     * sig A {r : D} :toKK: always(r in A -> D)
     *
+    * In this function is replaced in the environment structure the variable 'this' by the signature expression.
+    * More precisely,
+    *
+    * Given a sig A {
+    *                  x : B,
+    *                 y : x
+    *               }
+    * Without replace the enenvironment variable the result of typing the relation 'y' would be : y in (A -> this.x).
+    * This happens because  the kodkod expression associated to 'x' is 'this.x'. So, to avoid quantifications of 'this',
+    * 'this' is replaced by the signature expression. In this case is : (y in A -> A.x)
+    *
     * */
     private Formula typing(Expr type, Sig s, Field f) throws Err {
+        frame.env.put((ExprVar)s.decl.get(), frame.visitThis(s.decl.expr));//add variable in the environment
         Expression relTokk = frame.cset(f);
-        return relTokk.in(frame.cset(s).product(frame.cset(type)));
+        Formula fTyping = relTokk.in(frame.cset(s).product(frame.cset(type)));
+        frame.env.remove((ExprVar)s.decl.get()); //remove the environment variable
+        return fTyping;
+    }
+
+
+
+    /*
+    * This function returns a kodkod declaration to quantify a formula.
+    * Besides that, the variable created is added to env (maps the current local variables (LET, QUANT, Function Param) to the actual Kodkod Expression/IntExpression/Formula)
+    * */
+    private kodkod.ast.Decl addQuantification(Sig s) throws Err {
+        final Expr dexexpr = frame.addOne(s.decl.expr);
+        final Expression dv = frame.cset(dexexpr);
+        final Variable v = Variable.nary(frame.skolem(s.decl.names.get(0).label), s.decl.names.get(0).type().arity());//p("arity: " + s.decl.names.get(0).type().arity()+"\t\tV: "+v.toString());
+        frame.env.put((ExprVar) s.decl.names.get(0), v);
+         return  v.oneOf(dv);
     }
 
     public static void p(String s) {
@@ -1363,3 +1390,7 @@ class Multiplicity extends VisitQuery<Formula> {
 
 }
 
+
+//  sig A in B ::= G (A in b) (adicionei na parte de preencher a estrutura de dados)
+// one sig A (segui o alloy analyzer -- this = A)
+// mantive o sig.getFacts()
