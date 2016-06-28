@@ -1091,12 +1091,9 @@ public final class TranslateAlloyToKodkod extends VisitReturn<Object> {
       Decls dd = null;
       List<Formula> guards = new ArrayList<Formula>();
       for(Decl dep: xvars) {
-          p("decl: " + dep.expr.toString());
         final Expr dexexpr = addOne(dep.expr);
         final Expression dv = cset(dexexpr);
-          p("dexexpr : "+dexexpr.toString()+"\t\tdv "+dv.toString()+"\tname: "+dep.names.toString());
         for(ExprHasName dex: dep.names) {
-            p("arity: "+dex.type().arity());
            final Variable v = Variable.nary(skolem(dex.label), dex.type().arity());
            final kodkod.ast.Decl newd;
            env.put((ExprVar)dex, v);
