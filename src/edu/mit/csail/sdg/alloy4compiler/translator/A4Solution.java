@@ -216,6 +216,9 @@ public final class A4Solution {
 	/** The map from each Kodkod Variable to an Alloy Type and Alloy Pos. */
 	private Map<Variable,Pair<Type,Pos>> decl2type;
 
+	//Outcome of solving a certain problem
+	public Solution.Outcome solvingOutcome;
+
 	//===================================================================================================//
 
 	/** Construct a blank A4Solution containing just UNIV, SIGINT, SEQIDX, STRING, and NONE as its only known sigs.
@@ -310,8 +313,8 @@ public final class A4Solution {
 		int sym = (expected==1 ? 0 : opt.symmetry);
 		solver = new Solver();
 		solver.options().setNoOverflow(opt.noOverflow); // pt.uminho.haslab: propagate options
-		//if (solver.options() instanceof TemporalOptions<?>) // TODO: should be in Solver interface
-			//((TemporalOptions<?>) solver.options()).setMaxTraceLength(opt.maxTraceLength);
+		if (solver.options() instanceof TemporalOptions<?>) // TODO: should be in Solver interface
+			((TemporalOptions<?>) solver.options()).setMaxTraceLength(opt.maxTraceLength);
 //		solver.options().setFlatten(false); // added for now, since multiplication and division circuit takes forever to flatten // pt.uminho.haslab: kodkod 2.0+
 		if (opt.solver.external()!=null) {
 			String ext = opt.solver.external();
@@ -1029,16 +1032,24 @@ public final class A4Solution {
 //		if (solver.options().solver()==SATFactory.ZChaffMincost || !solver.options().solver().incremental()) {
 //			if (sol==null) sol = solver.solve(fgoal, bounds);
 //		} else { // pt.uminho.haslab: kodkod 2.0+
+
 		System.out.println("\n\nFORMULA: \n\n"+fgoal.toString());
+		System.out.println("\n\nBounds: \n\n"+bounds.toString());
 
 
-		// It works after synchronize the temporal kodkod engine (commented for now)
-		/*
+		//temporary.......
+		ExtendedOptions optn = new ExtendedOptions();
+		optn.setSolver(SATFactory.DefaultSAT4J);
+		optn.setMaxTraceLength(10);
+		Solver solver = new Solver(optn);
+		//temporary..........
+
 		kEnumerator = new Peeker<Solution>(solver.solveAll(fgoal, bounds));
 		if (sol==null) sol = kEnumerator.next();
 //		}
 		if (!solved[0]) rep.solve(0, 0, 0);
 		final Instance inst = sol.instance();
+		this.solvingOutcome = sol.outcome();
 		// To ensure no more output during SolutionEnumeration
 		solver.options().setReporter(oldReporter);
 		// If unsatisfiable, then retreive the unsat core if desired
@@ -1065,17 +1076,20 @@ public final class A4Solution {
 				lCore = hCore = null;
 			}
 		}
+
+		//Removed.... error in var relations
 		// If satisfiable, then add/rename the atoms and skolems
-		if (inst!=null) {
-			eval = new Evaluator(inst, solver.options());
-			rename(this, null, null, new UniqueNameGenerator());
-		}
+		//if (inst!=null) {
+		//	eval = new Evaluator(inst, solver.options());
+		//		rename(this, null, null, new UniqueNameGenerator());
+		//	}
+
 		// report the result
 		solved();
 		time = System.currentTimeMillis() - time;
 
 		if (inst!=null) rep.resultSAT(cmd, time, this); else rep.resultUNSAT(cmd, time, this);
-		*/
+
 		return this;
 	}
 

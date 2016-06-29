@@ -204,8 +204,6 @@ public final class CompModule extends Browsable implements Module {
 
 		/** Resolve the given name to get a collection of Expr and Func objects. */
 		public Expr resolve(final Pos pos, final String name) {
-
-			//    	 System.out.println("Resolving: "+name);
 			if (name.indexOf('/') >= 0) {
 				String n = name.startsWith("this/") ? name.substring(5) : name;
 				CompModule mod = rootmodule;

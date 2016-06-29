@@ -1,0 +1,187 @@
+module Lift
+open util/ordering[Floor]
+
+abstract sig Feature {}
+one sig FEmpty, FThird, FOverload, FIdle, FExecutive, FPark extends Feature {}
+sig Product in Feature {}
+
+fact {
+  FIdle + FExecutive not in Product
+}
+
+abstract sig Load {}
+one sig Empty, Normal, Third, Overload extends Load {}
+
+sig Floor {}
+var one sig current in Floor {}
+var one sig load in Load {}
+var lone sig Open {}
+var lone sig Up {}
+
+abstract sig Button {
+  floor : one Floor
+}
+
+fact {
+  all f:Floor | one b:LandingButton | b.floor = f
+  all f:Floor | one b:LiftButton | b.floor = f
+}
+
+abstract sig LandingButton, LiftButton extends Button {}
+one sig LaB1, LaB2, LaB3 extends LandingButton {}
+one sig LiB1, LiB2, LiB3 extends LiftButton {}
+
+var sig Pressed in Button {}
+var sig Pressing in Button {}
+
+pred Idle[bs : set Button] {
+	no bs & Pressed
+	no Open
+	load = load'
+	Pressed' = Pressed + bs
+	(load = Empty && FEmpty in Product) => no bs&LiftButton
+
+	idle
+
+	FPark in Product => current' = parkLift
+							  else current' = current
+
+	some Open' iff some Open
+	some Up' iff some Up
+}
+
+pred Move[bs : set Button] {
+	no bs & Pressed
+	no Open
+	load = load'
+	Pressed' = Pressed + bs
+	(load = Empty && FEmpty in Product) => no bs&LiftButton
+
+  some LiftCall + LandingCall
+
+  current' = moveLift
+  some Open' iff after { willOpen }
+
+  some Up' iff some Up
+}
+
+pred ChangeDir[bs : set Button] {
+	no bs & Pressed
+	no Open
+	load = load'
+	Pressed' = Pressed + bs
+        {(load = Empty && FEmpty in Product) implies no (bs & LiftButton)}
+        not idle
+        no LiftCall + LandingCall
+
+        not ( some Up' iff some Up )
+
+        some Open' iff some Open
+        current =  current'
+}
+
+pred OpenedEvent[bs : set Button] {
+	no bs & Pressed
+	no bs & floor.(current)
+
+	some Open
+	Up' = Up
+	current' = current
+
+	after { ((Overload in load && FOverload in Product) || (FIdle in Product && idle)) => some Open else no Open }
+
+	(Pressed-(((Empty in load' && FEmpty in Product) => LiftButton else none)))-floor.(current) + bs = Pressed'
+}
+
+pred willOpen[] {
+	 (current in (LiftCall + LandingCall) || (FIdle in Product && idle))
+}
+
+fun moveLift[] : lone Floor {
+  (current != max[Floor] && some Up) => next[current] else
+  ((current != min[Floor] && no Up) => prev[current] else
+  current)
+}
+
+fun parkLift[] : lone Floor {
+    current != min[Floor] => prev[current] else current
+}
+
+// the next lift landing button in the current direction
+fun LiftCall [] : set Floor {
+	(FExecutive in Product && last in Pressed.floor) => last&nextFloors else
+	calledFloors[LiftButton]&nextFloors
+}
+
+// the next pressed landing button in the current direction
+fun LandingCall[] : set Floor {
+	(FExecutive in Product && last in Pressed.floor) => last&nextFloors else
+	((Third = load && FThird in Product && some LiftButton&Pressed) => none else
+	calledFloors[LandingButton]&nextFloors)
+}
+
+// the subset of bs that is currently pressed
+fun calledFloors[bs : set Button] : set Floor {
+	(bs&Pressed).floor
+}
+
+// succeeding floors in the current direction
+fun nextFloors[] : set Floor {
+	(some Up) => nextFloorsUp
+                   else nextFloorsDown
+}
+
+fun nextFloorsUp[] : set Floor {
+  (current).*next
+}
+
+fun nextFloorsDown[] : set Floor {
+  (current).*prev
+}
+
+pred idle [] {
+  no Pressed
+}
+
+pred init[] {
+  current = first
+  some Open
+  some Up
+  load = Normal
+  no Pressed
+}
+
+fact Trace {
+  init
+  always { Idle[Pressing] || Move[Pressing] || ChangeDir[Pressing] || OpenedEvent[Pressing] }
+}
+
+pred prop1 {
+  always { all f : Floor | (some b:LandingButton | b.floor=f and b in Pressed) =>
+    eventually { current = f && some Open } }
+}
+pred prop2 {
+  always { all f : Floor | (some b:LiftButton | b.floor=f and b in Pressed) =>
+    eventually { current = f && some Open } }
+}
+
+//B1: check {no Product => prop1} for 1 but 20 Time,  exactly 3 Floor,  exactly 6 Button
+//E1: check {Product = FEmpty => prop1} for 1 but 9 Time,  exactly 3 Floor, exactly 6 Button
+//O1: check {Product = FOverload => prop1} for 1 but 5 Time,  exactly 3 Floor, exactly 6 Button
+//T1: check {Product = FThird => prop1} for 1 but 9 Time,  exactly 3 Floor,  exactly 6 Button
+I1: check {Product = FIdle => prop1} for 1 but 20 Time,  exactly 3 Floor,  exactly 6 Button
+//X1: check {Product = FExecutive => prop1} for 1 but 9 Time, exactly 3 Floor, exactly 6 Button
+////P1: check {Product = FPark => prop1} for 1 but 9 Time,  exactly 3 Floor,  exactly 6 Button
+//EO1: check {Product = FEmpty + FOverload => prop1} for 1 but 9 Time,  exactly 3 Floor,  exactly 6 Button
+A1: check {prop1} for 1 but 20 Time,  exactly 3 Floor,  exactly 6 Button
+
+
+/*B2: check {no Product => prop2} for 1 but 9 Time,  3 Floor, 6 Button
+E2: check {Product = FEmpty => prop2} for 1 but 9 Time,  3 Floor, 6 Button
+O2: check {Product = FOverload => prop2} for 1 but 9 Time,  3 Floor, 6 Button
+T2: check {Product = FThird => prop2} for 1 but 9 Time,  3 Floor, 6 Button
+I2: check {Product = FIdle => prop2} for 1 but 9 Time,  3 Floor, 6 Button
+X2: check {Product = FExecutive => prop2} for 1 but 9 Time,  3 Floor, 6 Button
+P2: check {Product = FPark => prop2} for 1 but 9 Time,  3 Floor, 6 Button
+EO2: check {Product = FEmpty + FOverload => prop2} for 1 but 9 Time,  3 Floor, 6 Button
+A2: check {prop2} for 1 but 9 Time,  3 Floor, 6 Button */

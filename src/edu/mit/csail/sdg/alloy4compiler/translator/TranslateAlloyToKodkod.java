@@ -25,11 +25,8 @@ import edu.mit.csail.sdg.alloy4compiler.ast.*;
 import edu.mit.csail.sdg.alloy4compiler.ast.Decl;
 import kodkod.ast.*;
 import kodkod.ast.operator.ExprOperator;
-import kodkod.ast.visitor.AbstractDetector;
 import kodkod.engine.CapacityExceededException;
 import kodkod.engine.fol2sat.HigherOrderDeclException;
-import kodkod.engine.ltl2fol.AddTimeToFormula;
-import kodkod.engine.ltl2fol.TemporalFormulaExtension;
 import kodkod.instance.Tuple;
 import kodkod.instance.TupleFactory;
 import kodkod.instance.TupleSet;
@@ -209,7 +206,7 @@ public final class TranslateAlloyToKodkod extends VisitReturn<Object> {
                 k2pos_enabled = false;
                 for(ExprHasName n: d.names) {
                     Field f = (Field)n;
-                    Multiplicity multiplicity =  new Multiplicity(this,f,s,d.expr);
+                    MultiplicityAndTyping multiplicity =  new MultiplicityAndTyping(this,f,s,d.expr);
                     if (multiplicity.finalFormula != null) {
                         p("FORMULA: "+multiplicity.finalFormula.toString()+"\n\n");
                         frame.addFormula(multiplicity.finalFormula,f);
@@ -1173,7 +1170,7 @@ public final class TranslateAlloyToKodkod extends VisitReturn<Object> {
 }
 
 
-class Multiplicity extends VisitQuery<Formula> {
+class MultiplicityAndTyping extends VisitQuery<Formula> {
     private Field ff;
     private Expr range;
     private final TranslateAlloyToKodkod frame;
@@ -1185,9 +1182,9 @@ class Multiplicity extends VisitQuery<Formula> {
     public Formula finalFormula;
 
 
-    public Multiplicity(TranslateAlloyToKodkod a4Solution, Field f, Sig domain, Expr range) throws Err {
+    public MultiplicityAndTyping(TranslateAlloyToKodkod alloyToKodkod, Field f, Sig domain, Expr range) throws Err {
         this.range = range;
-        this.frame = a4Solution;
+        this.frame = alloyToKodkod;
         this.ff = f;
         this.s = domain;
 
@@ -1377,7 +1374,7 @@ class Multiplicity extends VisitQuery<Formula> {
         final Expression dv = frame.cset(dexexpr);
         final Variable v = Variable.nary(frame.skolem(s.decl.names.get(0).label), s.decl.names.get(0).type().arity());//p("arity: " + s.decl.names.get(0).type().arity()+"\t\tV: "+v.toString());
         frame.env.put((ExprVar) s.decl.names.get(0), v);
-         return  v.oneOf(dv);
+        return  v.oneOf(dv);
     }
 
     public static void p(String s) {
