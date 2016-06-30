@@ -1,5 +1,5 @@
 module Lift
-open util/ordering[Floor]
+open util/ordering[Floor] 
 
 abstract sig Feature {}
 one sig FEmpty, FThird, FOverload, FIdle, FExecutive, FPark extends Feature {}
@@ -42,7 +42,7 @@ pred Idle[bs : set Button] {
 	(load = Empty && FEmpty in Product) => no bs&LiftButton
 
 	idle
-
+	
 	FPark in Product => current' = parkLift
 							  else current' = current
 
@@ -66,7 +66,7 @@ pred Move[bs : set Button] {
 }
 
 pred ChangeDir[bs : set Button] {
-	no bs & Pressed
+	no bs & Pressed 
 	no Open
 	load = load'
 	Pressed' = Pressed + bs
@@ -83,18 +83,18 @@ pred ChangeDir[bs : set Button] {
 pred OpenedEvent[bs : set Button] {
 	no bs & Pressed
 	no bs & floor.(current)
-
+	
 	some Open
 	Up' = Up
 	current' = current
-
+  
 	after { ((Overload in load && FOverload in Product) || (FIdle in Product && idle)) => some Open else no Open }
 
 	(Pressed-(((Empty in load' && FEmpty in Product) => LiftButton else none)))-floor.(current) + bs = Pressed'
 }
 
 pred willOpen[] {
-	 (current in (LiftCall + LandingCall) || (FIdle in Product && idle))
+	 (current in (LiftCall + LandingCall) || (FIdle in Product && idle)) 
 }
 
 fun moveLift[] : lone Floor {
@@ -126,17 +126,18 @@ fun calledFloors[bs : set Button] : set Floor {
 }
 
 // succeeding floors in the current direction
+
 fun nextFloors[] : set Floor {
 	(some Up) => nextFloorsUp
                    else nextFloorsDown
 }
 
 fun nextFloorsUp[] : set Floor {
-  (current).*next
+  (current).*integer/next
 }
 
 fun nextFloorsDown[] : set Floor {
-  (current).*prev
+  (current).*integer/prev
 }
 
 pred idle [] {
@@ -157,7 +158,7 @@ fact Trace {
 }
 
 pred prop1 {
-  always { all f : Floor | (some b:LandingButton | b.floor=f and b in Pressed) =>
+  always { all f : Floor | (some b:LandingButton | b.floor=f and b in Pressed) => 
     eventually { current = f && some Open } }
 }
 pred prop2 {
@@ -166,22 +167,25 @@ pred prop2 {
 }
 
 //B1: check {no Product => prop1} for 1 but 20 Time,  exactly 3 Floor,  exactly 6 Button
-//E1: check {Product = FEmpty => prop1} for 1 but 9 Time,  exactly 3 Floor, exactly 6 Button
+//E1: check {Product = FEmpty => prop1} for 1 but 9 Time,  exactly 3 Floor, exactly 6 Button 
 //O1: check {Product = FOverload => prop1} for 1 but 5 Time,  exactly 3 Floor, exactly 6 Button
 //T1: check {Product = FThird => prop1} for 1 but 9 Time,  exactly 3 Floor,  exactly 6 Button
-I1: check {Product = FIdle => prop1} for 1 but 20 Time,  exactly 3 Floor,  exactly 6 Button
+
+I1: check {Product = FIdle => prop1} for 1 but exactly 3 Floor,  exactly 6 Button
+
 //X1: check {Product = FExecutive => prop1} for 1 but 9 Time, exactly 3 Floor, exactly 6 Button
 ////P1: check {Product = FPark => prop1} for 1 but 9 Time,  exactly 3 Floor,  exactly 6 Button
 //EO1: check {Product = FEmpty + FOverload => prop1} for 1 but 9 Time,  exactly 3 Floor,  exactly 6 Button
-A1: check {prop1} for 1 but 20 Time,  exactly 3 Floor,  exactly 6 Button
+
+A1: check {prop1} for 1 but exactly 3 Floor,  exactly 6 Button
 
 
 /*B2: check {no Product => prop2} for 1 but 9 Time,  3 Floor, 6 Button
-E2: check {Product = FEmpty => prop2} for 1 but 9 Time,  3 Floor, 6 Button
-O2: check {Product = FOverload => prop2} for 1 but 9 Time,  3 Floor, 6 Button
-T2: check {Product = FThird => prop2} for 1 but 9 Time,  3 Floor, 6 Button
-I2: check {Product = FIdle => prop2} for 1 but 9 Time,  3 Floor, 6 Button
-X2: check {Product = FExecutive => prop2} for 1 but 9 Time,  3 Floor, 6 Button
-P2: check {Product = FPark => prop2} for 1 but 9 Time,  3 Floor, 6 Button
-EO2: check {Product = FEmpty + FOverload => prop2} for 1 but 9 Time,  3 Floor, 6 Button
+E2: check {Product = FEmpty => prop2} for 1 but 9 Time,  3 Floor, 6 Button 
+O2: check {Product = FOverload => prop2} for 1 but 9 Time,  3 Floor, 6 Button 
+T2: check {Product = FThird => prop2} for 1 but 9 Time,  3 Floor, 6 Button 
+I2: check {Product = FIdle => prop2} for 1 but 9 Time,  3 Floor, 6 Button 
+X2: check {Product = FExecutive => prop2} for 1 but 9 Time,  3 Floor, 6 Button 
+P2: check {Product = FPark => prop2} for 1 but 9 Time,  3 Floor, 6 Button 
+EO2: check {Product = FEmpty + FOverload => prop2} for 1 but 9 Time,  3 Floor, 6 Button 
 A2: check {prop2} for 1 but 9 Time,  3 Floor, 6 Button */

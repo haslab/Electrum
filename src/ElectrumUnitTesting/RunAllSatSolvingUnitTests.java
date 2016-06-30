@@ -1,9 +1,6 @@
 package ElectrumUnitTesting;
 
-import ElectrumUnitTesting.UnitTests.Firewire;
-import ElectrumUnitTesting.UnitTests.Hotel;
-import ElectrumUnitTesting.UnitTests.Ring;
-import ElectrumUnitTesting.UnitTests.Span_tree;
+import ElectrumUnitTesting.UnitTests.*;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 
@@ -12,7 +9,8 @@ import org.junit.runners.Suite;
         Ring.class,
         Span_tree.class,
         Firewire.class,
-        Hotel.class
+        Hotel.class,
+        Lift_spl.class
 })
 
 public class RunAllSatSolvingUnitTests {
