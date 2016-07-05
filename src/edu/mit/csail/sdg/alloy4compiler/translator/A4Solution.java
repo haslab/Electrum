@@ -1038,8 +1038,9 @@ public final class A4Solution {
 //			if (sol==null) sol = solver.solve(fgoal, bounds);
 //		} else { // pt.uminho.haslab: kodkod 2.0+
 
-		//System.out.println("\n\nFORMULA: \n\n"+fgoal.toString());
+		System.out.println("\n\nFinal FORMULA: \n\n"+fgoal.toString());
 //		System.out.println("\n\nBounds: \n\n"+bounds.toString());
+		//System.exit(0);
 
 		kEnumerator = new Peeker<Solution>(solver.solveAll(fgoal, bounds));
 		if (sol==null) sol = kEnumerator.next();

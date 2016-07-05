@@ -160,13 +160,18 @@ public final class TranslateAlloyToKodkod extends VisitReturn<Object> {
         // add the field facts and appended facts
         for(Sig s: frame.getAllReachableSigs()) {
 
-            // if a signature s is not  temporal a formula always(s' = s) is created. Contants (s.attibutes = []) not considered (String,Int....)
-            if (s.isVariable == null && s.attributes.size()>0) {
+            // Constants (s.attibutes = []) not considered (String,Int....)
+            if (s.attributes.size()>0) {
+                //if a signature s is not  temporal a formula always(s' = s) is created.
                 Expression expression = a2k(s);
-                p("FORMULA: "+expression.post().eq(expression).always().toString()+"\n\n");
-                frame.addFormula(expression.post().eq(expression).always(),s);
+                if (s.isVariable == null) {
+                    p("FORMULA not static: " + expression.post().eq(expression).always().toString());
+                    frame.addFormula(expression.post().eq(expression).always(), s);
+                }
+                // if the sig is one :: one sig X ... ToKK ... G (one X)
+                //Constants (s.attibutes = []) not considered (String,Int....)
+                if (s.isOne != null) p("FORMULA is one: " + expression.one().always().toString()); frame.addFormula(expression.one().always(), s);
             }
-
 
             //the next block of code handles the hierarchy of the signatures
             Formula hierarchy = null;
@@ -195,10 +200,10 @@ public final class TranslateAlloyToKodkod extends VisitReturn<Object> {
                         hierarchy = this.getUnionOfSubSignatures(list).in(relation).and(hierarchy);
                     }
                     frame.addFormula(hierarchy.always(),s);
-                    p("FORMULA: "+hierarchy.always().toString()+"\n\n");
+                    p("FORMULA: "+hierarchy.always().toString());
                 }else{
                     //if the signature is abstract and has at least two sub-sigs (ex : no (X & Y))
-                    if (hierarchy != null) p("FORMULA: "+hierarchy.always().toString()+"\n\n");frame.addFormula(hierarchy.always(),s);
+                    if (hierarchy != null) p("FORMULA hierarchy: "+hierarchy.always().toString());frame.addFormula(hierarchy.always(),s);
                 }
             }
 
@@ -208,8 +213,8 @@ public final class TranslateAlloyToKodkod extends VisitReturn<Object> {
                     Field f = (Field)n;
                     MultiplicityAndTyping multiplicity =  new MultiplicityAndTyping(this,f,s,d.expr);
                     if (multiplicity.finalFormula != null) {
-                        p("FORMULA: "+multiplicity.finalFormula.toString()+"\n\n");
-                        frame.addFormula(multiplicity.finalFormula,f);
+                        p("FORMULA decl/typing: "+multiplicity.finalFormula.toString());
+                        frame.addFormula(multiplicity.finalFormula, f);
                     }
                     // Given the above, we can be sure that every column is well-bounded (except possibly the first column).
                     // Thus, we need to add a bound that the first column is a subset of s.
@@ -229,7 +234,7 @@ public final class TranslateAlloyToKodkod extends VisitReturn<Object> {
             k2pos_enabled = true;
             for(Expr f: s.getFacts()) {
                 Expr form = s.isOne==null ? f.forAll(s.decl) : ExprLet.make(null, (ExprVar)(s.decl.get()), s, f);
-                p("FORMULA: "+cform(form).always().toString()+"\n\n");
+                p("FORMULA facts: "+cform(form).always().toString());
                 frame.addFormula(cform(form).always(), f);
             }
         }
@@ -1197,16 +1202,19 @@ class MultiplicityAndTyping extends VisitQuery<Formula> {
 
     public Formula convert() throws Err {
         kodkod.ast.Decl decl = null;
-        if (this.s.isOne == null) decl = this.addQuantification(s); //add quantification to variable this.
-        else frame.env.put((ExprVar)s.decl.get(), frame.visitThis(s.decl.expr)); // is one sig A{x : B} , so : this = A
+       // if (this.s.isOne == null) decl = this.addQuantification(s); //add quantification to variable this.
+        //else frame.env.put((ExprVar)s.decl.get(), frame.visitThis(s.decl.expr)); // is one sig A{x : B} , so : this = A
+
+        decl = this.addQuantification(s);
 
         Formula multiplicityFormula = this.multiplicityExpression.accept(this);
         frame.env.remove((ExprVar)s.decl.get()); //remove the environment variable
         Formula typingFormula = this.typing(range,s,ff);
            if (multiplicityFormula != null) {
                Formula finalF = null;
-               if (decl == null) finalF = typingFormula.always().and(multiplicityFormula.always()); //if is "one sig A.."
-               else finalF = typingFormula.always().and(multiplicityFormula.forAll(decl).always()); //if is not one
+              // if (decl == null) finalF = typingFormula.always().and(multiplicityFormula.always()); //if is "one sig A.."
+              // else finalF = typingFormula.always().and(multiplicityFormula.forAll(decl).always()); //if is not one
+               finalF = typingFormula.always().and(multiplicityFormula.forAll(decl).always());
                return finalF;
            }
            else {return typingFormula.always();}

@@ -289,7 +289,11 @@ final class BoundsComputer {
                     continue;
                  }
               }
-              Type t = isOne ? Sig.UNIV.type().join(f.type()) : f.type();
+              //Type t = isOne ? Sig.UNIV.type().join(f.type()) : f.type();
+
+              //Electrum declarations
+              Type t =  f.type();
+
               TupleSet ub = factory.noneOf(t.arity());
               for(List<PrimSig> p:t.fold()) {
                  TupleSet upper=null;
@@ -300,7 +304,11 @@ final class BoundsComputer {
                  ub.addAll(upper);
               }
                Relation r = sol.addRel(s.label+"."+f.label, null, ub,f);
-              sol.addField(f, isOne ? sol.a2k(s).product(r) : r);
+
+               //sol.addField(f, isOne ? sol.a2k(s).product(r) : r);
+
+               //Electrum declarations
+               sol.addField(f, r);
            }
         }
         // Add any additional SIZE constraints
