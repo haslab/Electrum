@@ -30,7 +30,6 @@ public class Ring {
 
     public Ring() throws IOException, Err {
         opt = new A4Options();
-        opt.solver = A4Options.SatSolver.MiniSatJNI;
         opt.noOverflow = true;
         opt.skolemDepth = 1;
         rep = new SimpleReporter();
@@ -42,6 +41,7 @@ public class Ring {
     /*Badliveness check ( the expected outcome is satisfiable)*/
     @Test
     public final void BadLiveness() throws IOException, Err {
+        opt.maxTraceLength = 10;
         A4Solution ans = TranslateAlloyToKodkod.execute_command(rep, cp.getAllReachableSigs(), cp.getAllCommands().get(0), opt);
         assertEquals(ans.solvingOutcome, Solution.Outcome.SATISFIABLE);
 
@@ -50,6 +50,7 @@ public class Ring {
     /*GoodLiveness check ( the expected outcome is unsatisfiable)*/
     @Test
     public final void GoodLiveness() throws IOException, Err {
+        opt.maxTraceLength = 10;
         A4Solution ans = TranslateAlloyToKodkod.execute_command(rep, cp.getAllReachableSigs(), cp.getAllCommands().get(1), opt);
         assertEquals(ans.solvingOutcome, Solution.Outcome.UNSATISFIABLE);
     }
@@ -58,6 +59,7 @@ public class Ring {
     /*GoodSafety check ( the expected outcome is unsatisfiable)*/
     @Test
     public final void GoodSafety() throws IOException, Err {
+        opt.maxTraceLength = 10;
         A4Solution ans = TranslateAlloyToKodkod.execute_command(rep, cp.getAllReachableSigs(), cp.getAllCommands().get(2), opt);
         assertEquals(ans.solvingOutcome, Solution.Outcome.UNSATISFIABLE);
     }

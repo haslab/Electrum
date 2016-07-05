@@ -311,7 +311,12 @@ public final class A4Solution {
 //		this.timeBounds = timeBounds.unmodifiableView();
 //		bounds.boundExactly(KK_TIME, this.timeBounds);
 		int sym = (expected==1 ? 0 : opt.symmetry);
-		solver = new Solver();
+
+		//temporary code
+		ExtendedOptions varOptions = new ExtendedOptions();
+		varOptions.setMaxTraceLength(opt.maxTraceLength);
+
+		solver = new Solver(varOptions);
 		solver.options().setNoOverflow(opt.noOverflow); // pt.uminho.haslab: propagate options
 		if (solver.options() instanceof TemporalOptions<?>) // TODO: should be in Solver interface
 			((TemporalOptions<?>) solver.options()).setMaxTraceLength(opt.maxTraceLength);
@@ -1033,16 +1038,8 @@ public final class A4Solution {
 //			if (sol==null) sol = solver.solve(fgoal, bounds);
 //		} else { // pt.uminho.haslab: kodkod 2.0+
 
-		System.out.println("\n\nFORMULA: \n\n"+fgoal.toString());
-		System.out.println("\n\nBounds: \n\n"+bounds.toString());
-
-
-		//temporary.......
-		ExtendedOptions optn = new ExtendedOptions();
-		optn.setSolver(SATFactory.DefaultSAT4J);
-		optn.setMaxTraceLength(10);
-		Solver solver = new Solver(optn);
-		//temporary..........
+		//System.out.println("\n\nFORMULA: \n\n"+fgoal.toString());
+//		System.out.println("\n\nBounds: \n\n"+bounds.toString());
 
 		kEnumerator = new Peeker<Solution>(solver.solveAll(fgoal, bounds));
 		if (sol==null) sol = kEnumerator.next();

@@ -28,7 +28,6 @@ public class Lift_spl {
 
     public Lift_spl() throws IOException, Err {
         opt = new A4Options();
-        opt.solver = A4Options.SatSolver.MiniSatJNI;
         opt.noOverflow = true;
         opt.skolemDepth = 1;
         rep = new SimpleReporter();
@@ -40,6 +39,7 @@ public class Lift_spl {
     /*Check1 check ( the expected outcome is satisfiable)*/
     @Test
     public final void Check1() throws IOException, Err {
+        opt.maxTraceLength = 20;
         A4Solution ans = TranslateAlloyToKodkod.execute_command(rep, cp.getAllReachableSigs(), cp.getAllCommands().get(0), opt);
         assertEquals(ans.solvingOutcome, Solution.Outcome.SATISFIABLE);
 
@@ -48,6 +48,7 @@ public class Lift_spl {
     /*Check2 check ( the expected outcome is satisfiable)*/
     @Test
     public final void Check2() throws IOException, Err {
+        opt.maxTraceLength = 20;
         A4Solution ans = TranslateAlloyToKodkod.execute_command(rep, cp.getAllReachableSigs(), cp.getAllCommands().get(1), opt);
         assertEquals(ans.solvingOutcome, Solution.Outcome.SATISFIABLE);
     }
