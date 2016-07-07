@@ -170,7 +170,7 @@ public final class TranslateAlloyToKodkod extends VisitReturn<Object> {
                 }
                 // if the sig is one :: one sig X ... ToKK ... G (one X)
                 //Constants (s.attibutes = []) not considered (String,Int....)
-                if (s.isOne != null) p("FORMULA is one: " + expression.one().always().toString()); frame.addFormula(expression.one().always(), s);
+                if (s.isOne != null){ p("FORMULA is one: " + expression.one().always().toString()); frame.addFormula(expression.one().always(), s);}
             }
 
             //the next block of code handles the hierarchy of the signatures
