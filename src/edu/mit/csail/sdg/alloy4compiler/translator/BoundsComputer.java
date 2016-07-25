@@ -20,6 +20,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import edu.mit.csail.sdg.alloy4compiler.ast.*;
 import kodkod.ast.Decls;
 import kodkod.ast.Expression;
 import kodkod.ast.Formula;
@@ -32,16 +33,9 @@ import kodkod.instance.Universe;
 import edu.mit.csail.sdg.alloy4.A4Reporter;
 import edu.mit.csail.sdg.alloy4.Err;
 import edu.mit.csail.sdg.alloy4.Pos;
-import edu.mit.csail.sdg.alloy4compiler.ast.Expr;
-import edu.mit.csail.sdg.alloy4compiler.ast.ExprBinary;
-import edu.mit.csail.sdg.alloy4compiler.ast.ExprConstant;
-import edu.mit.csail.sdg.alloy4compiler.ast.ExprList;
-import edu.mit.csail.sdg.alloy4compiler.ast.ExprUnary;
-import edu.mit.csail.sdg.alloy4compiler.ast.Sig;
 import edu.mit.csail.sdg.alloy4compiler.ast.Sig.Field;
 import edu.mit.csail.sdg.alloy4compiler.ast.Sig.PrimSig;
 import edu.mit.csail.sdg.alloy4compiler.ast.Sig.SubsetSig;
-import edu.mit.csail.sdg.alloy4compiler.ast.Type;
 
 /** Immutable; this class assigns each sig and field to some Kodkod relation or expression, then set the bounds. */
 
@@ -115,17 +109,29 @@ final class BoundsComputer {
     private Expression allocatePrimSig(PrimSig sig) throws Err {
         // Recursively allocate all children expressions, and form the union of them
         Expression sum = null;
-        for(PrimSig child:sig.children()) {
-           Expression childexpr=allocatePrimSig(child);
-           if (sum==null) { sum=childexpr; continue; }
-           // subsigs are disjoint
-           sol.addFormula(sum.intersection(childexpr).no(), child.isSubsig);
-           sum = sum.union(childexpr);
+        if(!sig.children().isEmpty()) {
+            List<Expression> listOfSubSings = new ArrayList<Expression>();
+            for (PrimSig child : sig.children()) {
+                Expression childexpr = allocatePrimSig(child);
+                listOfSubSings.add(childexpr);
+                if (sum == null) {
+                    sum = childexpr;
+                    continue;
+                }
+                // subsigs are disjoint
+                // sol.addFormula(sum.intersection(childexpr).no(), child.isSubsig);
+                 sum = sum.union(childexpr);
+            }
+
+            //new...
+            //creates a map between a certain sig and its subsigs.
+            sol.addSubSignatures(sig,listOfSubSings);
         }
+
         TupleSet lower = lb.get(sig).clone(), upper = ub.get(sig).clone();
         if (sum == null) {
-           // If sig doesn't have children, then sig should make a fresh relation for itself
-           sum = sol.addRel(sig.label, lower, upper);
+            // If sig doesn't have children, then sig should make a fresh relation for itself
+           sum = sol.addRel(sig.label, lower, upper, sig);
         } else if (sig.isAbstract == null) {
            // If sig has children, and sig is not abstract, then create a new relation to act as the remainder.
            for(PrimSig child:sig.children()) {
@@ -137,9 +143,13 @@ final class BoundsComputer {
               lower.removeAll(childTS);
               upper.removeAll(childTS);
            }
-           sum = sum.union(sol.addRel(sig.label+" remainder", lower, upper));
+            Expression relation = sol.addRel(sig.label+" remainder", lower, upper,sig);
+            sum = sum.union(relation);
+
+            //new
+            // add the respective kk relation of sig to the list. It's a map between the sig and its kk relation
+            sol.addKKRelToSig(sig, (Relation) relation);
         }
-//        if (sig.isVariable != null) throw new UnsupportedOperationException("Variable sigs not implemented :)");
         sol.addSig(sig, sum);
         return sum;
     }
@@ -162,10 +172,11 @@ final class BoundsComputer {
         if (sig.exact) { sol.addSig(sig, sum); return sum; }
         // Allocate a relation for this subset sig, then bound it
         rep.bound("Sig "+sig+" in "+ts+"\n");
-        Relation r = sol.addRel(sig.label, null, ts);
+        Relation r = sol.addRel(sig.label, null, ts, sig);
         sol.addSig(sig, r);
         // Add a constraint that it is INDEED a subset of the union of its parents
-        sol.addFormula(r.in(sum), sig.isSubset);
+        // modified  : if A in B then G (A in B)
+        sol.addFormula(r.in(sum).always(), sig.isSubset);
         return r;
     }
 
@@ -261,9 +272,9 @@ final class BoundsComputer {
                  nextTS.addAll(me.product(lastTS).product(TS));
                  lastTS=TS;
               }
-              if (firstTS.size()!=(n>0 ? 1 : 0) || nextTS.size() != n-1) break;
-              sol.addField(f1, sol.addRel(s.label+"."+f1.label, firstTS, firstTS));
-              sol.addField(f2, sol.addRel(s.label+"."+f2.label, nextTS, nextTS));
+               if (firstTS.size()!=(n>0 ? 1 : 0) || nextTS.size() != n-1) break;
+              sol.addField(f1, sol.addRel(s.label+"."+f1.label, firstTS, firstTS,f1));
+              sol.addField(f2, sol.addRel(s.label+"."+f2.label, nextTS, nextTS,f2));
               rep.bound("Field "+s.label+"."+f1.label+" == "+firstTS+"\n");
               rep.bound("Field "+s.label+"."+f2.label+" == "+nextTS+"\n");
               continue again;
@@ -278,7 +289,11 @@ final class BoundsComputer {
                     continue;
                  }
               }
-              Type t = isOne ? Sig.UNIV.type().join(f.type()) : f.type();
+              //Type t = isOne ? Sig.UNIV.type().join(f.type()) : f.type();
+
+              //Electrum declarations
+              Type t =  f.type();
+
               TupleSet ub = factory.noneOf(t.arity());
               for(List<PrimSig> p:t.fold()) {
                  TupleSet upper=null;
@@ -288,8 +303,12 @@ final class BoundsComputer {
                  }
                  ub.addAll(upper);
               }
-              Relation r = sol.addRel(s.label+"."+f.label, null, ub);
-              sol.addField(f, isOne ? sol.a2k(s).product(r) : r);
+               Relation r = sol.addRel(s.label+"."+f.label, null, ub,f);
+
+               //sol.addField(f, isOne ? sol.a2k(s).product(r) : r);
+
+               //Electrum declarations
+               sol.addField(f, r);
            }
         }
         // Add any additional SIZE constraints
@@ -320,6 +339,10 @@ final class BoundsComputer {
                 sol.addFormula(size(s,n,false), Pos.UNKNOWN);
             }
         }
+    }
+
+    public void p(String s){
+        System.out.println(s);
     }
 
     //==============================================================================================================//

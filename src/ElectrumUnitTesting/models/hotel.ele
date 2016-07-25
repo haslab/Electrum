@@ -1,0 +1,112 @@
+module hotel
+
+open util/ordering[Key]
+
+sig Key {}
+
+sig Room {
+	keys: set Key,
+	var currentKey: one keys
+	}
+
+fact DisjointKeySets {
+	Room<:keys   in   Room lone-> Key
+	}
+
+one sig FrontDesk {
+	var lastKey: Room -> lone Key,
+	var occupant: Room -> Guest
+	}
+
+sig Guest {
+	var gkeys: set Key
+	}
+
+fun nextKey [k: Key, ks: set Key]: set Key {
+	min [nexts[k] & ks]
+	}
+
+pred init {
+	no Guest.gkeys
+	no FrontDesk.occupant
+	all r: Room | r.(FrontDesk.lastKey) = r.currentKey
+	}
+
+pred entry [g: Guest, r: Room, k: Key] {
+	k in g.gkeys
+		((k = r.currentKey and r.currentKey' = r.currentKey) or
+		(k = nextKey[r.currentKey, r.keys] and r.currentKey' = k))
+	noRoomChangeExcept [r]
+	noGuestChangeExcept [none]
+	noFrontDeskChange
+	}
+
+pred noFrontDeskChange {
+	FrontDesk.lastKey = FrontDesk.lastKey'
+	FrontDesk.occupant = FrontDesk.occupant'
+	}
+
+pred noRoomChangeExcept [rs: set Room] {
+	all r: Room - rs | r.currentKey = r.currentKey'
+	}
+
+pred noGuestChangeExcept [gs: set Guest] {
+	all g: Guest - gs | g.gkeys = g.gkeys'
+	}
+
+pred checkout [g: Guest] {
+	some FrontDesk.occupant.g
+	FrontDesk.occupant' = FrontDesk.occupant - Room ->g
+	FrontDesk.lastKey = FrontDesk.lastKey'
+	noRoomChangeExcept [none]
+	noGuestChangeExcept [none]
+	}
+
+pred checkin [g: Guest, r: Room, k: Key] {
+	g.gkeys' = g.gkeys + k
+		no r.(FrontDesk.occupant)
+		FrontDesk.occupant' = FrontDesk.occupant + r -> g
+
+		FrontDesk.lastKey' = FrontDesk.lastKey ++ r -> k
+		k = nextKey [r.(FrontDesk.lastKey), r.keys]
+
+	noRoomChangeExcept [none]
+	noGuestChangeExcept [g]
+	}
+
+fact traces {
+	init
+	always {
+		some g: Guest, r: Room, k: Key |
+			entry [g, r, k]
+			or checkin [g, r, k]
+			or checkout [g]
+	}
+}
+
+// setting this as a fact rather than in the formula of GoodSafety slightly increases performance
+pred NoIntervening {
+	always {
+		all g: Guest, r: Room, k: Key |
+			checkin [g, r, k] => after { entry [g, r, k] } }
+// 		the previous constraint is not valid in TLC, so the following was encoded:
+//			(g in r.(FrontDesk.occupant) && k in g.keys && k = r.(FrontDesk.lastKey) && r.currentKey != k)=> entry [g, r, k] }
+	}
+
+pred NoBadEntry {
+	always { all r: Room, g: Guest, k: Key |
+			entry [g, r, k] and some r.(FrontDesk.occupant) => g in r.(FrontDesk.occupant) }
+	}
+
+assert BadSafety {
+	NoBadEntry
+}
+
+assert GoodSafety {
+	NoIntervening => NoBadEntry
+}
+
+// Hotel (1) scenario
+check BadSafety for 4
+// Hotel (2) scenario
+check GoodSafety for 4

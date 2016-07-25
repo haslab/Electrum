@@ -287,19 +287,19 @@ public final class A4SolutionReader {
        for(Sig s:allsigs) if (!s.builtin) {
           TupleSet ts = expr2ts.remove(s);
           if (ts==null) ts = factory.noneOf(1); // If the sig was NOT mentioned in the XML file...
-          Relation r = sol.addRel(s.label, ts, ts);
+          Relation r = sol.addRel(s.label, ts, ts, null);
           sol.addSig(s, r);
           for(Field f: s.getFields()) {
               ts = expr2ts.remove(f);
               if (ts==null) ts=factory.noneOf(f.type().arity()); // If the field was NOT mentioned in the XML file...
-              r = sol.addRel(s.label+"."+f.label, ts, ts);
+              r = sol.addRel(s.label+"."+f.label, ts, ts, null);
               sol.addField(f, r);
           }
        }
        for(Map.Entry<Expr,TupleSet> e:expr2ts.entrySet()) {
           ExprVar v = (ExprVar)(e.getKey());
           TupleSet ts = e.getValue();
-          Relation r = sol.addRel(v.label, ts, ts);
+          Relation r = sol.addRel(v.label, ts, ts, null);
           sol.kr2type(r, v.type());
        }
        // Done!

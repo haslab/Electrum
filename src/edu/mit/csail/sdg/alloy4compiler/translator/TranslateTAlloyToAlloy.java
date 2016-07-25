@@ -59,7 +59,7 @@ import edu.mit.csail.sdg.alloy4compiler.parser.CompModule.Open;
 // TODO: LET expressions are not supported
 // TODO: PRIME occurrences should check for the existence of the next instance
 // TODO: as a consequence, nested PRIMES should be forbidden
-
+/*
 public final class TranslateTAlloyToAlloy extends VisitReturn<Expr> {
 
 	private Pair<Expr,Expr> current_state;
@@ -342,9 +342,9 @@ public final class TranslateTAlloyToAlloy extends VisitReturn<Expr> {
 			for (Attr a : old_sig.attributes)
 				if (a != null && !(old_sig.isVariable != null && (a.type.equals(AttrType.ONE) || a.type.equals(AttrType.SOME) || a.type.equals(AttrType.LONE))))
 					as1.add(a);
-			
+
 			Attr[] as = (Attr[]) as1.toArray(new Attr[as1.size()]);
-			
+
 			// create new sig with converted hierarchy
 			if (old_sig instanceof PrimSig) {
 //				rep.debug("In1:");
@@ -560,4 +560,4 @@ public final class TranslateTAlloyToAlloy extends VisitReturn<Expr> {
 		current_state = new Pair<Expr,Expr>(s,s.join(ExprConstant.NEXTTIME));
 	}
 }
-
+*/

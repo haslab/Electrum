@@ -38,15 +38,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import kodkod.ast.BinaryExpression;
-import kodkod.ast.BinaryFormula;
-import kodkod.ast.Decl;
-import kodkod.ast.Expression;
-import kodkod.ast.Formula;
-import kodkod.ast.IntExpression;
-import kodkod.ast.Node;
-import kodkod.ast.Relation;
-import kodkod.ast.Variable;
+import kodkod.ast.*;
 import kodkod.ast.operator.ExprOperator;
 import kodkod.ast.operator.FormulaOperator;
 import kodkod.engine.CapacityExceededException;
@@ -179,7 +171,7 @@ public final class A4Solution {
 	private Bounds bounds;
 
 	/** The list of Kodkod formulas; can be empty if unknown; once a solution is solved we must not modify this anymore */
-	private ArrayList<Formula> formulas = new ArrayList<Formula>();
+	public ArrayList<Formula> formulas = new ArrayList<Formula>();
 
 	/** The list of known Alloy4 sigs. */
 	private SafeList<Sig> sigs;
@@ -205,6 +197,13 @@ public final class A4Solution {
 	/** The map from each Sig/Field/Skolem/Atom to its corresponding Kodkod expression. */
 	private Map<Expr,Expression> a2k;
 
+	/** The map from each Sig to its sub signatures. *///new
+	private Map<Sig,List<Expression>> subSigstoGivenaSig;
+
+	/** The map from each Sig to its kodkod relation. *///new
+	private Map<Sig,Relation> sigToKKRelation;
+
+
 	/** The map from each String literal to its corresponding Kodkod expression. */
 	private final ConstMap<String,Expression> s2k;
 
@@ -216,6 +215,9 @@ public final class A4Solution {
 
 	/** The map from each Kodkod Variable to an Alloy Type and Alloy Pos. */
 	private Map<Variable,Pair<Type,Pos>> decl2type;
+
+	//Outcome of solving a certain problem
+	public Solution.Outcome solvingOutcome;
 
 	//===================================================================================================//
 
@@ -242,6 +244,8 @@ public final class A4Solution {
 		this.originalCommand = (originalCommand==null ? "" : originalCommand);
 		this.bitwidth = bitwidth;
 		this.maxseq = maxseq;
+		this.subSigstoGivenaSig = new LinkedHashMap<Sig, List<Expression>>();//new
+		this.sigToKKRelation = new LinkedHashMap<Sig, Relation>();//new
 //		this.time = time;   //pt.uminho.haslab: time scopes handled by options
 //		this.loop = loop;   //pt.uminho.haslab: time scopes handled by options
 		if (bitwidth < 0)   throw new ErrorSyntax("Cannot specify a bitwidth less than 0");
@@ -307,7 +311,12 @@ public final class A4Solution {
 //		this.timeBounds = timeBounds.unmodifiableView();
 //		bounds.boundExactly(KK_TIME, this.timeBounds);
 		int sym = (expected==1 ? 0 : opt.symmetry);
-		solver = new Solver();
+
+		//temporary code
+		ExtendedOptions varOptions = new ExtendedOptions();
+		varOptions.setMaxTraceLength(opt.maxTraceLength);
+
+		solver = new Solver(varOptions);
 		solver.options().setNoOverflow(opt.noOverflow); // pt.uminho.haslab: propagate options
 		if (solver.options() instanceof TemporalOptions<?>) // TODO: should be in Solver interface
 			((TemporalOptions<?>) solver.options()).setMaxTraceLength(opt.maxTraceLength);
@@ -361,6 +370,8 @@ public final class A4Solution {
 		seqidxBounds = old.seqidxBounds;
 		stringBounds = old.stringBounds;
 		solver = old.solver;
+		subSigstoGivenaSig = old.subSigstoGivenaSig;//new
+		sigToKKRelation = old.sigToKKRelation;//new
 		bounds = old.bounds;
 		formulas = old.formulas;
 		sigs = old.sigs;
@@ -456,9 +467,20 @@ public final class A4Solution {
 	 * @param lower - the lowerbound; can be null if you want it to be the empty set
 	 * @param upper - the upperbound; cannot be null; must contain everything in lowerbound
 	 */
-	Relation addRel(String label, TupleSet lower, TupleSet upper) throws ErrorFatal {
+	Relation addRel(String label, TupleSet lower, TupleSet upper, Expr expr) throws ErrorFatal {
 		if (solved) throw new ErrorFatal("Cannot add a Kodkod relation since solve() has completed.");
-		Relation rel = Relation.nary(label, upper.arity());
+		Relation rel;
+		if (expr instanceof  Field){
+			if (((Field) expr).isVariable != null){rel = VarRelation.nary(label, upper.arity());}
+			else{rel = Relation.nary(label, upper.arity());}
+		}  else {
+			if (expr instanceof  Sig){
+				if (((Sig) expr).isVariable != null){rel = VarRelation.nary(label, upper.arity());}
+				else{rel = Relation.nary(label, upper.arity());}
+			}else{
+				rel = Relation.nary(label, upper.arity());
+			}
+		}
 		if (lower == upper) {
 			bounds.boundExactly(rel, upper);
 		} else if (lower == null) {
@@ -507,6 +529,30 @@ public final class A4Solution {
 		skolems.add(v);
 		return v;
 	}
+
+
+	//add a list of an kk expression of a sig
+	 void addSubSignatures(Sig s, List<Expression> list) throws ErrorFatal {
+		this.subSigstoGivenaSig.put(s, list);
+	 }
+
+	//returns a list of expression given a signature
+	public List getSubSigs(Sig s){
+		if (this.subSigstoGivenaSig.containsKey(s)) return this.subSigstoGivenaSig.get(s);
+		return null;
+	}//add a list of an kk expression of a sig
+
+	 void addKKRelToSig(Sig s, Relation rel) throws ErrorFatal {
+		this.sigToKKRelation.put(s, rel);
+	 }
+
+	//returns a list of expression given a signature
+	public Expression getKKRelationGivenaSig(Sig s){
+		if (this.sigToKKRelation.containsKey(s)) return this.sigToKKRelation.get(s);
+		return null;
+	}
+
+
 
 	/** Returns an unmodifiable copy of the map from each Sig/Field/Skolem/Atom to its corresponding Kodkod expression. */
 	ConstMap<Expr,Expression> a2k()  { return ConstMap.make(a2k); }
@@ -991,11 +1037,17 @@ public final class A4Solution {
 //		if (solver.options().solver()==SATFactory.ZChaffMincost || !solver.options().solver().incremental()) {
 //			if (sol==null) sol = solver.solve(fgoal, bounds);
 //		} else { // pt.uminho.haslab: kodkod 2.0+
+
+		System.out.println("\n\nFinal FORMULA: \n\n"+fgoal.toString());
+//		System.out.println("\n\nBounds: \n\n"+bounds.toString());
+		//System.exit(0);
+
 		kEnumerator = new Peeker<Solution>(solver.solveAll(fgoal, bounds));
 		if (sol==null) sol = kEnumerator.next();
 //		}
 		if (!solved[0]) rep.solve(0, 0, 0);
 		final Instance inst = sol.instance();
+		this.solvingOutcome = sol.outcome();
 		// To ensure no more output during SolutionEnumeration
 		solver.options().setReporter(oldReporter);
 		// If unsatisfiable, then retreive the unsat core if desired
@@ -1022,16 +1074,20 @@ public final class A4Solution {
 				lCore = hCore = null;
 			}
 		}
+
+		//Removed.... error in var relations
 		// If satisfiable, then add/rename the atoms and skolems
-		if (inst!=null) {
-			eval = new Evaluator(inst, solver.options());
-			rename(this, null, null, new UniqueNameGenerator());
-		}
+		//if (inst!=null) {
+		//	eval = new Evaluator(inst, solver.options());
+		//		rename(this, null, null, new UniqueNameGenerator());
+		//	}
+
 		// report the result
 		solved();
 		time = System.currentTimeMillis() - time;
 
 		if (inst!=null) rep.resultSAT(cmd, time, this); else rep.resultUNSAT(cmd, time, this);
+
 		return this;
 	}
 

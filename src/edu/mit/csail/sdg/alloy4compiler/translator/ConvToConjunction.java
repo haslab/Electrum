@@ -17,20 +17,8 @@ package edu.mit.csail.sdg.alloy4compiler.translator;
 
 import edu.mit.csail.sdg.alloy4.Err;
 import edu.mit.csail.sdg.alloy4.Pos;
-import edu.mit.csail.sdg.alloy4compiler.ast.Expr;
-import edu.mit.csail.sdg.alloy4compiler.ast.ExprBinary;
-import edu.mit.csail.sdg.alloy4compiler.ast.ExprCall;
-import edu.mit.csail.sdg.alloy4compiler.ast.ExprConstant;
-import edu.mit.csail.sdg.alloy4compiler.ast.ExprITE;
-import edu.mit.csail.sdg.alloy4compiler.ast.ExprLet;
-import edu.mit.csail.sdg.alloy4compiler.ast.ExprList;
-import edu.mit.csail.sdg.alloy4compiler.ast.ExprQt;
-import edu.mit.csail.sdg.alloy4compiler.ast.ExprTemp;
-import edu.mit.csail.sdg.alloy4compiler.ast.ExprUnary;
-import edu.mit.csail.sdg.alloy4compiler.ast.ExprVar;
-import edu.mit.csail.sdg.alloy4compiler.ast.Sig;
+import edu.mit.csail.sdg.alloy4compiler.ast.*;
 import edu.mit.csail.sdg.alloy4compiler.ast.Sig.Field;
-import edu.mit.csail.sdg.alloy4compiler.ast.VisitReturn;
 
 /** Immutable; this class rearranges the AST to promote as many clauses up to the top level as possible
  * (in order to get better precision unsat core results)
@@ -60,6 +48,12 @@ final class ConvToConjunction extends VisitReturn<Expr> {
         }
         return x;
     }
+
+    /** {@inheritDoc} */
+    @Override public Expr visit(BinaryExprTemp x) throws Err {
+        return x;
+    }
+
 
     /** {@inheritDoc} */
     @Override public Expr visit(ExprTemp x) throws Err {
