@@ -132,7 +132,7 @@ public final class SimpleCLI {
     private static void validate(A4Solution sol) throws Exception {
         StringWriter sw = new StringWriter();
         PrintWriter pw = new PrintWriter(sw);
-        sol.writeXML(pw, null, null);
+        sol.writeXML(pw, null, null,0);
         pw.flush();
         sw.flush();
         String txt = sw.toString();
@@ -194,7 +194,7 @@ public final class SimpleCLI {
                 StringWriter metasb = new StringWriter();
                 PrintWriter meta = new PrintWriter(metasb);
                 Util.encodeXMLs(meta, "\n<alloy builddate=\"", Version.buildDate(), "\">\n\n");
-                A4SolutionWriter.writeMetamodel(world.getAllReachableSigs(), filename, meta);
+                A4SolutionWriter.writeMetamodel(world.getAllReachableSigs(), filename, meta,0);
                 Util.encodeXMLs(meta, "\n</alloy>");
                 meta.flush();
                 metasb.flush();

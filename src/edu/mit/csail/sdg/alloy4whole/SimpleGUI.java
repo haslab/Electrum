@@ -41,6 +41,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.lang.reflect.Method;
+import java.nio.CharBuffer;
+import java.nio.channels.FileChannel;
+import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -52,6 +55,7 @@ import java.util.Random;
 import java.util.Scanner;
 import java.util.Set;
 import java.util.prefs.Preferences;
+import java.util.regex.Pattern;
 
 import javax.swing.Box;
 import javax.swing.Icon;
@@ -132,6 +136,8 @@ import edu.mit.csail.sdg.alloy4viz.VizGUI;
 import edu.mit.csail.sdg.alloy4whole.SimpleReporter.SimpleCallback1;
 import edu.mit.csail.sdg.alloy4whole.SimpleReporter.SimpleTask1;
 import edu.mit.csail.sdg.alloy4whole.SimpleReporter.SimpleTask2;
+import test.Example;
+import test.Test;
 
 /** Simple graphical interface for accessing various features of the analyzer.
  *
@@ -420,6 +426,7 @@ public final class SimpleGUI implements ComponentListener, Listener {
             if (i>=0) name=name.substring(i+1);
             return name.substring(0, name.length()-4);
         }
+        System.out.println("ENTRA na function");
         return name;
     }
 
@@ -502,7 +509,9 @@ public final class SimpleGUI implements ComponentListener, Listener {
            "models/examples/tutorial/farmer.als",
            "models/util/boolean.als", "models/util/graph.als", "models/util/integer.als", "models/util/natural.als",
            "models/util/ordering.als", "models/util/relation.als", "models/util/seqrel.als", "models/util/sequence.als",
-           "models/util/sequniv.als", "models/util/ternary.als", "models/util/time.als"
+           "models/util/sequniv.als", "models/util/ternary.als", "models/util/time.als", "models/Temporal_Examples/firewire.ele",
+                "models/Temporal_Examples/hotel.ele","models/Temporal_Examples/lift_spl.ele","models/Temporal_Examples/ring.ele",
+                "models/Temporal_Examples/span_tree.ele", "models/Temporal_Examples/ex1.ele"
            );
         // Record the locations
         System.setProperty("alloy.theme0", alloyHome() + fs + "models");
@@ -708,7 +717,7 @@ public final class SimpleGUI implements ComponentListener, Listener {
     /** This method performs File->OpenBuiltinModels. */
     private Runner doBuiltin() {
         if (wrap) return wrapMe();
-        File file=OurDialog.askFile(true, alloyHome() + fs + "models", ".als", ".als files");
+        File file=OurDialog.askFile(true, alloyHome() + fs + "models", "", ".als files");//pessoa: allow .ele files
         if (file!=null) {
             doOpenFile(file.getPath());
         }
@@ -1063,7 +1072,11 @@ public final class SimpleGUI implements ComponentListener, Listener {
         if (latestAutoInstance.length()>0) {
            String f=latestAutoInstance;
            latestAutoInstance="";
-           if (subrunningTask==2) viz.loadXML(f, true); else if (AutoVisualize.get() || subrunningTask==1) doVisualize("XML: "+f);
+           if (subrunningTask==2){
+               viz.loadXML(f, true);
+               //pessoa: the jpanel with temporal states is created
+               viz.addTemporalJPanel(viz.getVizState().getOriginalInstance().originalA4.originalOptions.maxTraceLength);
+           } else if (AutoVisualize.get() || subrunningTask==1) doVisualize("XML: "+f);
         }
         return null;
     }
@@ -1425,7 +1438,7 @@ public final class SimpleGUI implements ComponentListener, Listener {
      pt.uminho.haslab */
     private Runner doOptMaxTraceLength(Integer length) {
         if (!wrap) MaxTraceLength.set(length.intValue());
-        return wrapMe();
+        return wrapMe(length);
     }
 
     //===============================================================================================================//
@@ -1594,6 +1607,8 @@ public final class SimpleGUI implements ComponentListener, Listener {
         }
         if (arg.startsWith("XML: ")) { // XML: filename
             viz.loadXML(Util.canon(arg.substring(5)), false);
+            viz.getVizState().useOriginalName(true);//pessoa: the instance show the atoms' original names
+            viz.addTemporalJPanel(viz.getVizState().getOriginalInstance().originalA4.originalOptions.maxTraceLength);//pessoa: the jpanel with temporal states is created
             viz.doShowViz();
         }
         return null;
@@ -1663,11 +1678,11 @@ public final class SimpleGUI implements ComponentListener, Listener {
     private static SimInstance convert(Module root, A4Solution ans) throws Err {
        SimInstance ct = new SimInstance(root, ans.getBitwidth(), ans.getMaxSeq());
         for(Sig s: ans.getAllReachableSigs()) {
-            if (!s.builtin) ct.init(s, convert(ans.eval(s)));
-            for(Field f: s.getFields())  if (!f.defined)  ct.init(f, convert(ans.eval(f)));
+            if (!s.builtin) ct.init(s, convert(ans.eval(s,0)));
+            for(Field f: s.getFields())  if (!f.defined)  ct.init(f, convert(ans.eval(f,0)));
         }
-        for(ExprVar a:ans.getAllAtoms())   ct.init(a, convert(ans.eval(a)));
-        for(ExprVar a:ans.getAllSkolems()) ct.init(a, convert(ans.eval(a)));
+        for(ExprVar a:ans.getAllAtoms())   ct.init(a, convert(ans.eval(a,0)));
+        for(ExprVar a:ans.getAllSkolems()) ct.init(a, convert(ans.eval(a,0)));
         return ct;
     }
 
@@ -1683,7 +1698,8 @@ public final class SimpleGUI implements ComponentListener, Listener {
             A4Solution ans = null;
             try {
                 Map<String,String> fc = new LinkedHashMap<String,String>();
-                XMLNode x = new XMLNode(new File(filename));
+                String[] tempFile =  filename.split(Pattern.quote("."));
+                XMLNode x = new XMLNode(new File(tempFile[0]+".cnfEvaluator.xml"));//pessoa: read the xml with all instance
                 if (!x.is("alloy")) throw new Exception();
                 String mainname=null;
                 for(XMLNode sub: x) if (sub.is("instance")) {
@@ -1709,7 +1725,7 @@ public final class SimpleGUI implements ComponentListener, Listener {
                     SimInstance simInst = convert(root, ans);
                     return simInst.visitThis(e).toString() + (simInst.wasOverflow() ? " (OF)" : "");
                 } else
-                   return ans.eval(e).toString();
+                   return ans.eval(e,0).toString();
             } catch(HigherOrderDeclException ex) {
                 throw new ErrorType("Higher-order quantification is not allowed in the evaluator.");
             }

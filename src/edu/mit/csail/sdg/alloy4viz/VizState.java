@@ -271,7 +271,7 @@ public final class VizState {
    /*============================================================================================*/
 
    /** Whether to use the original atom names. */
-   private boolean useOriginalNames = false; 
+   private boolean useOriginalNames = false;
 
    /** Returns whether we will use original atom names. */
    public boolean useOriginalName() { return useOriginalNames; }

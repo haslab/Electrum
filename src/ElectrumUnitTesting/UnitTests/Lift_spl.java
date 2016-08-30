@@ -31,7 +31,7 @@ public class Lift_spl {
         opt.noOverflow = true;
         opt.skolemDepth = 1;
         rep = new SimpleReporter();
-        path = "./src/ElectrumUnitTesting/models/lift_spl.ele";
+        path = "./src/models/Temporal_Examples/lift_spl.ele";
         cp = CompUtil.parseEverything_fromFile(rep, null, path);
 
     }
