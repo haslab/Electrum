@@ -36,6 +36,7 @@ import edu.mit.csail.sdg.alloy4compiler.translator.A4SolutionWriter;
 import edu.mit.csail.sdg.alloy4compiler.translator.TranslateAlloyToKodkod;
 import edu.mit.csail.sdg.alloy4viz.StaticInstanceReader;
 import edu.mit.csail.sdg.alloy4viz.VizGUI;
+import kodkod.ast.Relation;
 import kodkod.engine.Evaluator;
 import kodkod.instance.Instance;
 import test.Example;
@@ -508,6 +509,7 @@ public final class SimpleReporter extends A4Reporter {
 
 
 
+    //pessoa: this thread generates n xml files and a dynamic renaming as the time evolves.
     private static class GenerateXmlsFiles implements Runnable {
         private static ConstMap<String,String> kkSRC;
         private final String filename;
@@ -528,7 +530,6 @@ public final class SimpleReporter extends A4Reporter {
          @Override
         public void run() {
              try {
-                 a4Solution.setLoopValues();
                  writeXML(simpleReporter, latestModule, filename+".xml", a4Solution, kkSRC, 0);
              } catch (Exception e) {
                  e.printStackTrace();

@@ -368,8 +368,8 @@ public final class A4Solution {
 		seqidxBounds = old.seqidxBounds;
 		stringBounds = old.stringBounds;
 		solver = old.solver;
-		subSigstoGivenaSig = old.subSigstoGivenaSig;//new
-		sigToKKRelation = old.sigToKKRelation;//new
+		subSigstoGivenaSig = old.subSigstoGivenaSig;//pessoa: keep subSignatures struture
+		sigToKKRelation = old.sigToKKRelation;//pessoa: keep sigToKodkodRelation struture
 		bounds = old.bounds;
 		formulas = old.formulas;
 		sigs = old.sigs;
@@ -378,6 +378,7 @@ public final class A4Solution {
 		rel2type = old.rel2type;
 		decl2type = old.decl2type;
 		if (inst!=null) {
+			this.storeLoopvariablesFromInstance(inst);//pessoa: store loop variables in next instances
 			this.instance = inst; //pessoa: the original instance is kept to performing the renaming
 			Iterator it = bounds.universe().iterator();
 			while(it.hasNext()) this.universeList.add(it.next());//pessoa: the universe is kept into a list to get the atoms' index
