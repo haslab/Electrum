@@ -51,7 +51,7 @@ import edu.mit.csail.sdg.alloy4compiler.ast.Sig.SubsetSig;
 
 /** This helper class contains helper routines for reading an A4Solution object from an XML file. 
  * 
- * @modified: nmm
+ * @modified: nmm, Eduardo Pessoa
  * */
 
 public final class A4SolutionReader {
@@ -270,12 +270,15 @@ public final class A4SolutionReader {
        // set up the basic values of the A4Solution object
        final int bitwidth = Integer.parseInt(inst.getAttribute("bitwidth"));
        final int maxseq = Integer.parseInt(inst.getAttribute("maxseq"));
-       final int time = Integer.parseInt(inst.getAttribute("length")); // pt.uminho.haslab
-       if (time>=1) for(int i=0; i<time; i++) { atoms.add("State"+i); } // pt.uminho.haslab
-       final int loop = Integer.parseInt(inst.getAttribute("loop")); // pt.uminho.haslab
+//       final int time = Integer.parseInt(inst.getAttribute("length")); // pt.uminho.haslab
+//       if (time>=1) for(int i=0; i<time; i++) { atoms.add("State"+i); } // pt.uminho.haslab
+//       final int loop = Integer.parseInt(inst.getAttribute("loop")); // pt.uminho.haslab
+       final int time = Integer.parseInt(inst.getAttribute("time")); // pt.uminho.haslab
+       final int loopInit = Integer.parseInt(inst.getAttribute("loopInit")); // pt.uminho.haslab
+       final int loopEnd = Integer.parseInt(inst.getAttribute("loopEnd")); // pt.uminho.haslab
        final int max = Util.max(bitwidth), min = Util.min(bitwidth);
        if (bitwidth>=1 && bitwidth<=30) for(int i=min; i<=max; i++) { atoms.add(Integer.toString(i)); }
-       if (time>=1) for(int i=0; i<time; i++) { atoms.add("Time$"+i); }
+       //if (time>=1) for(int i=0; i<time; i++) { atoms.add("Time$"+i); }
        for(XMLNode x:inst) {
            String id=x.getAttribute("ID");
            if (id.length()>0 && (x.is("field") || x.is("skolem") || x.is("sig"))) {
@@ -295,6 +298,9 @@ public final class A4SolutionReader {
        A4Options opt = new A4Options();
        opt.originalFilename = inst.getAttribute("filename");
        sol = new A4Solution(inst.getAttribute("command"), bitwidth, maxseq, strings, atoms, null, opt, 1);
+        sol.originalOptions.setMaxTraceLength(time);
+        sol.loopInitIndex = loopInit;
+        sol.loopEndIndex = loopEnd;
        factory = sol.getFactory();
        // parse all the sigs, fields, and skolems
        for(Map.Entry<String,XMLNode> e:nmap.entrySet()) if (e.getValue().is("sig")) parseSig(e.getKey(), 0);

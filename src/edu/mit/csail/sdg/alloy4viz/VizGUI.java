@@ -31,42 +31,22 @@ import java.awt.event.FocusListener;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.prefs.Preferences;
+import java.util.regex.Pattern;
 
-import javax.swing.Box;
-import javax.swing.Icon;
-import javax.swing.JButton;
-import javax.swing.JComponent;
-import javax.swing.JFrame;
-import javax.swing.JMenu;
-import javax.swing.JMenuBar;
-import javax.swing.JMenuItem;
-import javax.swing.JPanel;
-import javax.swing.JPopupMenu;
-import javax.swing.JScrollPane;
-import javax.swing.JSplitPane;
-import javax.swing.JTextArea;
-import javax.swing.JToolBar;
+import javax.swing.*;
 import javax.swing.plaf.basic.BasicSplitPaneUI;
 
-import edu.mit.csail.sdg.alloy4.Computer;
-import edu.mit.csail.sdg.alloy4.ConstList;
-import edu.mit.csail.sdg.alloy4.OurBorder;
-import edu.mit.csail.sdg.alloy4.OurCheckbox;
-import edu.mit.csail.sdg.alloy4.OurConsole;
-import edu.mit.csail.sdg.alloy4.OurDialog;
-import edu.mit.csail.sdg.alloy4.OurUtil;
-import edu.mit.csail.sdg.alloy4.Runner;
-import edu.mit.csail.sdg.alloy4.Util;
+import edu.mit.csail.sdg.alloy4.*;
 import edu.mit.csail.sdg.alloy4.Util.IntPref;
 import edu.mit.csail.sdg.alloy4.Util.StringPref;
-import edu.mit.csail.sdg.alloy4.Version;
+import edu.mit.csail.sdg.alloy4compiler.ast.Sig;
+import edu.mit.csail.sdg.alloy4compiler.translator.A4Solution;
 import edu.mit.csail.sdg.alloy4graph.GraphViewer;
+import edu.mit.csail.sdg.alloy4whole.SimpleGUI;
+import test.Example;
+import test.Test;
 
 /** GUI main window for the visualizer.
  *
@@ -100,10 +80,22 @@ public final class VizGUI implements ComponentListener {
    private final JPopupMenu projectionPopup;
 
    /** The buttons on the toolbar. */
-   private final JButton projectionButton, openSettingsButton, closeSettingsButton,
-   magicLayout, loadSettingsButton, saveSettingsButton, saveAsSettingsButton,
-   resetSettingsButton, updateSettingsButton, openEvaluatorButton, closeEvaluatorButton, enumerateButton,
-   vizButton, treeButton, txtButton/*, dotButton, xmlButton*/;
+   private final JButton projectionButton;
+   private final JButton openSettingsButton;
+   private final JButton closeSettingsButton;
+   private final JButton magicLayout;
+   private final JButton loadSettingsButton;
+   private final JButton saveSettingsButton;
+   private final JButton saveAsSettingsButton;
+   private final JButton resetSettingsButton;
+   private final JButton updateSettingsButton;
+   private final JButton openEvaluatorButton;
+   private final JButton closeEvaluatorButton;
+   private final JButton enumerateButton;
+   private final JButton vizButton;
+   private final JButton treeButton;
+   private final JButton txtButton;
+   private JButton timeButton/*, dotButton, xmlButton*/;
 
    /** This list must contain all the display mode buttons (that is, vizButton, xmlButton...) */
    private final List<JButton> solutionButtons = new ArrayList<JButton>();
@@ -159,6 +151,9 @@ public final class VizGUI implements ComponentListener {
 
    /** If nonnull, you can pass in an XML file to find the next solution. */
    private final Computer enumerator;
+
+   //pessoa: control struture to keep a map batween a file's and the state of that file
+   private final Map cacheForXmlState =  new HashMap<String,Integer>();
 
    //==============================================================================================//
 
@@ -340,8 +335,9 @@ public final class VizGUI implements ComponentListener {
     *
     * <p> Note: if standalone==false and xmlFileName.length()==0 and makeWindow==true, then we will initially hide the window.
     */
-   public VizGUI(boolean standalone, String xmlFileName, JMenu windowmenu, Computer enumerator, Computer evaluator, boolean makeWindow) {
 
+
+   public VizGUI(boolean standalone, final String xmlFileName, JMenu windowmenu, Computer enumerator, Computer evaluator, boolean makeWindow) {
       this.enumerator = enumerator;
       this.standalone = standalone;
       this.evaluator = evaluator;
@@ -450,6 +446,93 @@ public final class VizGUI implements ComponentListener {
       if (xmlFileName.length()>0) doLoadInstance(xmlFileName);
    }
 
+   //pessoa: control structures to make the JPanel with the times
+   private JPanel wrapper;
+   private JComboBox atomComboTime;
+   private JButton leftTime, rightTime;
+
+   public final void addTemporalJPanel(int states){
+      makeTemporalJPanel(states);
+   }
+
+   //pessoa: function that make the JPanel with the times
+   private final void makeTemporalJPanel(int states){
+      wrapper = new JPanel();
+
+      leftTime = new JButton("<<");
+      rightTime = new JButton(">>");
+      final String[] atomnames = this.createTimeComboAtoms(states);
+      atomComboTime = new OurCombobox(atomnames.length < 1 ? new String[]{" "} : atomnames);
+
+      wrapper.add(leftTime);
+      wrapper.add(atomComboTime);
+      wrapper.add(rightTime);
+      int initialIndex = 0;
+      int bckIndexAux = getVizState().getOriginalInstance().originalA4.loopInitIndex;
+      final int backIndex = bckIndexAux;
+
+      leftTime.setEnabled(initialIndex > 0);
+      rightTime.setEnabled(initialIndex < atomnames.length - 1 || backIndex != -1);
+
+      leftTime.addActionListener(new ActionListener() {
+         public final void actionPerformed(ActionEvent e) {
+            int curIndex = atomComboTime.getSelectedIndex();
+            if (curIndex > 0) atomComboTime.setSelectedIndex(curIndex - 1);
+         }
+      });
+      rightTime.addActionListener(new ActionListener() {
+         public final void actionPerformed(ActionEvent e) {
+            if(atomComboTime.getSelectedIndex() == getVizState().getOriginalInstance().originalA4.loopEndIndex) atomComboTime.setSelectedIndex(backIndex);
+            else {
+               int curIndex = atomComboTime.getSelectedIndex();
+               if (curIndex < atomComboTime.getItemCount() - 1) atomComboTime.setSelectedIndex(curIndex + 1);
+               else if (backIndex >= 0) atomComboTime.setSelectedIndex(backIndex);
+            }
+         }
+      });
+      atomComboTime.addActionListener(new ActionListener() {
+         public final void actionPerformed(ActionEvent e) {
+            leftTime.setEnabled(atomComboTime.getSelectedIndex() > 0);
+            rightTime.setEnabled(atomComboTime.getSelectedIndex() < atomnames.length - 1 || backIndex != -1);
+            xmlLoaded.remove(getXMLfilename());
+            if (loadXmlFile) {
+               String[] s = getXMLfilename().split(Pattern.quote("."));
+               String file = s[0] + ".cnf." + s[2];
+               if (atomComboTime.getSelectedIndex() != 0) loadXML(splitTemporalFileName(atomComboTime.getSelectedIndex(), file), false);
+               else loadXML(file, false);
+               cacheForXmlState.put(getXMLfilename(),atomComboTime.getSelectedIndex());
+            }
+         }
+
+      });
+      toolbar.add(wrapper);
+   }
+
+   //pessoa: create a list with n times with the purpose of adding it to the temporal Jpanel
+   private String[] createTimeComboAtoms(int numberOfStates){
+      String[] times =  new String[numberOfStates];
+      for(int i = 0;i<numberOfStates;i++) times[i] = "State "+i;
+      return times;
+   }
+
+   //pessoa: boolean variable to control if the first xml file was loaded
+   private boolean loadXmlFile = true;
+
+   //pessoa: change the solution to see given a particular state
+   public void refreshComboAtomTime(int state){
+      this.loadXmlFile = false;
+      atomComboTime.setSelectedIndex(state);
+      this.loadXmlFile = true;
+   }
+
+   //pessoa: aux function to get the path of the xml files given a particular state
+   private  String splitTemporalFileName(int state, String path){
+      String[] dots = path.split(Pattern.quote("."));
+      return dots[0]+"."+dots[1]+"State"+state+"."+dots[2];
+   }
+
+
+
    /** Invoked when the Visualizationwindow is resized. */
    public void componentResized(ComponentEvent e) {
       componentMoved(e);
@@ -495,7 +578,7 @@ public final class VizGUI implements ComponentListener {
    }
 
    /** Helper method that refreshes the right-side visualization panel with the latest settings. */
-   private void updateDisplay() {
+   public void updateDisplay() {
       if (myState==null) return;
       // First, update the toolbar
       currentMode.set();
@@ -550,7 +633,7 @@ public final class VizGUI implements ComponentListener {
 //            break;
 //         }
          default: {
-            if (myGraphPanel==null) { 
+            if (myGraphPanel==null) {
                 myGraphPanel=new VizGraphPanel(myState, false);
             } else {
                 myGraphPanel.seeDot(false);
@@ -762,10 +845,18 @@ public final class VizGUI implements ComponentListener {
     * otherwise, this window will set itself as invisible (if not in standalone mode),
     * or it will terminate the entire application (if in standalone mode).
     */
+   //pessoa: the close was extended do not keep open the previous temporal solutions when the viz is closed
    private Runner doClose() {
       if (wrap) return wrapMe();
       xmlLoaded.remove(xmlFileName);
-      if (xmlLoaded.size()>0) { doLoadInstance(xmlLoaded.get(xmlLoaded.size()-1)); return null; }
+      if (wrapper != null && toolbar != null && xmlLoaded.isEmpty()){
+         toolbar.remove(wrapper);
+      }
+      if (xmlLoaded.size()>0) {
+         doLoadInstance(xmlLoaded.get(xmlLoaded.size()-1));
+         refreshComboAtomTime((Integer)cacheForXmlState.get(xmlLoaded.get(xmlLoaded.size()-1)));
+         return null;
+      }
       if (standalone) System.exit(0); else if (frame!=null) frame.setVisible(false);
       return null;
    }
@@ -957,7 +1048,14 @@ public final class VizGUI implements ComponentListener {
       } else if (enumerator==null) {
          OurDialog.alert("Cannot display the next solution since the analysis engine is not loaded with the visualizer.");
       } else {
-         try { enumerator.compute(xmlFileName); } catch(Throwable ex) { OurDialog.alert(ex.getMessage()); }
+         try {
+            if (xmlFileName.contains("State")) { //pessoa: when the user wishes a next solution, the xml file's path is updated to the original path.
+               String[] s = xmlFileName.split(Pattern.quote("."));
+               xmlFileName = s[0]+".cnf.xml";
+            }
+            if (toolbar != null && wrapper != null) toolbar.remove(wrapper);
+            enumerator.compute(xmlFileName); } catch(Throwable ex) { OurDialog.alert(ex.getMessage());
+         }
       }
       return null;
    }

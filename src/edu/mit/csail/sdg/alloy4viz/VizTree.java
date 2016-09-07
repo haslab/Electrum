@@ -78,21 +78,21 @@ public final class VizTree extends OurTree {
          if (parent instanceof A4Solution) {
             return toplevel;
          } else if (parent instanceof Sig || parent instanceof ExprVar) {
-            A4TupleSet ts = (A4TupleSet) (instance.eval((Expr)parent));
+            A4TupleSet ts = (A4TupleSet) (instance.eval((Expr)parent,0));
             for(A4Tuple t: ts) ans.add(t.atom(0));
          } else if (parent instanceof String) {
             String atom = (String)parent;
-            for(Sig s: instance.getAllReachableSigs()) for(Field f: s.getFields()) for(A4Tuple t: instance.eval(f)) {
+            for(Sig s: instance.getAllReachableSigs()) for(Field f: s.getFields()) for(A4Tuple t: instance.eval(f,0)) {
                if (t.atom(0).equals(atom)) { ans.add(new Pair<String,ExprHasName>(atom, f)); break; }
             }
-            for(ExprVar f: instance.getAllSkolems()) if (f.type().arity()>1) for(A4Tuple t: (A4TupleSet)(instance.eval(f))) {
+            for(ExprVar f: instance.getAllSkolems()) if (f.type().arity()>1) for(A4Tuple t: (A4TupleSet)(instance.eval(f,0))) {
                if (t.atom(0).equals(atom)) { ans.add(new Pair<String,ExprHasName>(atom, f)); break; }
             }
          } else if (parent instanceof Pair) {
             Pair<?,?> p = (Pair<?,?>)parent;
             ExprHasName rel = (ExprHasName) (p.b);
             String atom = (String) (p.a);
-            for(A4Tuple tuple: (A4TupleSet) (instance.eval(rel))) if (tuple.atom(0).equals(atom)) {
+            for(A4Tuple tuple: (A4TupleSet) (instance.eval(rel,0))) if (tuple.atom(0).equals(atom)) {
                if (tuple.arity()==2) ans.add(tuple.atom(1)); else ans.add(tuple);
             }
          } else if (parent instanceof A4Tuple) {

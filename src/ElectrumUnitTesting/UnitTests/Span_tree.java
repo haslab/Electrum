@@ -33,7 +33,7 @@ public class Span_tree {
         opt.noOverflow = true;
         opt.skolemDepth = 1;
         rep = new SimpleReporter();
-        path = "./src/ElectrumUnitTesting/models/span_tree.ele";
+        path = "./src/models/Temporal_Examples/span_tree.ele";
         cp = CompUtil.parseEverything_fromFile(rep, null, path);
 
     }

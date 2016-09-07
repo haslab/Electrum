@@ -33,7 +33,7 @@ public class Hotel {
         opt.noOverflow = true;
         opt.skolemDepth = 1;
         rep = new SimpleReporter();
-        path = "./src/ElectrumUnitTesting/models/hotel.ele";
+        path = "./src/models/Temporal_Examples/hotel.ele";
         cp = CompUtil.parseEverything_fromFile(rep, null, path);
 
     }

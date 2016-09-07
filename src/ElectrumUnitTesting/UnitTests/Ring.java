@@ -33,7 +33,7 @@ public class Ring {
         opt.noOverflow = true;
         opt.skolemDepth = 1;
         rep = new SimpleReporter();
-        path = "./src/ElectrumUnitTesting/models/ring.ele";
+        path = "./src/models/Temporal_Examples/ring.ele";
         cp = CompUtil.parseEverything_fromFile(rep, null, path);
 
     }

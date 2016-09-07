@@ -15,36 +15,14 @@
 
 package edu.mit.csail.sdg.alloy4whole;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.ObjectOutputStream;
-import java.io.OutputStream;
-import java.io.PrintWriter;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.io.*;
+import java.nio.MappedByteBuffer;
+import java.util.*;
+import java.util.regex.Pattern;
 
-import edu.mit.csail.sdg.alloy4.A4Reporter;
-import edu.mit.csail.sdg.alloy4.ConstList;
-import edu.mit.csail.sdg.alloy4.ConstMap;
-import edu.mit.csail.sdg.alloy4.Err;
-import edu.mit.csail.sdg.alloy4.ErrorSyntax;
-import edu.mit.csail.sdg.alloy4.ErrorType;
-import edu.mit.csail.sdg.alloy4.ErrorWarning;
-import edu.mit.csail.sdg.alloy4.MailBug;
-import edu.mit.csail.sdg.alloy4.OurDialog;
-import edu.mit.csail.sdg.alloy4.Pair;
-import edu.mit.csail.sdg.alloy4.Pos;
-import edu.mit.csail.sdg.alloy4.Util;
-import edu.mit.csail.sdg.alloy4.Version;
+import edu.mit.csail.sdg.alloy4.*;
 import edu.mit.csail.sdg.alloy4.WorkerEngine.WorkerCallback;
 import edu.mit.csail.sdg.alloy4.WorkerEngine.WorkerTask;
-import edu.mit.csail.sdg.alloy4.XMLNode;
 import edu.mit.csail.sdg.alloy4compiler.ast.Command;
 import edu.mit.csail.sdg.alloy4compiler.ast.Func;
 import edu.mit.csail.sdg.alloy4compiler.ast.Module;
@@ -58,12 +36,22 @@ import edu.mit.csail.sdg.alloy4compiler.translator.A4SolutionWriter;
 import edu.mit.csail.sdg.alloy4compiler.translator.TranslateAlloyToKodkod;
 import edu.mit.csail.sdg.alloy4viz.StaticInstanceReader;
 import edu.mit.csail.sdg.alloy4viz.VizGUI;
+import kodkod.ast.Relation;
+import kodkod.engine.Evaluator;
+import kodkod.instance.Instance;
+import test.Example;
+import test.Test;
+
+import javax.swing.text.html.HTMLDocument;
 
 /** This helper method is used by SimpleGUI. */
 
-final class SimpleReporter extends A4Reporter {
+public final class SimpleReporter extends A4Reporter {
+    public final static void p(String s){
+        System.out.println(s);
+    }
 
-    public static final class SimpleCallback1 implements WorkerCallback {    	
+    public static final class SimpleCallback1 implements WorkerCallback {
     	private final SimpleGUI gui;
         private final VizGUI viz;
         private final SwingLogPanel span;
@@ -166,7 +154,7 @@ final class SimpleReporter extends A4Reporter {
                 span.log("   ");
                 span.logLink(chk ? "Counterexample" : "Instance", "XML: "+filename);
                 span.log(" found. ");
-                span.logLink(chk?"Assertion":"Predicate", formula); span.log(chk?" is invalid":" is consistent");
+                span.logLink(chk ? "Assertion" : "Predicate", formula); span.log(chk?" is invalid":" is consistent");
                 if (expects==0) span.log(", contrary to expectation"); else if (expects==1) span.log(", as expected");
                 span.log(". "+array[5]+"ms.\n\n");
             }
@@ -255,7 +243,11 @@ final class SimpleReporter extends A4Reporter {
         synchronized(SimpleReporter.class) {
             try {
                 cb("R3", "   Writing the XML file...");
-                if (latestModule!=null) writeXML(this, latestModule, filename, sol, latestKodkodSRC);
+               // if (latestModule!=null) writeXML(this, latestModule, filename, sol, latestKodkodSRC,0);
+                if (latestModule != null){
+                    GenerateXmlsFiles generateXmlsFiles =  new GenerateXmlsFiles(this,latestModule,latestKodkodSRC,sol,tempfile,sol.originalOptions.maxTraceLength);
+                    generateXmlsFiles.run();
+                }
             } catch(Throwable ex) {
                 cb("bold", "\n" + (ex.toString().trim()) + "\nStackTrace:\n" + (MailBug.dump(ex).trim()) + "\n");
                 return;
@@ -363,8 +355,8 @@ final class SimpleReporter extends A4Reporter {
     private SimpleReporter(WorkerCallback cb, boolean recordKodkod) { this.cb=cb; this.recordKodkod=recordKodkod; }
 
     /** Helper method to write out a full XML file. */
-    private static void writeXML(A4Reporter rep, Module mod, String filename, A4Solution sol, Map<String,String> sources) throws Exception {
-        sol.writeXML(rep, filename, /*mod.getAllFunc()*/new ArrayList<Func>(), sources);
+    private static void writeXML(A4Reporter rep, Module mod, String filename, A4Solution sol, Map<String,String> sources,int state) throws Exception {
+        sol.writeXML(rep, filename, /*mod.getAllFunc()*/new ArrayList<Func>(), sources,state);
         if ("yes".equals(System.getProperty("debug"))) validate(filename);
     }
 
@@ -385,7 +377,7 @@ final class SimpleReporter extends A4Reporter {
                 if (latestMetamodelXML!=null && latestMetamodelXML.equals(filename))
                    {cb("pop", "You cannot enumerate a metamodel.\n"); return;}
                 if (latestKodkodXML==null || !latestKodkodXML.equals(filename))
-                   {cb("pop", "You can only enumerate the solutions of the most-recently-solved command."); return;}
+                   {cb("pop", "You can only enumerate the solutions of the most-recently-solved command."+filename+"\n"+latestKodkodXML); return;}
                 if (latestKodkod==null || latestModule==null || latestKodkodSRC==null)
                    {cb("pop", "Error: the SAT solver that generated the instance has exited,\nso we cannot enumerate unless you re-solve that command.\n"); return;}
                 sol=latestKodkod;
@@ -398,25 +390,30 @@ final class SimpleReporter extends A4Reporter {
                 "Currently only MiniSat and SAT4J are supported."); return;}
             int tries=0;
             while(true) {
-            	int c = 0,d=0;
-            	while (sol.satisfiable()) {
-            		sol = sol.next();
-            		c++;d++;
-            		if (d == 1000) {
-            			cb("S2", c+"\n");
-            			d = 0;
-            		}
-            	}
+//            	int c = 0,d=0;
+//            	while (sol.satisfiable()) {
+//            		sol = sol.next();
+//            		c++;d++;
+//            		if (d == 1000) {
+//            			cb("S2", c+"\n");
+//            			d = 0;
+//            		}
+//            	}
                 sol=sol.next();
                 if (!sol.satisfiable())
-                   {cb("pop", c+": There are no more satisfying instances.\n\n" +
+                   {cb("pop", "There are no more satisfying instances.\n\n" +
                    "Note: due to symmetry breaking and other optimizations,\n" +
                    "some equivalent solutions may have been omitted."); return;}
                 String toString = sol.toString();
                 synchronized(SimpleReporter.class) {
                     if (!latestKodkods.add(toString)) if (tries<100) { tries++; continue; }
                     // The counter is needed to avoid a Kodkod bug where sometimes we might repeat the same solution infinitely number of times; this at least allows the user to keep going
-                    writeXML(null, mod, filename, sol, latestKodkodSRC); latestKodkod=sol;
+                    //writeXML(null, mod, filename, sol, latestKodkodSRC,0); latestKodkod=sol;
+                    String[] tempFile = filename.split(Pattern.quote("."));
+                    GenerateXmlsFiles generateXmlsFiles =  new GenerateXmlsFiles(null,mod,latestKodkodSRC,sol,tempFile[0]+"."+tempFile[1],sol.originalOptions.maxTraceLength);
+                    generateXmlsFiles.run();
+                    latestKodkod=sol;
+
                 }
                 cb("declare", filename);
                 return;
@@ -455,7 +452,7 @@ final class SimpleReporter extends A4Reporter {
                 cb(out, "S2", "Generating the metamodel...\n");
                 PrintWriter of = new PrintWriter(outf, "UTF-8");
                 Util.encodeXMLs(of, "\n<alloy builddate=\"", Version.buildDate(), "\">\n\n");
-                A4SolutionWriter.writeMetamodel(ConstList.make(sigs), options.originalFilename, of);
+                A4SolutionWriter.writeMetamodel(ConstList.make(sigs), options.originalFilename, of ,0);
                 Util.encodeXMLs(of, "\n</alloy>");
                 Util.close(of);
                 if ("yes".equals(System.getProperty("debug"))) validate(outf);
@@ -468,7 +465,7 @@ final class SimpleReporter extends A4Reporter {
                 final Command cmd=cmds.get(i);
                 rep.tempfile=tempCNF;
                 cb(out, "bold", "Executing \""+cmd+"\"\n");
-                
+
                 A4Solution ai=TranslateAlloyToKodkod.execute_commandFromBook(rep, world.getAllReachableSigs(), cmd, options);
 
                 if (ai==null) result.add(null);
@@ -507,5 +504,54 @@ final class SimpleReporter extends A4Reporter {
             if (rep.warn>1) rep.cb("bold", "Note: There were "+rep.warn+" compilation warnings. Please scroll up to see them.\n");
             if (rep.warn==1) rep.cb("bold", "Note: There was 1 compilation warning. Please scroll up to see it.\n");
         }
+    }
+
+
+
+
+    //pessoa: this thread generates n xml files and a dynamic renaming as the time evolves.
+    private static class GenerateXmlsFiles implements Runnable {
+        private static ConstMap<String,String> kkSRC;
+        private final String filename;
+        private final int numberOfStates;
+        private final A4Solution a4Solution;
+        private final SimpleReporter simpleReporter;
+        private final Module latestModule;
+
+        GenerateXmlsFiles(SimpleReporter reporter,Module module,ConstMap<String,String> kkSRC,A4Solution a4Solution,String filename,int numberOfStates){
+            this.filename = filename;
+            this.numberOfStates = numberOfStates;
+            this.a4Solution = a4Solution;
+            this.simpleReporter = reporter;
+            this.latestModule = module;
+            this.kkSRC = kkSRC;
+        }
+
+         @Override
+        public void run() {
+             try {
+                 writeXML(simpleReporter, latestModule, filename+".xml", a4Solution, kkSRC, 0);
+             } catch (Exception e) {
+                 e.printStackTrace();
+             }
+            for (int i = 1; i < numberOfStates; i++) {
+                a4Solution.renameTemporalSolution(i);
+                try {
+                    writeXML(simpleReporter, latestModule, filename +"State"+ i + ".xml", a4Solution, kkSRC, i);
+                } catch (Err err) {
+                    err.printStackTrace();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+             a4Solution.type = A4Solution.WritingType.evalToAllStates;
+             a4Solution.temporalAtoms.optimizeTemporalAtoms();
+             try {
+                 writeXML(simpleReporter, latestModule, filename +"Evaluator.xml", a4Solution, kkSRC, 0);
+             } catch (Exception e) {
+                 e.printStackTrace();
+             }
+
+         }
     }
 }

@@ -33,7 +33,7 @@ public class Firewire {
         opt.noOverflow = true;
         opt.skolemDepth = 1;
         rep = new SimpleReporter();
-        path = "./src/ElectrumUnitTesting/models/firewire.ele";
+        path = "./src/models/Temporal_Examples/firewire.ele";
         cp = CompUtil.parseEverything_fromFile(rep, null, path);
 
     }

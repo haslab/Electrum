@@ -183,6 +183,10 @@ public final class A4Options implements Serializable {
     /** pt.uminho.haslab */
 	public int maxTraceLength;
 
+    public void setMaxTraceLength(int maxTraceLength){
+        this.maxTraceLength = maxTraceLength;
+    }
+
     /** This method makes a copy of this Options object. */
     public A4Options dup() {
         A4Options x = new A4Options();

@@ -165,12 +165,15 @@ public final class TranslateAlloyToKodkod extends VisitReturn<Object> {
                 //if a signature s is not  temporal a formula always(s' = s) is created.
                 Expression expression = a2k(s);
                 if (s.isVariable == null) {
-                    p("FORMULA not static: " + expression.post().eq(expression).always().toString());
-                    frame.addFormula(expression.post().eq(expression).always(), s);
+                   // p("FORMULA not static: " + expression.post().eq(expression).always().toString());
+                     frame.addFormula(expression.post().eq(expression).always(), s);
                 }
                 // if the sig is one :: one sig X ... ToKK ... G (one X)
                 //Constants (s.attibutes = []) not considered (String,Int....)
-                if (s.isOne != null){ p("FORMULA is one: " + expression.one().always().toString()); frame.addFormula(expression.one().always(), s);}
+                if (s.isOne != null){
+                //    p("FORMULA is one: " + expression.one().always().toString());
+                    frame.addFormula(expression.one().always(), s);
+                }
             }
 
             //the next block of code handles the hierarchy of the signatures
@@ -200,10 +203,13 @@ public final class TranslateAlloyToKodkod extends VisitReturn<Object> {
                         hierarchy = this.getUnionOfSubSignatures(list).in(relation).and(hierarchy);
                     }
                     frame.addFormula(hierarchy.always(),s);
-                    p("FORMULA: "+hierarchy.always().toString());
+                   // p("FORMULA: "+hierarchy.always().toString());
                 }else{
                     //if the signature is abstract and has at least two sub-sigs (ex : no (X & Y))
-                    if (hierarchy != null) p("FORMULA hierarchy: "+hierarchy.always().toString());frame.addFormula(hierarchy.always(),s);
+                    if (hierarchy != null) {
+                    //    p("FORMULA hierarchy: "+hierarchy.always().toString());
+                        frame.addFormula(hierarchy.always(),s);
+                    }
                 }
             }
 
@@ -213,7 +219,7 @@ public final class TranslateAlloyToKodkod extends VisitReturn<Object> {
                     Field f = (Field)n;
                     MultiplicityAndTyping multiplicity =  new MultiplicityAndTyping(this,f,s,d.expr);
                     if (multiplicity.finalFormula != null) {
-                        p("FORMULA decl/typing: "+multiplicity.finalFormula.toString());
+                       // p("FORMULA decl/typing: "+multiplicity.finalFormula.toString());
                         frame.addFormula(multiplicity.finalFormula, f);
                     }
                     // Given the above, we can be sure that every column is well-bounded (except possibly the first column).
@@ -234,7 +240,7 @@ public final class TranslateAlloyToKodkod extends VisitReturn<Object> {
             k2pos_enabled = true;
             for(Expr f: s.getFacts()) {
                 Expr form = s.isOne==null ? f.forAll(s.decl) : ExprLet.make(null, (ExprVar)(s.decl.get()), s, f);
-                p("FORMULA facts: "+cform(form).always().toString());
+                //p("FORMULA facts: "+cform(form).always().toString());
                 frame.addFormula(cform(form).always(), f);
             }
         }
@@ -304,7 +310,7 @@ public final class TranslateAlloyToKodkod extends VisitReturn<Object> {
         private A4Solution partial = null;
         public GreedySimulator() { }
         private TupleSet convert(TupleFactory factory, Expr f) throws Err {
-            TupleSet old = ((A4TupleSet) (partial.eval(f))).debugGetKodkodTupleset();
+            TupleSet old = ((A4TupleSet) (partial.eval(f,0))).debugGetKodkodTupleset();
             TupleSet ans = factory.noneOf(old.arity());
             for(Tuple oldT: old) {
                 Tuple newT = null;

@@ -35,7 +35,7 @@ import edu.mit.csail.sdg.alloy4compiler.translator.A4Solution;
 public final class AlloyInstance {
 
    /** The original A4Solution object. */
-   final A4Solution originalA4; // FIXTHIS: eventually we shouldn't need this field...
+   public final A4Solution originalA4; // FIXTHIS: eventually we shouldn't need this field...
 
    /** If true, it is a metamodel, else it is not a metamodel. */
    public final boolean isMetamodel;

@@ -26,17 +26,9 @@ import static kodkod.engine.Solution.Outcome.UNSATISFIABLE;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.io.Serializable;
+import java.util.*;
+import java.util.regex.Pattern;
 
 import kodkod.ast.*;
 import kodkod.ast.operator.ExprOperator;
@@ -46,11 +38,8 @@ import kodkod.engine.Evaluator;
 import kodkod.engine.Proof;
 import kodkod.engine.Solution;
 import kodkod.engine.Solver;
-import kodkod.engine.config.AbstractReporter;
-import kodkod.engine.config.ExtendedOptions;
-import kodkod.engine.config.Options;
-import kodkod.engine.config.Reporter;
-import kodkod.engine.config.TemporalOptions;
+import kodkod.engine.config.*;
+//import kodkod.engine.config.Options;
 import kodkod.engine.fol2sat.TranslationRecord;
 import kodkod.engine.fol2sat.Translator;
 import kodkod.engine.satlab.SATFactory;
@@ -93,7 +82,7 @@ import edu.mit.csail.sdg.alloy4compiler.translator.A4Options.SatSolver;
  * It is also used as a staging area for the solver before generating the solution.
  * Once solve() has been called, then this object becomes immutable after that.
  * 
- * @modified: nmm
+ * @modified: nmm, Eduardo Pessoa
  */
 
 public final class A4Solution {
@@ -124,7 +113,7 @@ public final class A4Solution {
 	//====== immutable fields ===========================================================================//
 
 	/** The original Alloy options that generated this solution. */
-	private final A4Options originalOptions;
+	public final A4Options originalOptions;
 
 	/** The original Alloy command that generated this solution; can be "" if unknown. */
 	private final String originalCommand;
@@ -161,42 +150,42 @@ public final class A4Solution {
 //	private final TupleSet timeBounds; //pt.uminho.haslab: time scopes handled by options
 
 	/** The Kodkod Solver object. */
-	private final Solver solver;
+	private  Solver solver;
 
 	//====== mutable fields (immutable after solve() has been called) ===================================//
 
 	/** True iff the problem is solved. */
-	private boolean solved = false;
+	public boolean solved = false;
 
 	/** The Kodkod Bounds object. */
-	private Bounds bounds;
+	public  Bounds bounds;
 
 	/** The list of Kodkod formulas; can be empty if unknown; once a solution is solved we must not modify this anymore */
 	public ArrayList<Formula> formulas = new ArrayList<Formula>();
 
 	/** The list of known Alloy4 sigs. */
-	private SafeList<Sig> sigs;
+	public SafeList<Sig> sigs;
 
 	/** If solved==true and is satisfiable, then this is the list of known skolems. */
 	private SafeList<ExprVar> skolems = new SafeList<ExprVar>();
 
 	/** If solved==true and is satisfiable, then this is the list of actually used atoms. */
-	private SafeList<ExprVar> atoms = new SafeList<ExprVar>();
+	public SafeList<ExprVar> atoms = new SafeList<ExprVar>();
 
 	/** If solved==true and is satisfiable, then this maps each Kodkod atom to a short name. */
-	private Map<Object,String> atom2name = new LinkedHashMap<Object,String>();
+	public Map<Object,String> atom2name = new LinkedHashMap<Object,String>();
 
 	/** If solved==true and is satisfiable, then this maps each Kodkod atom to its most specific sig. */
-	private Map<Object,PrimSig> atom2sig = new LinkedHashMap<Object,PrimSig>();
+	public Map<Object,PrimSig> atom2sig = new LinkedHashMap<Object,PrimSig>();
 
 	/** If solved==true and is satisfiable, then this is the Kodkod evaluator. */
-	private Evaluator eval = null;
+	public Evaluator eval = null;
 
 	/** If not null, you can ask it to get another solution. */
-	private Iterator<Solution> kEnumerator = null;
+	public Iterator<Solution> kEnumerator = null;
 
 	/** The map from each Sig/Field/Skolem/Atom to its corresponding Kodkod expression. */
-	private Map<Expr,Expression> a2k;
+	public Map<Expr,Expression> a2k;
 
 	/** The map from each Sig to its sub signatures. *///new
 	private Map<Sig,List<Expression>> subSigstoGivenaSig;
@@ -206,7 +195,7 @@ public final class A4Solution {
 
 
 	/** The map from each String literal to its corresponding Kodkod expression. */
-	private final ConstMap<String,Expression> s2k;
+	public final ConstMap<String,Expression> s2k;
 
 	/** The map from each kodkod Formula to Alloy Expr or Alloy Pos (can be empty if unknown) */
 	private Map<Formula,Object> k2pos;
@@ -219,6 +208,21 @@ public final class A4Solution {
 
 	//Outcome of solving a certain problem
 	public Solution.Outcome solvingOutcome;
+
+
+	//pessoa: current time to analyze
+	public int currentTime = 0;
+
+	//pessoa: variables with the loop value
+	public int loopInitIndex = -1;
+	public int loopEndIndex = -1;
+
+	//pessoa: enum that handles the context to write a xml file
+	//if the context is "evalToAllStates" the xml with all atoms is being write
+	public enum WritingType {evalToSingleState,evalToAllStates};
+	public WritingType type;
+
+
 
 	//===================================================================================================//
 
@@ -233,7 +237,10 @@ public final class A4Solution {
 	 * @param opt - the Alloy options that will affect the solution and the solver
 	 * @param expected - whether the user expected an instance or not (1 means yes, 0 means no, -1 means the user did not express an expectation)
 	 */
-	A4Solution(String originalCommand, int bitwidth, int maxseq, Set<String> stringAtoms, Collection<String> atoms, final A4Reporter rep, A4Options opt, int expected) throws Err {
+	public A4Solution(String originalCommand, int bitwidth, int maxseq, Set<String> stringAtoms, Collection<String> atoms, final A4Reporter rep, A4Options opt, int expected) throws Err {
+		canAddSkolems =  true; //pessoa: in the first renaming the atoms are added
+		this.temporalAtoms = new GatherTemporalAtoms(); //pessoa: the object is initialized to gather all atoms in the renaming procedure
+		type = WritingType.evalToSingleState; //pessoa: in this point we are writing a xml per time
 		opt = opt.dup();
 		this.unrolls = opt.unrolls;
 		this.sigs = new SafeList<Sig>(Arrays.asList(UNIV, SIGINT, SEQIDX, STRING, NONE));
@@ -293,10 +300,8 @@ public final class A4Solution {
 		bounds.boundExactly(KK_STRING, this.stringBounds);
 		int sym = (expected==1 ? 0 : opt.symmetry);
 
-		//temporary code
+		//pessoa: the solver with extended options is initialized
 		ExtendedOptions varOptions = new ExtendedOptions();
-		varOptions.setMaxTraceLength(opt.maxTraceLength);
-
 		solver = new Solver(varOptions);
 		solver.options().setNoOverflow(opt.noOverflow); // pt.uminho.haslab: propagate options
 		if (solver.options() instanceof TemporalOptions<?>) // TODO: pt.uminho.haslab should be in Solver interface
@@ -332,7 +337,7 @@ public final class A4Solution {
 
 	/** Construct a new A4Solution that is the continuation of the old one, but with the "next" instance. */
 	// pt.uminho.haslab: extended with time scopes
-	private A4Solution(A4Solution old) throws Err {
+	public A4Solution(A4Solution old) throws Err {
 		if (!old.solved) throw new ErrorAPI("This solution is not yet solved, so next() is not allowed.");
 		if (old.kEnumerator==null) throw new ErrorAPI("This solution was not generated by an incremental SAT solver.\n" + "Solution enumeration is currently only implemented for MiniSat and SAT4J.");
 		if (old.eval==null) throw new ErrorAPI("This solution is already unsatisfiable, so you cannot call next() to get the next solution.");
@@ -351,8 +356,8 @@ public final class A4Solution {
 		seqidxBounds = old.seqidxBounds;
 		stringBounds = old.stringBounds;
 		solver = old.solver;
-		subSigstoGivenaSig = old.subSigstoGivenaSig;//new
-		sigToKKRelation = old.sigToKKRelation;//new
+		subSigstoGivenaSig = old.subSigstoGivenaSig;//pessoa: keep subSignatures struture
+		sigToKKRelation = old.sigToKKRelation;//pessoa: keep sigToKodkodRelation struture
 		bounds = old.bounds;
 		formulas = old.formulas;
 		sigs = old.sigs;
@@ -361,6 +366,10 @@ public final class A4Solution {
 		rel2type = old.rel2type;
 		decl2type = old.decl2type;
 		if (inst!=null) {
+			this.storeLoopvariablesFromInstance(inst);//pessoa: store loop variables in next instances
+			this.instance = inst; //pessoa: the original instance is kept to performing the renaming
+			Iterator it = bounds.universe().iterator();
+			while(it.hasNext()) this.universeList.add(it.next());//pessoa: the universe is kept into a list to get the atoms' index
 			eval = new Evaluator(inst, old.solver.options());
 			a2k = new LinkedHashMap<Expr,Expression>();
 			for(Map.Entry<Expr,Expression> e: old.a2k.entrySet())
@@ -379,6 +388,9 @@ public final class A4Solution {
 		atom2name = ConstMap.make(atom2name);
 		atom2sig = ConstMap.make(atom2sig);
 		solved = true;
+		temporalAtoms = new GatherTemporalAtoms();
+		type = WritingType.evalToSingleState;
+		canAddSkolems =  true;
 	}
 
 	/** Turn the solved flag to be true, and make all remaining fields immutable. */
@@ -429,10 +441,12 @@ public final class A4Solution {
 
 	/** Returns the Kodkod input used to generate this solution; returns "" if unknown. */
 	public String debugExtractKInput() {
-		if (solved)
-			return TranslateKodkodToJava.convert(Formula.and(formulas), bitwidth, kAtoms, bounds, atom2name);
-		else
-			return TranslateKodkodToJava.convert(Formula.and(formulas), bitwidth, kAtoms, bounds.unmodifiableView(), null);
+		//pessoa: solverd or not, the kodkod returned is always the original (without "unuseds")
+		return TranslateKodkodToJava.convert(Formula.and(formulas), bitwidth, kAtoms, bounds.unmodifiableView(), null);
+//		if (solved)
+//			return TranslateKodkodToJava.convert(Formula.and(formulas), bitwidth, kAtoms, bounds, atom2name);
+//		else
+//			return TranslateKodkodToJava.convert(Formula.and(formulas), bitwidth, kAtoms, bounds.unmodifiableView(), null);
 	}
 
 	//===================================================================================================//
@@ -533,10 +547,8 @@ public final class A4Solution {
 		return null;
 	}
 
-
-
 	/** Returns an unmodifiable copy of the map from each Sig/Field/Skolem/Atom to its corresponding Kodkod expression. */
-	ConstMap<Expr,Expression> a2k()  { return ConstMap.make(a2k); }
+	public ConstMap<Expr,Expression> a2k()  { return ConstMap.make(a2k); }
 
 	/** Returns an unmodifiable copy of the map from each String literal to its corresponding Kodkod expression. */
 	ConstMap<String,Expression> s2k()  { return s2k; }
@@ -643,12 +655,14 @@ public final class A4Solution {
 	private Map<Expr,A4TupleSet> evalCache = new LinkedHashMap<Expr,A4TupleSet>();
 
 	/** Return the A4TupleSet for the given sig (if solution not yet solved, or unsatisfiable, or sig not found, then return an empty tupleset) */
-	public A4TupleSet eval(Sig sig) {
+	public A4TupleSet eval(Sig sig,int state) {
 		try {
 			if (!solved || eval==null) return new A4TupleSet(factory.noneOf(1), this);
 			A4TupleSet ans = evalCache.get(sig);
 			if (ans!=null) return ans;
-			TupleSet ts = eval.evaluate((Expression) TranslateAlloyToKodkod.alloy2kodkod(this, sig));
+			TupleSet ts = null;
+			if (sig.isVariable != null) ts = eval.evaluate((Expression) TranslateAlloyToKodkod.alloy2kodkod(this, sig), state);
+			else ts = eval.evaluate((Expression) TranslateAlloyToKodkod.alloy2kodkod(this, sig));
 			ans = new A4TupleSet(ts, this);
 			evalCache.put(sig, ans);
 			return ans;
@@ -658,12 +672,15 @@ public final class A4Solution {
 	}
 
 	/** Return the A4TupleSet for the given field (if solution not yet solved, or unsatisfiable, or field not found, then return an empty tupleset) */
-	public A4TupleSet eval(Field field) {
+	public A4TupleSet eval(Field field,int state) {
 		try {
+
 			if (!solved || eval==null) return new A4TupleSet(factory.noneOf(field.type().arity()), this);
 			A4TupleSet ans = evalCache.get(field);
-			if (ans!=null) return ans;
-			TupleSet ts = eval.evaluate((Expression) TranslateAlloyToKodkod.alloy2kodkod(this, field));
+			//if (ans!=null) return ans;
+			TupleSet ts = null;
+			if (field.isVariable != null) ts = eval.evaluate((Expression) TranslateAlloyToKodkod.alloy2kodkod(this, field),state);
+			else ts = eval.evaluate((Expression) TranslateAlloyToKodkod.alloy2kodkod(this, field));
 			ans = new A4TupleSet(ts, this);
 			evalCache.put(field, ans);
 			return ans;
@@ -671,32 +688,13 @@ public final class A4Solution {
 			return new A4TupleSet(factory.noneOf(field.type().arity()), this);
 		}
 	}
-
-	/** If this solution is solved and satisfiable, evaluates the given expression and returns an A4TupleSet, a java Integer, or a java Boolean. */
-	public Object eval(Expr expr) throws Err {
-		try {
-			if (expr instanceof Sig) return eval((Sig)expr);
-			if (expr instanceof Field) return eval((Field)expr);
-			if (!solved) throw new ErrorAPI("This solution is not yet solved, so eval() is not allowed.");
-			if (eval==null) throw new ErrorAPI("This solution is unsatisfiable, so eval() is not allowed.");
-			if (expr.ambiguous && !expr.errors.isEmpty()) expr = expr.resolve(expr.type(), null);
-			if (!expr.errors.isEmpty()) throw expr.errors.pick();
-			Object result = TranslateAlloyToKodkod.alloy2kodkod(this, expr);
-			if (result instanceof IntExpression) return eval.evaluate((IntExpression)result) + (eval.wasOverflow() ? " (OF)" : "");
-			if (result instanceof Formula) return eval.evaluate((Formula)result);
-			if (result instanceof Expression) return new A4TupleSet(eval.evaluate((Expression)result), this);
-			throw new ErrorFatal("Unknown internal error encountered in the evaluator.");
-		} catch(CapacityExceededException ex) {
-			throw TranslateAlloyToKodkod.rethrow(ex);
-		}
-	}
 	
 	/** If this solution is solved and satisfiable, evaluates the given expression at the given state and returns an A4TupleSet, a java Integer, or a java Boolean. 
 	 * pt.uminho.haslab */
 	public Object eval(Expr expr, int state) throws Err {
 		try {
-			if (expr instanceof Sig) return eval((Sig)expr);
-			if (expr instanceof Field) return eval((Field)expr);
+			if (expr instanceof Sig) return eval((Sig)expr,state);
+			if (expr instanceof Field) return eval((Field)expr,state);
 			if (!solved) throw new ErrorAPI("This solution is not yet solved, so eval() is not allowed.");
 			if (eval==null) throw new ErrorAPI("This solution is unsatisfiable, so eval() is not allowed.");
 			if (expr.ambiguous && !expr.errors.isEmpty()) expr = expr.resolve(expr.type(), null);
@@ -712,7 +710,7 @@ public final class A4Solution {
 	}
 
 	/** Returns the Kodkod instance represented by this solution; throws an exception if the problem is not yet solved or if it is unsatisfiable. */
-	public Instance debugExtractKInstance() throws Err {
+	public Instance debugExtractKInstance()  throws Err {
 		if (!solved) throw new ErrorAPI("This solution is not yet solved, so instance() is not allowed.");
 		if (eval==null) throw new ErrorAPI("This solution is unsatisfiable, so instance() is not allowed.");
 		return eval.instance().unmodifiableView();
@@ -805,7 +803,7 @@ public final class A4Solution {
 	//===================================================================================================//
 
 	/** Helper class that wraps an iterator up where it will pre-fetch the first element (note: it will not prefetch subsequent elements). */
-	private static final class Peeker<T> implements Iterator<T> {
+	private static final class Peeker<T> implements Iterator<T>,Serializable {
 		/** The encapsulated iterator. */
 		private Iterator<T> iterator;
 		/** True iff we have captured the first element. */
@@ -861,7 +859,7 @@ public final class A4Solution {
 	}
 
 	/** Helper method that chooses a name for each atom based on its most specific sig; (external caller should call this method with s==null and nexts==null) */
-	private static void rename (A4Solution frame, PrimSig s, Map<Sig,List<Tuple>> nexts, UniqueNameGenerator un) throws Err {
+	public static void rename (A4Solution frame, PrimSig s, Map<Sig,List<Tuple>> nexts, UniqueNameGenerator un) throws Err {
 		if (s==null) {
 			for(ExprVar sk:frame.skolems) un.seen(sk.label);
 			// Store up the skolems
@@ -929,25 +927,32 @@ public final class A4Solution {
 				if (!frame.atom2sig.containsKey(atom)) { frame.atom2name.put(atom, "unused"+unused); unused++; }
 			}
 			// Add the skolems
-			for(int num=skolems.size(), i=0; i<num-2; i=i+3) {
-				String n = (String) skolems.get(i);
-				while(n.length()>0 && n.charAt(0)=='$') n=n.substring(1);
-				Type t = (Type) skolems.get(i+1);
-				Relation r = (Relation) skolems.get(i+2);
-				frame.addSkolem(un.make("$"+n), t, r);
+			//pessoa: the skolens just are handled in the first renaming of a solution
+			if (frame.canAddSkolems) {
+				for (int num = skolems.size(), i = 0; i < num - 2; i = i + 3) {
+					String n = (String) skolems.get(i);
+					while (n.length() > 0 && n.charAt(0) == '$') n = n.substring(1);
+					Type t = (Type) skolems.get(i + 1);
+					Relation r = (Relation) skolems.get(i + 2);
+					frame.addSkolem(un.make("$" + n), t, r);
+				}
 			}
 			return;
 		}
 		for(PrimSig c: s.children()) rename(frame, c, nexts, un);
 		String signame = un.make(s.label.startsWith("this/") ? s.label.substring(5) : s.label);
 		List<Tuple> list = new ArrayList<Tuple>();
-		for(Tuple t: frame.eval.evaluate(frame.a2k(s))) list.add(t);
+		//pessoa: if the relation is variable the evaluating is performed in the current time that we are renaming
+		if (s.isVariable != null) for(Tuple t: frame.eval.evaluate(frame.a2k(s),frame.currentTime)) list.add(t);
+		else for(Tuple t: frame.eval.evaluate(frame.a2k(s))) list.add(t);
+
 		List<Tuple> order = nexts.get(s);
 		if (order!=null && order.size()==list.size() && order.containsAll(list)) { list=order; }
 		int i = 0;
 		for(Tuple t: list) {
 			if (frame.atom2sig.containsKey(t.atom(0))) continue; // This means one of the subsig has already claimed this atom.
-			String x = signame + "$" + i;
+			//pessoa: the atom has the index from the universe
+			String x =  frame.getAtomIdFromUniverse(signame, (String) t.atom(0));;
 			i++;
 			frame.atom2sig.put(t.atom(0), s);
 			frame.atom2name.put(t.atom(0), x);
@@ -957,7 +962,14 @@ public final class A4Solution {
 			frame.eval.instance().add(r, ts);
 			frame.a2k.put(v, r);
 			frame.atoms.add(v);
+			//pessoa: in this map we adding as the renaming evolves in time the map between a alloy expression and a kk expression
+			frame.temporaryA2k.put(v, r);
 		}
+	}
+
+	//pessoa: this function returns a atom with the index equals to the index position that such atom appears on the universe
+	private String getAtomIdFromUniverse(String atom,String s){
+		return atom+"$"+this.universeList.indexOf(s);
 	}
 
 	//===================================================================================================//
@@ -975,10 +987,11 @@ public final class A4Solution {
 			}
 			for(Relation r: bounds.relations()) inst.add(r, bounds.lowerBound(r));
 			eval = new Evaluator(inst, solver.options());
-			rename(this, null, null, new UniqueNameGenerator());
+			//pessoa: since the atoms' name already are properly renamed, when we are reading a file, it isn't required
+			//rename(this, null, null, new UniqueNameGenerator());
 			solved();
 			return this;
-		}        
+		}
 		// Otherwise, prepare to do the solve...
 		final A4Options opt = originalOptions;
 		long time = System.currentTimeMillis();
@@ -1039,9 +1052,6 @@ public final class A4Solution {
 //			if (sol==null) sol = solver.solve(fgoal, bounds);
 //		} else { // pt.uminho.haslab: kodkod 2.0+
 
-		System.out.println("\n\nFinal FORMULA: \n\n"+fgoal.toString());
-//		System.out.println("\n\nBounds: \n\n"+bounds.toString());
-		//System.exit(0);
 
 		kEnumerator = new Peeker<Solution>(solver.solveAll(fgoal, bounds));
 		if (sol==null) sol = kEnumerator.next();
@@ -1076,20 +1086,76 @@ public final class A4Solution {
 			}
 		}
 
-		//Removed.... error in var relations
 		// If satisfiable, then add/rename the atoms and skolems
-		//if (inst!=null) {
-		//	eval = new Evaluator(inst, solver.options());
-		//		rename(this, null, null, new UniqueNameGenerator());
-		//	}
-
+		if (inst!=null) {
+			//pessoa: if the instance is not null, the loop variables are stored, the original instance is saved with
+			//the purpose of renaming and the universe' bounds is kept in a Arraylist
+			storeLoopvariablesFromInstance(inst);
+			Iterator it = bounds.universe().iterator();
+			while(it.hasNext()) this.universeList.add(it.next());
+			instance = inst;
+			eval = new Evaluator(inst, solver.options());
+			rename(this, null, null, new UniqueNameGenerator());
+		}
 		// report the result
 		solved();
 		time = System.currentTimeMillis() - time;
-
 		if (inst!=null) rep.resultSAT(cmd, time, this); else rep.resultUNSAT(cmd, time, this);
-
 		return this;
+	}
+
+	//pessoa: the loop times are stored given a instance
+	private void storeLoopvariablesFromInstance(Instance inst){
+		for (Relation r : inst.relationTuples().keySet()){
+			if (r.name().equals("loop")){
+				TupleSet t = inst.relationTuples().get(r);
+				if (!t.isEmpty()){
+					Tuple tuple = (Tuple) t.toArray()[0];
+					int first = Integer.parseInt(((String)tuple.atom(0)).substring(4));
+					int second = Integer.parseInt(((String)tuple.atom(1)).substring(4));
+					if (first >= second){ this.loopEndIndex = first; this.loopInitIndex = second; }
+					else{this.loopEndIndex = second; this.loopInitIndex = first;}
+				}
+			}
+		}
+	}
+
+	//pessoa: structure to execute the renaming as the time evolves
+	private Instance instance ;
+	private Map<Expr,Expression> originalA2k;
+	private Map<Expr,Expression> temporaryA2k =  new HashMap<>();
+	private List universeList = new ArrayList();
+
+	//pessoa: boolean var to allow or not add the skolem into the original list from the second renaming
+	public boolean  canAddSkolems;
+
+	//pessoa: Object of GatherTemporalAtoms class in order to build a xml file with all atoms that appear in the renaming
+	public GatherTemporalAtoms temporalAtoms;
+	public void setLoopValues(){
+		this.storeLoopvariablesFromInstance(instance);
+	}
+
+	//pessoa:  this function performs the renaming of a solution given a particular state.
+	//To do that, the control structures are initialised as well as the evaluator with the original instance.
+	public A4Solution renameTemporalSolution(int state){
+		this.currentTime = state;
+		try {
+			originalA2k = new HashMap<>();
+			for (Expr e : a2k.keySet()){
+				if (!this.temporaryA2k.containsKey(e)) this.originalA2k.put(e,a2k.get(e));
+			}
+			this.a2k =  originalA2k;
+			evalCache =  new HashMap<>();
+			atoms = new SafeList<ExprVar>();
+			atom2name = new LinkedHashMap<Object,String>();
+			atom2sig = new LinkedHashMap<Object,PrimSig>();
+			eval = new Evaluator(instance, solver.options());
+			rename(this, null, null, new UniqueNameGenerator());
+			return this;
+		} catch (Err err) {
+			err.printStackTrace();
+		}
+		return null;
 	}
 
 	//===================================================================================================//
@@ -1103,36 +1169,41 @@ public final class A4Solution {
 		if (eval == null) return "---OUTCOME---\nUnsatisfiable.\n";
 		String answer = toStringCache;
 		if (answer != null) return answer;
-		Instance sol = eval.instance();
 		StringBuilder sb = new StringBuilder();
 		sb.append("---INSTANCE---\n" + "integers={");
-		boolean firstTuple = true;
-		for(IndexedEntry<TupleSet> e:sol.intTuples()) {
-			if (firstTuple) firstTuple=false; else sb.append(", ");
-			// No need to print e.index() since we've ensured the Int atom's String representation is always equal to ""+e.index()
-			Object atom = e.value().iterator().next().atom(0);
-			sb.append(atom2name(atom));
-		}
-		sb.append("}\n");
-		try {
-			for(Sig s:sigs) {
-				sb.append(s.label).append("=").append(eval(s)).append("\n");
-				for(Field f:s.getFields()) sb.append(s.label).append("<:").append(f.label).append("=").append(eval(f)).append("\n");
+		for(int i = 0;i<this.originalOptions.maxTraceLength;i++) {
+			sb.append("------State "+i+"-------\n");
+			Instance sol = eval.instance();
+			this.renameTemporalSolution(i);
+			boolean firstTuple = true;
+			for (IndexedEntry<TupleSet> e : sol.intTuples()) {
+				if (firstTuple) firstTuple = false;
+				else sb.append(", " );
+				// No need to print e.index() since we've ensured the Int atom's String representation is always equal to ""+e.index()
+				Object atom = e.value().iterator().next().atom(i);
+				sb.append(atom2name(atom));
 			}
-			for(ExprVar v:skolems) {
-				sb.append("skolem ").append(v.label).append("=").append(eval(v)).append("\n");
+			sb.append("}\n" );
+			try {
+				for (Sig s : sigs) {
+					sb.append(s.label).append("=" ).append(eval(s, i)).append("\n" );
+					for (Field f : s.getFields())
+						sb.append(s.label).append("<:" ).append(f.label).append("=" ).append(eval(f, i)).append("\n" );
+				}
+				for (ExprVar v : skolems) {
+					sb.append("skolem " ).append(v.label).append("=" ).append(eval(v, i)).append("\n" );
+				}
+			} catch (Err er) {
+				return toStringCache = ("<Evaluator error occurred at Time "+i+" : " + er + ">" );
 			}
-
-			return toStringCache = sb.toString();
-		} catch(Err er) {
-			return toStringCache = ("<Evaluator error occurred: "+er+">");
 		}
+		return toStringCache = sb.toString();
 	}
 
 	//===================================================================================================//
 
 	/** If nonnull, it caches the result of calling "next()". */
-	private A4Solution nextCache = null;
+	public A4Solution nextCache = null;
 
 	/** If this solution is UNSAT, return itself; else return the next solution (which could be SAT or UNSAT).
 	 * @throws ErrorAPI if the solver was not an incremental solver
@@ -1198,20 +1269,25 @@ public final class A4Solution {
 
 	/** Helper method to write out a full XML file. */
 	public void writeXML(String filename) throws Err {
-		writeXML(filename, null, null);
+		writeXML(filename, null, null,0);
+	}
+
+	/** Helper method to write out a full XML file. */
+	public void writeXML(String filename,int state) throws Err {
+		writeXML(filename, null, null,state);
 	}
 
 	/** Helper method to write out a full XML file. */
 	public void writeXML(String filename, Iterable<Func> macros) throws Err {
-		writeXML(filename, macros, null);
+		writeXML(filename, macros, null,0);
 	}
 
 	/** Helper method to write out a full XML file. */
-	public void writeXML(String filename, Iterable<Func> macros, Map<String,String> sourceFiles) throws Err {
+	public void writeXML(String filename, Iterable<Func> macros, Map<String,String> sourceFiles,int state) throws Err {
 		PrintWriter out=null;
 		try {
 			out=new PrintWriter(filename,"UTF-8");
-			writeXML(out, macros, sourceFiles);
+			writeXML(out, macros, sourceFiles,state);
 			if (!Util.close(out)) throw new ErrorFatal("Error writing the solution XML file.");
 		} catch(IOException ex) {
 			Util.close(out);
@@ -1220,11 +1296,11 @@ public final class A4Solution {
 	}
 
 	/** Helper method to write out a full XML file. */
-	public void writeXML(A4Reporter rep, String filename, Iterable<Func> macros, Map<String,String> sourceFiles) throws Err {
+	public void writeXML(A4Reporter rep, String filename, Iterable<Func> macros, Map<String,String> sourceFiles,int state) throws Err {
 		PrintWriter out=null;
 		try {
 			out=new PrintWriter(filename,"UTF-8");
-			writeXML(rep, out, macros, sourceFiles);
+			writeXML(rep, out, macros, sourceFiles,state);
 			if (!Util.close(out)) throw new ErrorFatal("Error writing the solution XML file.");
 		} catch(IOException ex) {
 			Util.close(out);
@@ -1233,28 +1309,32 @@ public final class A4Solution {
 	}
 
 	/** Helper method to write out a full XML file. */
-	public void writeXML(PrintWriter writer, Iterable<Func> macros, Map<String,String> sourceFiles) throws Err {
-		A4SolutionWriter.writeInstance(null, this, writer, macros, sourceFiles);
+	public void writeXML(PrintWriter writer, Iterable<Func> macros, Map<String,String> sourceFiles,int state) throws Err {
+		A4SolutionWriter.writeInstance(null, this, writer, macros, sourceFiles,state);
 		if (writer.checkError()) throw new ErrorFatal("Error writing the solution XML file.");
 	}
 
 	/** Helper method to write out a full XML file. */
-	public void writeXML(A4Reporter rep, PrintWriter writer, Iterable<Func> macros, Map<String,String> sourceFiles) throws Err {
-		A4SolutionWriter.writeInstance(rep, this, writer, macros, sourceFiles);
+	public void writeXML(A4Reporter rep, PrintWriter writer, Iterable<Func> macros, Map<String,String> sourceFiles,int state) throws Err {
+		A4SolutionWriter.writeInstance(rep, this, writer, macros, sourceFiles,state);
 		if (writer.checkError()) throw new ErrorFatal("Error writing the solution XML file.");
 	}
 
-	// pt.uminho.haslab
-	public int getTraceLength() {
-		if (eval.instance() instanceof TemporalInstance)
-			return eval.steps();
-		else return -1;
-	}
-
-	// pt.uminho.haslab
-	public int getLoopState() {
-		if (eval.instance() instanceof TemporalInstance)
-			return eval.loop();
-		else return -1;
+//	// pt.uminho.haslab
+//	public int getTraceLength() {
+//		if (eval.instance() instanceof TemporalInstance)
+//			return eval.steps();
+//		else return -1;
+//	}
+//
+//	// pt.uminho.haslab
+//	public int getLoopState() {
+//		if (eval.instance() instanceof TemporalInstance)
+//			return eval.loop();
+//		else return -1;
+//	}
+	
+	public static void p(String s){
+		System.out.println(s);
 	}
 }
