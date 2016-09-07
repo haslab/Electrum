@@ -334,7 +334,6 @@ public abstract class Sig extends Expr {
 			if (parent==SIGINT) throw new ErrorSyntax(pos, "sig "+label+" cannot extend the builtin \"Int\" signature");
 			if (parent==SEQIDX) throw new ErrorSyntax(pos, "sig "+label+" cannot extend the builtin \"seq/Int\" signature");
 			if (parent==STRING) throw new ErrorSyntax(pos, "sig "+label+" cannot extend the builtin \"String\" signature");
-//			if (parent==TIME)   throw new ErrorSyntax(pos, "sig "+label+" cannot extend the builtin \"Time\" signature");  //pt.uminho.haslab: time scopes currently managed in the options
 			if (parent==NONE)   throw new ErrorSyntax(pos, "sig "+label+" cannot extend the builtin \"none\" signature");
 			if (parent!=null && parent.isVariable!=null && !(isVariable!=null))  //pt.uminho.haslab: variable sig
 				throw new ErrorSyntax(isAbstract,  "Static signature cannot extend dynamic signature.");

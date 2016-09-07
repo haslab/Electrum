@@ -66,6 +66,11 @@ public final class A4SolutionWriter {
        if (id==null) { id=Integer.toString(map.size()); map.put(obj, id); }
        return id;
     }
+    
+    // pt.uminho.haslab
+    private String map(Expr obj, int state) {
+    	return map(obj)+"_"+state;
+	}
 
     /** Helper method that returns the list of direct subsignatures. */
     private Iterable<PrimSig> children(PrimSig x) throws Err {
@@ -110,8 +115,47 @@ public final class A4SolutionWriter {
        }
        return true;
     }
+    
+    /** Write the given Expr and its Type at the given state. 
+     * pt.uminho.haslab */
+    private boolean writeExpr(String prefix, Expr expr, int state) throws Err {
+       Type type = expr.type();
+       if (!type.hasTuple()) return false;
+       if (sol!=null) {
+          // Check to see if the tupleset is *really* fully contained inside "type".
+          // If not, then grow "type" until the tupleset is fully contained inside "type"
+          Expr sum = type.toExpr();
+          int lastSize = (-1);
+          while(true) {
+             A4TupleSet ts = (A4TupleSet)(sol.eval(expr.minus(sum), state)); // pt.uminho.haslab
+             int n = ts.size();
+             if (n<=0) break;
+             if (lastSize>0 && lastSize<=n) throw new ErrorFatal("An internal error occurred in the evaluator.");
+             lastSize=n;
+             Type extra = ts.iterator().next().type();
+             type = type.merge(extra);
+             sum = sum.plus(extra.toExpr());
+          }
+          // Now, write out the tupleset
+          A4TupleSet ts = (A4TupleSet)(sol.eval(expr, state)); // pt.uminho.haslab
+          for(A4Tuple t: ts) {
+             if (prefix.length()>0) { out.print(prefix); prefix=""; }
+             out.print("   <tuple>");
+             for(int i=0; i<t.arity(); i++) Util.encodeXMLs(out, " <atom label=\"", t.atom(i), "\"/>");
+             out.print(" </tuple>\n");
+          }
+       }
+       // Now, write out the type
+       if (prefix.length()>0) return false;
+       for(List<PrimSig> ps: type.fold()) {
+          out.print("   <types>");
+          for(PrimSig sig: ps) Util.encodeXMLs(out, " <type ID=\"", map(sig,state), "\"/>");
+          out.print(" </types>\n");
+       }
+       return true;
+    }
 
-    /** Write the given Sig. */
+	/** Write the given Sig. */
     private A4TupleSet writesig(final Sig x) throws Err {
        A4TupleSet ts = null, ts2 = null;
        if (x==Sig.NONE) return null; // should not happen, but we test for it anyway
@@ -134,7 +178,7 @@ public final class A4SolutionWriter {
        if (x.isEnum!=null) out.print("\" enum=\"yes");
        out.print("\">\n");
        try {
-           if (sol!=null && x!=Sig.UNIV && x!=Sig.SIGINT && x!=Sig.SEQIDX) { // && x!=Sig.TIME) { // pt.uminho.haslab: time scope currently managed in the options
+           if (sol!=null && x!=Sig.UNIV && x!=Sig.SIGINT && x!=Sig.SEQIDX) {
               ts = (A4TupleSet)(sol.eval(x));
               for(A4Tuple t: ts.minus(ts2))  Util.encodeXMLs(out, "   <atom label=\"", t.atom(0), "\"/>\n");
            }
@@ -146,6 +190,45 @@ public final class A4SolutionWriter {
        for(Field field: x.getFields()) writeField(field);
        return ts;
     }
+    
+    /** Write the given Sig at the given state.
+     * pt.uminho.haslab */
+    private A4TupleSet writesig(final Sig x, int state) throws Err {
+       A4TupleSet ts = null, ts2 = null;
+       if (x==Sig.NONE) return null; // should not happen, but we test for it anyway
+       if (sol==null && x.isMeta!=null) return null; // When writing the metamodel, skip the metamodel sigs!
+       if (x instanceof PrimSig) for(final PrimSig sub:children((PrimSig)x)) {
+          A4TupleSet ts3 = writesig(sub,state);
+          if (ts2==null) ts2 = ts3; else ts2 = ts2.plus(ts3);
+       }
+       if (rep!=null) rep.write(x);
+       Util.encodeXMLs(out, "\n<sig label=\"", x.label, "\" ID=\"", map(x,state), "\" state=\"", state+""); // pt.uminho.haslab: must have different IDS for different states!
+       if (x instanceof PrimSig && x!=Sig.UNIV) Util.encodeXMLs(out, "\" parentID=\"", map(((PrimSig)x).parent,state));
+       if (x.builtin) out.print("\" builtin=\"yes");
+       if (x.isAbstract!=null) out.print("\" abstract=\"yes");
+       if (x.isOne!=null) out.print("\" one=\"yes");
+       if (x.isLone!=null) out.print("\" lone=\"yes");
+       if (x.isSome!=null) out.print("\" some=\"yes");
+       if (x.isPrivate!=null) out.print("\" private=\"yes");
+       if (x.isMeta!=null) out.print("\" meta=\"yes");
+       if (x instanceof SubsetSig && ((SubsetSig)x).exact) out.print("\" exact=\"yes");
+       if (x.isEnum!=null) out.print("\" enum=\"yes");
+       if (x.isVariable!=null) out.print("\" variable=\"yes"); // pt.uminho.haslab
+       out.print("\">\n");
+       try {
+           if (sol!=null && x!=Sig.UNIV && x!=Sig.SIGINT && x!=Sig.SEQIDX) { // && x!=Sig.TIME) { // pt.uminho.haslab: time scope currently managed in the options
+              ts = (A4TupleSet)(sol.eval(x, state));
+              for(A4Tuple t: ts.minus(ts2))  Util.encodeXMLs(out, "   <atom label=\"", t.atom(0), "\"/>\n");
+           }
+       } catch(Throwable ex) {
+           throw new ErrorFatal("Error evaluating sig " + x.label, ex);
+       }
+       if (x instanceof SubsetSig) for(Sig p:((SubsetSig)x).parents) Util.encodeXMLs(out, "   <type ID=\"", map(p,state), "\"/>\n");
+       out.print("</sig>\n");
+       for(Field field: x.getFields()) writeField(field, state);
+       return ts;
+    }
+
 
     /** Write the given Field. */
     private void writeField(Field x) throws Err {
@@ -158,6 +241,24 @@ public final class A4SolutionWriter {
           if (x.isMeta!=null) out.print("\" meta=\"yes");
           out.print("\">\n");
           writeExpr("", x);
+          out.print("</field>\n");
+       } catch(Throwable ex) {
+          throw new ErrorFatal("Error evaluating field "+x.sig.label+"."+x.label, ex);
+       }
+    }
+    
+    /** Write the given Field at the given state. 
+     * pt.uminho.haslab */
+    private void writeField(Field x, int state) throws Err {
+       try {
+          if (sol==null && x.isMeta!=null) return; // when writing the metamodel, skip the metamodel fields!
+          if (x.type().hasNoTuple()) return;         // we do not allow "none" in the XML file's type declarations
+          if (rep!=null) rep.write(x);
+          Util.encodeXMLs(out, "\n<field label=\"", x.label, "\" ID=\"", map(x,state), "\" parentID=\"", map(x.sig,state), "\" state=\"", state+""); // pt.uminho.haslab: must have different IDS for different states!
+          if (x.isPrivate!=null) out.print("\" private=\"yes");
+          if (x.isMeta!=null) out.print("\" meta=\"yes");
+          out.print("\">\n");
+          writeExpr("", x, state);
           out.print("</field>\n");
        } catch(Throwable ex) {
           throw new ErrorFatal("Error evaluating field "+x.sig.label+"."+x.label, ex);
@@ -179,21 +280,29 @@ public final class A4SolutionWriter {
 
     /** If sol==null, write the list of Sigs as a Metamodel, else write the solution as an XML file. */
     // pt.uminho.haslab: extended with time scopes and sigs
-    private A4SolutionWriter(A4Reporter rep, A4Solution sol, Iterable<Sig> sigs, int bitwidth, int maxseq, String originalCommand, String originalFileName, PrintWriter out, Iterable<Func> extraSkolems) throws Err {
+    private A4SolutionWriter(A4Reporter rep, A4Solution sol, Iterable<Sig> sigs, int bitwidth, int maxseq, int traceLength, int loop, String originalCommand, String originalFileName, PrintWriter out, Iterable<Func> extraSkolems) throws Err {
     	this.rep = rep;
         this.out = out;
         this.sol = sol;
         for (Sig s:sigs) if (s instanceof PrimSig && ((PrimSig)s).parent==Sig.UNIV) toplevels.add((PrimSig)s);
         out.print("<instance bitwidth=\""); out.print(bitwidth);
         out.print("\" maxseq=\""); out.print(maxseq);
-        out.print("\" time=\""); out.print(-1); // pt.uminho.haslab: time scopes TODO: retrieve from solution
-        out.print("\" loop=\""); out.print(-1); // pt.uminho.haslab: time scopes TODO: retrieve from solution
+        out.print("\" length=\""); out.print(traceLength); // pt.uminho.haslab: time data
+        out.print("\" loop=\""); out.print(loop); // pt.uminho.haslab: time data
         out.print("\" command=\""); Util.encodeXML(out, originalCommand);
         out.print("\" filename=\""); Util.encodeXML(out, originalFileName);
         if (sol==null) out.print("\" metamodel=\"yes");
         out.print("\">\n");
-        writesig(Sig.UNIV);
-        for (Sig s:sigs) if (s instanceof SubsetSig) writesig(s);
+        if (traceLength <= 1) {
+        	writesig(Sig.UNIV);
+        	for (Sig s:sigs) if (s instanceof SubsetSig) writesig(s);
+        }
+    	else {
+    		for (int i = 0; i < traceLength; i++) {
+            	writesig(Sig.UNIV,i);
+            	for (Sig s:sigs) if (s instanceof SubsetSig) writesig(s,i);
+    		}
+    	}
 //        if (sol!=null) for (ExprVar s:sol.getAllSkolems()) { if (rep!=null) rep.write(s); writeSkolem(s); } //TODO: figure out how to do this
 
         
@@ -228,12 +337,12 @@ public final class A4SolutionWriter {
     }
 
     /** If this solution is a satisfiable solution, this method will write it out in XML format. */
-    // pt.uminho.haslab: extended with time scopes and sigs
+    // pt.uminho.haslab: extended with time data
     static void writeInstance(A4Reporter rep, A4Solution sol, PrintWriter out, Iterable<Func> extraSkolems, Map<String,String> sources) throws Err {
         if (!sol.satisfiable()) throw new ErrorAPI("This solution is unsatisfiable.");
         try {
             Util.encodeXMLs(out, "<alloy builddate=\"", Version.buildDate(), "\">\n\n");
-            new A4SolutionWriter(rep, sol, sol.getAllReachableSigs(), sol.getBitwidth(), sol.getMaxSeq(), sol.getOriginalCommand(), sol.getOriginalFilename(), out, extraSkolems);  // pt.uminho.haslab: time scopes
+            new A4SolutionWriter(rep, sol, sol.getAllReachableSigs(), sol.getBitwidth(), sol.getMaxSeq(), sol.getTraceLength(), sol.getLoopState(), sol.getOriginalCommand(), sol.getOriginalFilename(), out, extraSkolems);  // pt.uminho.haslab: time scopes
             if (sources!=null) for(Map.Entry<String,String> e: sources.entrySet()) {
                 Util.encodeXMLs(out, "\n<source filename=\"", e.getKey(), "\" content=\"", e.getValue(), "\"/>\n");
             }
@@ -248,7 +357,7 @@ public final class A4SolutionWriter {
     // pt.uminho.haslab: extended with time scopes and sigs
     public static void writeMetamodel(ConstList<Sig> sigs, String originalFilename, PrintWriter out) throws Err {
         try {
-            new A4SolutionWriter(null, null, sigs, 4, 4, "show metamodel", originalFilename, out, null);  // pt.uminho.haslab: time scopes
+            new A4SolutionWriter(null, null, sigs, 4, 4, 1, 0, "show metamodel", originalFilename, out, null);  // pt.uminho.haslab: time scopes
         } catch(Throwable ex) {
             if (ex instanceof Err) throw (Err)ex; else throw new ErrorFatal("Error writing the solution XML file.", ex);
         }

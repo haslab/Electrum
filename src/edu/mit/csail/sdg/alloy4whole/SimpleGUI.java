@@ -1425,7 +1425,7 @@ public final class SimpleGUI implements ComponentListener, Listener {
      pt.uminho.haslab */
     private Runner doOptMaxTraceLength(Integer length) {
         if (!wrap) MaxTraceLength.set(length.intValue());
-        return wrapMe();
+        return wrapMe(length);
     }
 
     //===============================================================================================================//

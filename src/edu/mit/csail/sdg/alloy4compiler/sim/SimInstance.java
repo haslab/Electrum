@@ -1,5 +1,4 @@
 /* Alloy Analyzer 4 -- Copyright (c) 2006-2009, Felix Chang
- * Electrum -- Copiright (c) 2015-present, Nuno Macedo
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files
  * (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify,
@@ -44,8 +43,6 @@ import edu.mit.csail.sdg.alloy4compiler.ast.Sig.PrimSig;
 import edu.mit.csail.sdg.alloy4compiler.ast.Sig.SubsetSig;
 
 /** Mutable; represents an instance. 
- * 
- * @modified: nmm
  * */
 
 public final class SimInstance extends VisitReturn<Object> {
@@ -80,8 +77,6 @@ public final class SimInstance extends VisitReturn<Object> {
     /** The chosen maxseq length. */
     private final int maxseq;
     
-    private final int maxtime = 10; // pt.uminho.haslab: time scope
-
     /** The shiftmask based on the chosen bitwidth. */
     private final int shiftmask;
 
@@ -120,10 +115,8 @@ public final class SimInstance extends VisitReturn<Object> {
     }
 
     /** Write the bitwidth, maxseq, set of all atoms, and map of all sig/field/var into the given file. */
-    // pt.uminho.haslab: extended with time scope
     private void write(BufferedOutputStream out) throws IOException {
         write(out, "maxseq = " + maxseq + ("\n" + "bitwidth = ") + bitwidth + "\n");
-        write(out, "maxtime = " + maxtime + "\n"); // pt.uminho.haslab: time scope
         for(Map.Entry<Expr,SimTupleset> entry: sfs.entrySet()) {
             Expr e = entry.getKey();
             if (e instanceof Sig) write(out, "sig " + ((Sig)e).label + " = ");
@@ -228,7 +221,6 @@ public final class SimInstance extends VisitReturn<Object> {
 
     /** Construct a new simulation context with the given bitwidth and the given maximum sequence length. */
     public SimInstance(Module root, int bitwidth, int maxseq) throws Err {
-    	// TODO: nmm add maxtime
         if (bitwidth<0 || bitwidth>32) throw new ErrorType("Bitwidth must be between 0 and 32.");
         this.root = root;
         this.bitwidth = bitwidth;
@@ -600,7 +592,6 @@ public final class SimInstance extends VisitReturn<Object> {
        if (x.isSame(Sig.NONE)) return SimTupleset.EMPTY;
        if (x.isSame(Sig.SEQIDX)) return SimTupleset.make(0, maxseq-1);
        if (x.isSame(Sig.SIGINT)) return SimTupleset.make(min, max);
-//     if (x.isSame(Sig.TIME)) throw new UnsupportedOperationException("Time"); // pt.uminho.haslab: time scopes are currently managed in the options
        if (x.isSame(Sig.STRING)) {
           if (cacheSTRING == null) {
              cacheSTRING = SimTupleset.EMPTY;
@@ -709,7 +700,6 @@ public final class SimInstance extends VisitReturn<Object> {
            if (b.isSame(Sig.SEQIDX)) { Integer i = a.get(0).toInt(null); return i!=null && i>=0 && i<maxseq; }
            if (b.isSame(Sig.SIGINT)) { Integer i = a.get(0).toInt(null); return i!=null; }
            if (b.isSame(Sig.STRING)) { String at = a.get(0).toString(); return at.length()>0 && (at.charAt(0)=='\"'); }
-//         if (b.isSame(Sig.TIME)) throw new UnsupportedOperationException("Time should not be called."); // pt.uminho.haslab: time scopes are currently managed in the options
         }
         if (b instanceof ExprBinary && ((ExprBinary)b).op==ExprBinary.Op.ARROW) {
            Expr left = ((ExprBinary)b).left, right = ((ExprBinary)b).right;

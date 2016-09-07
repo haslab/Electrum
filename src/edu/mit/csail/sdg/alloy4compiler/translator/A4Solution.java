@@ -58,6 +58,7 @@ import kodkod.engine.ucore.HybridStrategy;
 import kodkod.engine.ucore.RCEStrategy;
 import kodkod.instance.Bounds;
 import kodkod.instance.Instance;
+import kodkod.instance.TemporalInstance;
 import kodkod.instance.Tuple;
 import kodkod.instance.TupleFactory;
 import kodkod.instance.TupleSet;
@@ -235,8 +236,8 @@ public final class A4Solution {
 	A4Solution(String originalCommand, int bitwidth, int maxseq, Set<String> stringAtoms, Collection<String> atoms, final A4Reporter rep, A4Options opt, int expected) throws Err {
 		opt = opt.dup();
 		this.unrolls = opt.unrolls;
-		this.sigs = new SafeList<Sig>(Arrays.asList(UNIV, SIGINT, SEQIDX, STRING, NONE)); //, TIME)); //pt.uminho.haslab: time scopes handled by options
-		this.a2k = Util.asMap(new Expr[]{UNIV, SIGINT, SEQIDX, STRING, NONE/*, TIME*/}, Relation.INTS.union(KK_STRING)/*.union(KK_TIME)*/, Relation.INTS, KK_SEQIDX, KK_STRING, Relation.NONE/*, KK_TIME*/);  //pt.uminho.haslab: time scopes handled by options
+		this.sigs = new SafeList<Sig>(Arrays.asList(UNIV, SIGINT, SEQIDX, STRING, NONE));
+		this.a2k = Util.asMap(new Expr[]{UNIV, SIGINT, SEQIDX, STRING, NONE}, Relation.INTS.union(KK_STRING), Relation.INTS, KK_SEQIDX, KK_STRING, Relation.NONE);
 		this.k2pos = new LinkedHashMap<Formula,Object>();
 		this.rel2type = new LinkedHashMap<Relation,Type>();
 		this.decl2type = new LinkedHashMap<Variable,Pair<Type,Pos>>();
@@ -290,26 +291,6 @@ public final class A4Solution {
 		this.s2k = ConstMap.make(s2k);
 		this.stringBounds = stringBounds.unmodifiableView();
 		bounds.boundExactly(KK_STRING, this.stringBounds);
-		//pt.uminho.haslab: time scopes handled by options
-//		if (time < 1) {
-//		} else {
-//			for(int i=0; i<time; i++) {
-//				Tuple ii = factory.tuple("Time$"+i);
-//				TupleSet is = factory.range(ii, ii);
-//				//            bounds.boundExactly(i, is);
-//				timeBounds.add(ii);
-//				if (i+1<time) timenext.add(factory.tuple("Time$"+i, "Time$"+(i+1)));
-//				if (loop < 0) timeback.add(factory.tuple("Time$"+(time-1),"Time$"+i));
-//			}
-//			if (loop >= 0) {
-//				timeback.add(factory.tuple("Time$"+(time-1),"Time$"+loop));
-//				timeback.addAll(timenext);
-//			} else {
-//				timeback.addAll(timenext);
-//			}
-//		}
-//		this.timeBounds = timeBounds.unmodifiableView();
-//		bounds.boundExactly(KK_TIME, this.timeBounds);
 		int sym = (expected==1 ? 0 : opt.symmetry);
 
 		//temporary code
@@ -318,7 +299,7 @@ public final class A4Solution {
 
 		solver = new Solver(varOptions);
 		solver.options().setNoOverflow(opt.noOverflow); // pt.uminho.haslab: propagate options
-		if (solver.options() instanceof TemporalOptions<?>) // TODO: should be in Solver interface
+		if (solver.options() instanceof TemporalOptions<?>) // TODO: pt.uminho.haslab should be in Solver interface
 			((TemporalOptions<?>) solver.options()).setMaxTraceLength(opt.maxTraceLength);
 //		solver.options().setFlatten(false); // added for now, since multiplication and division circuit takes forever to flatten // pt.uminho.haslab: kodkod 2.0+
 		if (opt.solver.external()!=null) {
@@ -693,6 +674,26 @@ public final class A4Solution {
 
 	/** If this solution is solved and satisfiable, evaluates the given expression and returns an A4TupleSet, a java Integer, or a java Boolean. */
 	public Object eval(Expr expr) throws Err {
+		try {
+			if (expr instanceof Sig) return eval((Sig)expr);
+			if (expr instanceof Field) return eval((Field)expr);
+			if (!solved) throw new ErrorAPI("This solution is not yet solved, so eval() is not allowed.");
+			if (eval==null) throw new ErrorAPI("This solution is unsatisfiable, so eval() is not allowed.");
+			if (expr.ambiguous && !expr.errors.isEmpty()) expr = expr.resolve(expr.type(), null);
+			if (!expr.errors.isEmpty()) throw expr.errors.pick();
+			Object result = TranslateAlloyToKodkod.alloy2kodkod(this, expr);
+			if (result instanceof IntExpression) return eval.evaluate((IntExpression)result) + (eval.wasOverflow() ? " (OF)" : "");
+			if (result instanceof Formula) return eval.evaluate((Formula)result);
+			if (result instanceof Expression) return new A4TupleSet(eval.evaluate((Expression)result), this);
+			throw new ErrorFatal("Unknown internal error encountered in the evaluator.");
+		} catch(CapacityExceededException ex) {
+			throw TranslateAlloyToKodkod.rethrow(ex);
+		}
+	}
+	
+	/** If this solution is solved and satisfiable, evaluates the given expression at the given state and returns an A4TupleSet, a java Integer, or a java Boolean. 
+	 * pt.uminho.haslab */
+	public Object eval(Expr expr, int state) throws Err {
 		try {
 			if (expr instanceof Sig) return eval((Sig)expr);
 			if (expr instanceof Field) return eval((Field)expr);
@@ -1241,5 +1242,19 @@ public final class A4Solution {
 	public void writeXML(A4Reporter rep, PrintWriter writer, Iterable<Func> macros, Map<String,String> sourceFiles) throws Err {
 		A4SolutionWriter.writeInstance(rep, this, writer, macros, sourceFiles);
 		if (writer.checkError()) throw new ErrorFatal("Error writing the solution XML file.");
+	}
+
+	// pt.uminho.haslab
+	public int getTraceLength() {
+		if (eval.instance() instanceof TemporalInstance)
+			return eval.steps();
+		else return -1;
+	}
+
+	// pt.uminho.haslab
+	public int getLoopState() {
+		if (eval.instance() instanceof TemporalInstance)
+			return eval.loop();
+		else return -1;
 	}
 }

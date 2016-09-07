@@ -75,7 +75,7 @@ public final class A4SolutionReader {
     private final Map<String,Sig> id2sig = new LinkedHashMap<String,Sig>();
 
     /** Stores the set of all sigs. */
-    private final Set<Sig> allsigs = Util.asSet((Sig)UNIV, SIGINT, SEQIDX, STRING, NONE); //, TIME);  //pt.uminho.haslab: time scopes currently managed in the options
+    private final Set<Sig> allsigs = Util.asSet((Sig)UNIV, SIGINT, SEQIDX, STRING, NONE); 
 
     /** Mapes each expression we've seen to its TupleSet. */
     private final Map<Expr,TupleSet> expr2ts = new LinkedHashMap<Expr,TupleSet>();
@@ -136,23 +136,37 @@ public final class A4SolutionReader {
         Attr isMeta     = yes(node,"meta")     ? Attr.META     : null;
         Attr isEnum     = yes(node,"enum")     ? Attr.ENUM     : null;
         Attr isExact    = yes(node,"exact")    ? Attr.EXACT    : null;
+        Attr isVar      = yes(node,"variable") ? Attr.VARIABLE : null; // pt.uminho.haslab
         if (yes(node,"builtin")) {
            if (label.equals(UNIV.label))   { id2sig.put(id, UNIV);   return UNIV;   }
            if (label.equals(SIGINT.label)) { id2sig.put(id, SIGINT); return SIGINT; }
            if (label.equals(SEQIDX.label)) { id2sig.put(id, SEQIDX); return SEQIDX; }
            if (label.equals(STRING.label)) { id2sig.put(id, STRING); return STRING; }
-//         if (label.equals(TIME.label))   { id2sig.put(id, TIME);   return TIME; } //pt.uminho.haslab: time scopes currently managed in the options
            throw new IOException("Unknown builtin sig: "+label+" (id="+id+")");
         }
         if (depth > nmap.size()) throw new IOException("Sig "+label+" (id="+id+") is in a cyclic inheritance relationship.");
         List<Sig> parents = null;
-        TupleSet ts = factory.noneOf(1);
-        for(XMLNode sub:node) {
-           if (sub.is("atom")) { ts.add(factory.tuple(sub.getAttribute("label"))); continue; }
-           if (!sub.is("type")) continue;
-           Sig parent = parseSig(sub.getAttribute("ID"), depth+1);
-           if (parents==null) parents = new ArrayList<Sig>();
-           parents.add(parent);
+        TupleSet ts;
+        if (isVar!=null) { // pt.uminho.haslab
+	        ts = factory.noneOf(1);
+	        for(XMLNode sub:node) {
+	           if (sub.is("atom")) { ts.add(factory.tuple(sub.getAttribute("label"))); continue; }
+	           if (!sub.is("type")) continue;
+	           Sig parent = parseSig(sub.getAttribute("ID"), depth+1);
+	           if (parents==null) parents = new ArrayList<Sig>();
+	           parents.add(parent);
+	        }
+        }
+        else { // pt.uminho.haslab
+        	int n = -1; // get the state of this sig node
+        	ts = factory.noneOf(2);
+	        for(XMLNode sub:node) {
+	           if (sub.is("atom")) { ts.add(factory.tuple(sub.getAttribute("label"),"State"+n)); continue; }
+	           if (!sub.is("type")) continue;
+	           Sig parent = parseSig(sub.getAttribute("ID"), depth+1);
+	           if (parents==null) parents = new ArrayList<Sig>();
+	           parents.add(parent);
+	        }
         }
         if (parents==null) {
            String parentID = node.getAttribute("parentID");
@@ -162,7 +176,7 @@ public final class A4SolutionReader {
               if (choice instanceof PrimSig && parent==((PrimSig)choice).parent && ((Sig)choice).label.equals(label))
                  { ans=(Sig)choice; choices.remove(choice); break; }
            if (ans==null) {
-              ans = new PrimSig(label, (PrimSig)parent, isAbstract, isLone, isOne, isSome, isPrivate, isMeta, isEnum);
+              ans = new PrimSig(label, (PrimSig)parent, isAbstract, isLone, isOne, isSome, isPrivate, isMeta, isEnum, isVar); // pt.uminho.haslab
               allsigs.add(ans);
            }
         } else {
@@ -170,7 +184,7 @@ public final class A4SolutionReader {
               if (choice instanceof SubsetSig && ((Sig)choice).label.equals(label) && sameset(parents, ((SubsetSig)choice).parents))
                  { ans=(Sig)choice; choices.remove(choice); break; }
            if (ans==null) {
-              ans = new SubsetSig(label, parents, isExact, isLone, isOne, isSome, isPrivate, isMeta);
+              ans = new SubsetSig(label, parents, isExact, isLone, isOne, isSome, isPrivate, isMeta, isVar); // pt.uminho.haslab
               allsigs.add(ans);
            }
         }
@@ -207,6 +221,7 @@ public final class A4SolutionReader {
        String label  = label(node);
        Pos isPrivate = yes(node,"private") ? Pos.UNKNOWN : null;
        Pos isMeta = yes(node,"meta") ? Pos.UNKNOWN : null;
+       Pos isVar = yes(node,"variable") ? Pos.UNKNOWN : null;  // pt.uminho.haslab
        Expr type = null;
        for(XMLNode sub:node) if (sub.is("types")) { Expr t=parseType(sub); if (type==null) type=t; else type=type.plus(t); }
        int arity;
@@ -218,7 +233,7 @@ public final class A4SolutionReader {
        for(Field f: parent.getFields())
            if (f.label.equals(label) && f.type().arity()==arity && choices.contains(f))
               { field=f; choices.remove(f); break; }
-       if (field==null) field = parent.addTrickyField(Pos.UNKNOWN, isPrivate, null, null, isMeta, null, new String[] {label}, UNIV.join(type)) [0];
+       if (field==null) field = parent.addTrickyField(Pos.UNKNOWN, isPrivate, null, null, isMeta, isVar, new String[] {label}, UNIV.join(type)) [0]; // pt.uminho.haslab
        TupleSet ts = parseTuples(node, arity);
        expr2ts.put(field, ts);
        return field;
@@ -255,20 +270,21 @@ public final class A4SolutionReader {
        // set up the basic values of the A4Solution object
        final int bitwidth = Integer.parseInt(inst.getAttribute("bitwidth"));
        final int maxseq = Integer.parseInt(inst.getAttribute("maxseq"));
-       final int time = Integer.parseInt(inst.getAttribute("time"));
-       final int loop = Integer.parseInt(inst.getAttribute("loop"));
+       final int time = Integer.parseInt(inst.getAttribute("length")); // pt.uminho.haslab
+       if (time>=1) for(int i=0; i<time; i++) { atoms.add("State"+i); } // pt.uminho.haslab
+       final int loop = Integer.parseInt(inst.getAttribute("loop")); // pt.uminho.haslab
        final int max = Util.max(bitwidth), min = Util.min(bitwidth);
        if (bitwidth>=1 && bitwidth<=30) for(int i=min; i<=max; i++) { atoms.add(Integer.toString(i)); }
        if (time>=1) for(int i=0; i<time; i++) { atoms.add("Time$"+i); }
        for(XMLNode x:inst) {
            String id=x.getAttribute("ID");
            if (id.length()>0 && (x.is("field") || x.is("skolem") || x.is("sig"))) {
-              if (nmap.put(id, x)!=null) throw new IOException("ID "+id+" is repeated.");
+              if (nmap.put(id, x)!=null) throw new IOException("ID "+id+" is repeated."); // pt.uminho.haslab: this will fail due to variable sigs
               if (x.is("sig")) {
                   boolean isString = STRING.label.equals(label(x)) && yes(x, "builtin");
                   for(XMLNode y:x) if (y.is("atom")) {
                       String attr = y.getAttribute("label");
-                      atoms.add(attr);
+                      atoms.add(attr); // pt.uminho.haslab: will this avoid repeated atoms due to variable sigs?
                       if (isString) strings.add(attr);
                   }
               }

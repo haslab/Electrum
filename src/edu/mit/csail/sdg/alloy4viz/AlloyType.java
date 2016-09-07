@@ -1,5 +1,4 @@
 /* Alloy Analyzer 4 -- Copyright (c) 2006-2009, Felix Chang
- * Electrum -- Copyright (c) 2015-present, Nuno Macedo
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files
  * (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify,
@@ -21,8 +20,6 @@ import edu.mit.csail.sdg.alloy4.Util;
 /** Immutable; represents an Alloy toplevel signature or an Alloy subsignature.
  *
  * <p><b>Thread Safety:</b> Can be called only by the AWT event thread.
- * 
- * @modified: nmm
  */
 
 public final class AlloyType extends AlloyNodeElement {
@@ -42,7 +39,9 @@ public final class AlloyType extends AlloyNodeElement {
    /** This caches an instance of the "set" AlloyType, so we don't have to keep re-constructing it. */
    public static final AlloyType SET=new AlloyType("set", false, false, false, false, false, false);
 
-//   public static final AlloyType TIME=new AlloyType("Time", false, false, true, false, false, false); // pt.uminho.haslab: time types (deprecated)
+   /** A time representing the "state" instants; does not actually represent atoms and should only be used to project the instances. 
+    * pt.uminho.haslab */
+   public static final AlloyType STATE=new AlloyType("State", false, false, true, false, false, false);
    
    /** Constructs an AlloyType object with that name. */
    public AlloyType(String name, boolean isOne, boolean isAbstract, boolean isBuiltin, boolean isPrivate, boolean isMeta, boolean isEnum) {
