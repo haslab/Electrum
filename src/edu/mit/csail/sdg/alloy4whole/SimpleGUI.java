@@ -41,9 +41,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.lang.reflect.Method;
-import java.nio.CharBuffer;
-import java.nio.channels.FileChannel;
-import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -136,8 +133,6 @@ import edu.mit.csail.sdg.alloy4viz.VizGUI;
 import edu.mit.csail.sdg.alloy4whole.SimpleReporter.SimpleCallback1;
 import edu.mit.csail.sdg.alloy4whole.SimpleReporter.SimpleTask1;
 import edu.mit.csail.sdg.alloy4whole.SimpleReporter.SimpleTask2;
-import test.Example;
-import test.Test;
 
 /** Simple graphical interface for accessing various features of the analyzer.
  *
@@ -147,7 +142,7 @@ import test.Test;
  * <br> (1) the run() method in SatRunner is launched from a fresh thread
  * <br> (2) the run() method in the instance watcher (in constructor) is launched from a fresh thread
  * 
- * @modified: nmm (max trace length options)
+ * @modified: nmm, Eduardo Pessoa (pt.uminho.haslab): max trace length options, electrum models, trace navigation
  */
 
 public final class SimpleGUI implements ComponentListener, Listener {
@@ -509,9 +504,9 @@ public final class SimpleGUI implements ComponentListener, Listener {
            "models/examples/tutorial/farmer.als",
            "models/util/boolean.als", "models/util/graph.als", "models/util/integer.als", "models/util/natural.als",
            "models/util/ordering.als", "models/util/relation.als", "models/util/seqrel.als", "models/util/sequence.als",
-           "models/util/sequniv.als", "models/util/ternary.als", "models/util/time.als", "models/Temporal_Examples/firewire.ele",
-                "models/Temporal_Examples/hotel.ele","models/Temporal_Examples/lift_spl.ele","models/Temporal_Examples/ring.ele",
-                "models/Temporal_Examples/span_tree.ele", "models/Temporal_Examples/ex1.ele"
+           "models/util/sequniv.als", "models/util/ternary.als", "models/util/time.als", "models/Temporal_Examples/firewire.ele", // pt.uminho.haslab
+                "models/Temporal_Examples/hotel.ele","models/Temporal_Examples/lift_spl.ele","models/Temporal_Examples/ring.ele", // pt.uminho.haslab
+                "models/Temporal_Examples/span_tree.ele", "models/Temporal_Examples/ex1.ele" // pt.uminho.haslab
            );
         // Record the locations
         System.setProperty("alloy.theme0", alloyHome() + fs + "models");
@@ -717,7 +712,7 @@ public final class SimpleGUI implements ComponentListener, Listener {
     /** This method performs File->OpenBuiltinModels. */
     private Runner doBuiltin() {
         if (wrap) return wrapMe();
-        File file=OurDialog.askFile(true, alloyHome() + fs + "models", "", ".als files");//pessoa: allow .ele files
+        File file=OurDialog.askFile(true, alloyHome() + fs + "models", "", ".als files"); // pt.uminho.haslab: allow .ele files
         if (file!=null) {
             doOpenFile(file.getPath());
         }
@@ -1074,8 +1069,8 @@ public final class SimpleGUI implements ComponentListener, Listener {
            latestAutoInstance="";
            if (subrunningTask==2){
                viz.loadXML(f, true);
-               //pessoa: the jpanel with temporal states is created
-               viz.addTemporalJPanel(viz.getVizState().getOriginalInstance().originalA4.originalOptions.maxTraceLength);
+               // pt.uminho.haslab: the jpanel with temporal states is created
+               viz.addTemporalJPanel(viz.getVizState().getOriginalInstance().originalA4.traceLength);
            } else if (AutoVisualize.get() || subrunningTask==1) doVisualize("XML: "+f);
         }
         return null;
@@ -1438,7 +1433,7 @@ public final class SimpleGUI implements ComponentListener, Listener {
      pt.uminho.haslab */
     private Runner doOptMaxTraceLength(Integer length) {
         if (!wrap) MaxTraceLength.set(length.intValue());
-        return wrapMe(length);
+        return wrapMe(length); // pt.uminho.haslab 
     }
 
     //===============================================================================================================//
@@ -1607,8 +1602,8 @@ public final class SimpleGUI implements ComponentListener, Listener {
         }
         if (arg.startsWith("XML: ")) { // XML: filename
             viz.loadXML(Util.canon(arg.substring(5)), false);
-            viz.getVizState().useOriginalName(true);//pessoa: the instance show the atoms' original names
-            viz.addTemporalJPanel(viz.getVizState().getOriginalInstance().originalA4.originalOptions.maxTraceLength);//pessoa: the jpanel with temporal states is created
+            viz.getVizState().useOriginalName(true); // pt.uminho.haslab: the instance show the atoms' original names
+            viz.addTemporalJPanel(viz.getVizState().getOriginalInstance().originalA4.traceLength);//pt.uminho.haslab: the jpanel with temporal states is created
             viz.doShowViz();
         }
         return null;
@@ -1678,11 +1673,11 @@ public final class SimpleGUI implements ComponentListener, Listener {
     private static SimInstance convert(Module root, A4Solution ans) throws Err {
        SimInstance ct = new SimInstance(root, ans.getBitwidth(), ans.getMaxSeq());
         for(Sig s: ans.getAllReachableSigs()) {
-            if (!s.builtin) ct.init(s, convert(ans.eval(s,0)));
-            for(Field f: s.getFields())  if (!f.defined)  ct.init(f, convert(ans.eval(f,0)));
+            if (!s.builtin) ct.init(s, convert(ans.eval(s)));
+            for(Field f: s.getFields())  if (!f.defined)  ct.init(f, convert(ans.eval(f)));
         }
-        for(ExprVar a:ans.getAllAtoms())   ct.init(a, convert(ans.eval(a,0)));
-        for(ExprVar a:ans.getAllSkolems()) ct.init(a, convert(ans.eval(a,0)));
+        for(ExprVar a:ans.getAllAtoms())   ct.init(a, convert(ans.eval(a)));
+        for(ExprVar a:ans.getAllSkolems()) ct.init(a, convert(ans.eval(a)));
         return ct;
     }
 
@@ -1699,7 +1694,7 @@ public final class SimpleGUI implements ComponentListener, Listener {
             try {
                 Map<String,String> fc = new LinkedHashMap<String,String>();
                 String[] tempFile =  filename.split(Pattern.quote("."));
-                XMLNode x = new XMLNode(new File(tempFile[0]+".cnfEvaluator.xml"));//pessoa: read the xml with all instance
+                XMLNode x = new XMLNode(new File(tempFile[0]+".cnfEvaluator.xml"));// pt.uminho.haslab: read the xml with all instance
                 if (!x.is("alloy")) throw new Exception();
                 String mainname=null;
                 for(XMLNode sub: x) if (sub.is("instance")) {
@@ -1725,7 +1720,7 @@ public final class SimpleGUI implements ComponentListener, Listener {
                     SimInstance simInst = convert(root, ans);
                     return simInst.visitThis(e).toString() + (simInst.wasOverflow() ? " (OF)" : "");
                 } else
-                   return ans.eval(e,0).toString();
+                   return ans.eval(e).toString();
             } catch(HigherOrderDeclException ex) {
                 throw new ErrorType("Higher-order quantification is not allowed in the evaluator.");
             }

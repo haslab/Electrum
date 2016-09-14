@@ -39,10 +39,6 @@ public final class AlloyType extends AlloyNodeElement {
    /** This caches an instance of the "set" AlloyType, so we don't have to keep re-constructing it. */
    public static final AlloyType SET=new AlloyType("set", false, false, false, false, false, false);
 
-   /** A time representing the "state" instants; does not actually represent atoms and should only be used to project the instances. 
-    * pt.uminho.haslab */
-   public static final AlloyType STATE=new AlloyType("State", false, false, true, false, false, false);
-   
    /** Constructs an AlloyType object with that name. */
    public AlloyType(String name, boolean isOne, boolean isAbstract, boolean isBuiltin, boolean isPrivate, boolean isMeta, boolean isEnum) {
       super(name);

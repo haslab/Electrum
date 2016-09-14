@@ -1,4 +1,5 @@
 /* Alloy Analyzer 4 -- Copyright (c) 2006-2009, Felix Chang
+ * Electrum -- Copyright (c) 2014-present, Nuno Macedo
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files
  * (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify,
@@ -22,7 +23,10 @@ import edu.mit.csail.sdg.alloy4.ErrorAPI;
 import edu.mit.csail.sdg.alloy4.SafeList;
 import edu.mit.csail.sdg.alloy4.Util;
 
-/** Mutable; this class encapsulates the customizable options of the Alloy-to-Kodkod translator. */
+/** Mutable; this class encapsulates the customizable options of the Alloy-to-Kodkod translator. 
+ * 
+ * @modified: nmm, Eduardo Pessoa (pt.uminho.haslab.pt): maximum trace length
+*/
 
 public final class A4Options implements Serializable {
 
@@ -177,15 +181,12 @@ public final class A4Options implements Serializable {
      *  that don't cause any overflows. */
     public boolean noOverflow = false;
 
-    /** This option constrols how deep we unroll loops and unroll recursive predicate/function/macros (negative means it's disallowed) */
+    /** This option controls how deep we unroll loops and unroll recursive predicate/function/macros (negative means it's disallowed) */
     public int unrolls = (-1);
 
-    /** pt.uminho.haslab */
+    /** This option controls the maximum trace length that will be explored in temporal. 
+     * pt.uminho.haslab */
 	public int maxTraceLength;
-
-    public void setMaxTraceLength(int maxTraceLength){
-        this.maxTraceLength = maxTraceLength;
-    }
 
     /** This method makes a copy of this Options object. */
     public A4Options dup() {

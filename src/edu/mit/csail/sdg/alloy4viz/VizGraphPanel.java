@@ -1,5 +1,4 @@
 /* Alloy Analyzer 4 -- Copyright (c) 2006-2009, Felix Chang
- * Electrum -- Copyright (c) 2015-present, Nuno Macedo
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files
  * (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify,
@@ -59,8 +58,6 @@ import edu.mit.csail.sdg.alloy4graph.GraphViewer;
  *
  * <p>
  * <b>Thread Safety:</b> Can be called only by the AWT event thread.
- * 
- * @modifed: nmm
  */
 
 public final class VizGraphPanel extends JPanel {
@@ -115,7 +112,7 @@ public final class VizGraphPanel extends JPanel {
 		/** The list of atom names; atomnames.empty() iff atoms.isEmpty() */
 		private final String[] atomnames;
 		/** The combo box showing the possible atoms to choose from. */
-		private final JComboBox atomCombo;
+		private final JComboBox<Object> atomCombo;
 
 		/** True if this TypePanel object does not need to be rebuilt. */
 		private boolean upToDate(AlloyType type, List<AlloyAtom> atoms) {
@@ -141,7 +138,6 @@ public final class VizGraphPanel extends JPanel {
 		 * @param atoms
 		 *            - the list of possible projection atom choices
 		 */
-		// pt.uminho.haslab: extended to allow loops
 		private TypePanel(AlloyType type, List<AlloyAtom> atoms, AlloyAtom initialValue) {
 			super();
 			System.out.println("Combo atoms: " + atoms);
@@ -197,71 +193,6 @@ public final class VizGraphPanel extends JPanel {
 				public final void actionPerformed(ActionEvent e) {
 					left.setEnabled(atomCombo.getSelectedIndex() > 0);
 					right.setEnabled(atomCombo.getSelectedIndex() < atomnames.length - 1);
-					remakeAll();
-					VizGraphPanel.this.getParent().invalidate();
-					VizGraphPanel.this.getParent().repaint();
-				}
-			});
-		}
-
-		private TypePanel(int length, int backIndex) { // pt.uminho.haslab
-			super();
-			this.type = AlloyType.STATE;
-			this.atoms = new  ArrayList<AlloyAtom>();
-			final JButton left, right;
-			int initialIndex = 0;
-			List<Integer> atoms = new ArrayList<Integer>();
-			for (int i = 0; i < length; i++)
-				atoms.add(i);
-			setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
-			setBorder(null);
-			this.atomnames = new String[atoms.size()];
-			initialIndex = 0;
-			for (int i = 0; i < atoms.size(); i++) {
-				atomnames[i] = atoms.get(i).toString();
-			}
-
-			add(left = new JButton("<<"));
-			add(Box.createRigidArea(new Dimension(2, 2)));
-			add(atomCombo = new OurCombobox(atomnames.length < 1 ? new String[] { " " } : atomnames));
-			add(Box.createRigidArea(new Dimension(2, 2)));
-			add(right = new JButton(">>"));
-			left.setVerticalAlignment(SwingConstants.CENTER);
-			right.setVerticalAlignment(SwingConstants.CENTER);
-			Dimension dim = atomCombo.getPreferredSize();
-			int idealWidth = Util.onMac() ? 120 : 80;
-			if (dim.width < idealWidth) {
-				dim.width = idealWidth + 20;
-				atomCombo.setMinimumSize(dim);
-				atomCombo.setPreferredSize(dim);
-			}
-			left.setEnabled(initialIndex > 0);
-			right.setEnabled(initialIndex < atomnames.length - 1 || backIndex != -1); // pt.uminho.haslab:
-																						// loop
-																						// times
-			atomCombo.setSelectedIndex(initialIndex);
-			if (Util.onMac())
-				atomCombo.setBorder(BorderFactory.createEmptyBorder(4, 1, 0, 1));
-			left.addActionListener(new ActionListener() {
-				public final void actionPerformed(ActionEvent e) {
-					int curIndex = atomCombo.getSelectedIndex();
-					if (curIndex > 0)
-						atomCombo.setSelectedIndex(curIndex - 1);
-				}
-			});
-			right.addActionListener(new ActionListener() {
-				public final void actionPerformed(ActionEvent e) {
-					int curIndex = atomCombo.getSelectedIndex();
-					if (curIndex < atomCombo.getItemCount() - 1)
-						atomCombo.setSelectedIndex(curIndex + 1);
-					else if (backIndex >= 0)
-						atomCombo.setSelectedIndex(backIndex);
-				}
-			});
-			atomCombo.addActionListener(new ActionListener() {
-				public final void actionPerformed(ActionEvent e) {
-					left.setEnabled(atomCombo.getSelectedIndex() > 0);
-					right.setEnabled(atomCombo.getSelectedIndex() < atomnames.length - 1 || backIndex != -1);
 					remakeAll();
 					VizGraphPanel.this.getParent().invalidate();
 					VizGraphPanel.this.getParent().repaint();
@@ -353,12 +284,6 @@ public final class VizGraphPanel extends JPanel {
 	public void remakeAll() {
 		Map<AlloyType, AlloyAtom> map = new LinkedHashMap<AlloyType, AlloyAtom>();
 		navPanel.removeAll();
-		TypePanel ttp = type2panel.get(AlloyType.STATE); // pt.uminho.haslab
-		if (ttp == null) {
-			ttp = new TypePanel(10,4);
-			type2panel.put(AlloyType.STATE, ttp);
-		}
-		navPanel.add(ttp); // pt.uminho.haslab
 		for (AlloyType type : vizState.getProjectedTypes()) {
 			List<AlloyAtom> atoms = vizState.getOriginalInstance().type2atoms(type);
 			TypePanel tp = type2panel.get(type);
@@ -368,10 +293,6 @@ public final class VizGraphPanel extends JPanel {
 				tp = null;
 			if (tp != null && !tp.upToDate(type, atoms))
 				tp = null;
-			// for (AlloySet s : vizState.getOriginalModel().getSets()) {
-			// if (s.getName().equals("_Back")) back =
-			// vizState.getOriginalInstance().set2atoms(s).get(0);
-			// }
 			if (tp == null)
 				type2panel.put(type, tp = new TypePanel(type, atoms, null));
 			navPanel.add(tp);

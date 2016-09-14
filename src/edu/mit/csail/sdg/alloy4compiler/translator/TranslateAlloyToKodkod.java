@@ -46,7 +46,7 @@ import edu.mit.csail.sdg.alloy4compiler.ast.Sig.Field;
 
 /** Translate an Alloy AST into Kodkod AST then attempt to solve it using Kodkod. 
  * 
- * @modifed: nmm
+ * @modified: nmm, Eduardo Pessoa (pt.uminho.haslab)
  * */
 
 public final class TranslateAlloyToKodkod extends VisitReturn<Object> {
@@ -166,13 +166,13 @@ public final class TranslateAlloyToKodkod extends VisitReturn<Object> {
                 Expression expression = a2k(s);
                 if (s.isVariable == null) {
                    // p("FORMULA not static: " + expression.post().eq(expression).always().toString());
-                     frame.addFormula(expression.post().eq(expression).always(), s);
+                     frame.addFormula(expression.post().eq(expression).always(), s); // pt.uminho.haslab
                 }
                 // if the sig is one :: one sig X ... ToKK ... G (one X)
                 //Constants (s.attibutes = []) not considered (String,Int....)
                 if (s.isOne != null){
-                //    p("FORMULA is one: " + expression.one().always().toString());
-                    frame.addFormula(expression.one().always(), s);
+                //    p("FORMULA is one: " + expression.one().always().toString()); 
+                    frame.addFormula(expression.one().always(), s); // pt.uminho.haslab
                 }
             }
 
@@ -202,13 +202,13 @@ public final class TranslateAlloyToKodkod extends VisitReturn<Object> {
                         //hierarchy = (a1 + a2) in A and no (a1 & a2)
                         hierarchy = this.getUnionOfSubSignatures(list).in(relation).and(hierarchy);
                     }
-                    frame.addFormula(hierarchy.always(),s);
+                    frame.addFormula(hierarchy.always(),s); // pt.uminho.haslab
                    // p("FORMULA: "+hierarchy.always().toString());
                 }else{
                     //if the signature is abstract and has at least two sub-sigs (ex : no (X & Y))
                     if (hierarchy != null) {
                     //    p("FORMULA hierarchy: "+hierarchy.always().toString());
-                        frame.addFormula(hierarchy.always(),s);
+                        frame.addFormula(hierarchy.always(),s);  // pt.uminho.haslab
                     }
                 }
             }
@@ -233,15 +233,17 @@ public final class TranslateAlloyToKodkod extends VisitReturn<Object> {
                 if (s.isOne==null && d.disjoint2!=null) for(ExprHasName f: d.names) {
                     Decl that = s.oneOf("that");
                     Expr formula = s.decl.get().equal(that.get()).not().implies(s.decl.get().join(f).intersect(that.get().join(f)).no());
-                    frame.addFormula(cform(formula.forAll(that).forAll(s.decl)).always(), d.disjoint2);
+                    frame.addFormula(cform(formula.forAll(that).forAll(s.decl)).always(), d.disjoint2);  // pt.uminho.haslab
                 }
-                if (d.names.size()>1 && d.disjoint!=null) {  frame.addFormula(cform(ExprList.makeDISJOINT(d.disjoint, null, d.names)).always(), d.disjoint);  }
+                if (d.names.size()>1 && d.disjoint!=null) {  
+                	frame.addFormula(cform(ExprList.makeDISJOINT(d.disjoint, null, d.names)).always(), d.disjoint);   // pt.uminho.haslab
+                	}
             }
             k2pos_enabled = true;
             for(Expr f: s.getFacts()) {
                 Expr form = s.isOne==null ? f.forAll(s.decl) : ExprLet.make(null, (ExprVar)(s.decl.get()), s, f);
                 //p("FORMULA facts: "+cform(form).always().toString());
-                frame.addFormula(cform(form).always(), f);
+                frame.addFormula(cform(form).always(), f); // pt.uminho.haslab
             }
         }
         k2pos_enabled = true;
@@ -310,7 +312,7 @@ public final class TranslateAlloyToKodkod extends VisitReturn<Object> {
         private A4Solution partial = null;
         public GreedySimulator() { }
         private TupleSet convert(TupleFactory factory, Expr f) throws Err {
-            TupleSet old = ((A4TupleSet) (partial.eval(f,0))).debugGetKodkodTupleset();
+            TupleSet old = ((A4TupleSet) (partial.eval(f))).debugGetKodkodTupleset();
             TupleSet ans = factory.noneOf(old.arity());
             for(Tuple oldT: old) {
                 Tuple newT = null;
@@ -1143,6 +1145,7 @@ public final class TranslateAlloyToKodkod extends VisitReturn<Object> {
     }
 
     // expansion of unary temporal operators
+    // pt.uminho.haslab
 	@Override
 	public Object visit(ExprTemp x) throws Err {
         switch (x.op) {
@@ -1220,10 +1223,10 @@ class MultiplicityAndTyping extends VisitQuery<Formula> {
                Formula finalF = null;
               // if (decl == null) finalF = typingFormula.always().and(multiplicityFormula.always()); //if is "one sig A.."
               // else finalF = typingFormula.always().and(multiplicityFormula.forAll(decl).always()); //if is not one
-               finalF = typingFormula.always().and(multiplicityFormula.forAll(decl).always());
+               finalF = typingFormula.always().and(multiplicityFormula.forAll(decl).always());  // pt.uminho.haslab
                return finalF;
            }
-           else {return typingFormula.always();}
+           else {return typingFormula.always();}  // pt.uminho.haslab
     }
 
     @Override

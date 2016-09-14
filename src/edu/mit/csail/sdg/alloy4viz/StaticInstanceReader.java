@@ -42,7 +42,6 @@ import edu.mit.csail.sdg.alloy4compiler.translator.A4Solution;
 import edu.mit.csail.sdg.alloy4compiler.translator.A4SolutionReader;
 import edu.mit.csail.sdg.alloy4compiler.translator.A4Tuple;
 import edu.mit.csail.sdg.alloy4compiler.translator.A4TupleSet;
-import test.Example;
 
 /** This utility class parses an XML file into an AlloyInstance object.
  *
@@ -170,7 +169,7 @@ public final class StaticInstanceReader {
    private void atoms(A4Solution sol, PrimSig s) throws Err {
       Expr sum=Sig.NONE;
       for(PrimSig c:s.children()) { sum=sum.plus(c); atoms(sol, c); }
-      A4TupleSet ts = (A4TupleSet) (sol.eval(s.minus(sum),0)); // This ensures that atoms will be associated with the most specific sig
+      A4TupleSet ts = (A4TupleSet) (sol.eval(s.minus(sum))); // This ensures that atoms will be associated with the most specific sig
       for(A4Tuple z: ts) {
          String atom = z.atom(0);
          int i, dollar = atom.lastIndexOf('$');
@@ -188,7 +187,7 @@ public final class StaticInstanceReader {
             PrimSig t = ps.get(0);
             AlloySet set = makeSet(label, isPrivate, isMeta, sig(t));
             sets.add(set);
-            for(A4Tuple tp: (A4TupleSet)(sol.eval(expr.intersect(t),0))) {
+            for(A4Tuple tp: (A4TupleSet)(sol.eval(expr.intersect(t)))) {
                atom2sets.get(string2atom.get(tp.atom(0))).add(set);
             }
          } else {
@@ -200,7 +199,7 @@ public final class StaticInstanceReader {
             }
             AlloyRelation rel = makeRel(label, isPrivate, isMeta, types);
             Set<AlloyTuple> ts = new LinkedHashSet<AlloyTuple>();
-            for(A4Tuple tp: (A4TupleSet)(sol.eval(expr.intersect(mask),0))) {
+            for(A4Tuple tp: (A4TupleSet)(sol.eval(expr.intersect(mask)))) { 
                AlloyAtom[] atoms = new AlloyAtom[tp.arity()];
                for(int i=0; i<tp.arity(); i++) {
                   atoms[i] = string2atom.get(tp.atom(i));

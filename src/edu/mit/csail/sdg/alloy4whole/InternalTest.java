@@ -86,7 +86,7 @@ final class InternalTest {
         check(skolems2.size()==1);
         check(skolems2.get(0).label, "$Deadlock_s");
         check(skolems2.get(0).type(), state2.type());
-        check(""+sol.eval(field2.cardinality(),0), "-2");
+        check(""+sol.eval(field2.cardinality()), "-2");
     }
 
     static void test2() throws Exception {

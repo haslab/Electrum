@@ -34,7 +34,7 @@ import javax.swing.border.EmptyBorder;
  * <p><b>Thread Safety:</b> Can be called only by the AWT event thread.
  */
 
-public class OurCombobox extends JComboBox {
+public class OurCombobox extends JComboBox<Object> {
 
    /** This ensures the class can be serialized reliably. */
    private static final long serialVersionUID = 0;

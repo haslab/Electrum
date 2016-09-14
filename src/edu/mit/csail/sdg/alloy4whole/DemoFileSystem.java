@@ -34,7 +34,8 @@ import edu.mit.csail.sdg.alloy4compiler.translator.A4Options;
 import edu.mit.csail.sdg.alloy4compiler.translator.A4Solution;
 import edu.mit.csail.sdg.alloy4compiler.translator.TranslateAlloyToKodkod;
 
-/** This class demonstrates how to access Alloy4 via the API, by modeling a simple file system. */
+/** This class demonstrates how to access Alloy4 via the API, by modeling a simple file system. 
+*/
 
 public class DemoFileSystem {
 
@@ -60,10 +61,10 @@ public class DemoFileSystem {
         A4Solution sol = TranslateAlloyToKodkod.execute_command(NOP, sigs, cmd, opt);
         System.out.println(sol.toString().trim());
         if (sol.satisfiable()) {
-            System.out.println("In particular, File = " + sol.eval(file,0));
-            System.out.println("In particular, Dir = " + sol.eval(dir,0));
-            System.out.println("In particular, contains = " + sol.eval(contains,0));
-            System.out.println("In particular, parent = " + sol.eval(parent,0));
+            System.out.println("In particular, File = " + sol.eval(file));
+            System.out.println("In particular, Dir = " + sol.eval(dir));
+            System.out.println("In particular, contains = " + sol.eval(contains));
+            System.out.println("In particular, parent = " + sol.eval(parent));
         }
         System.out.println();
     }

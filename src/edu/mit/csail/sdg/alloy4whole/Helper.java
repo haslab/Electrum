@@ -42,7 +42,7 @@ public final class Helper {
      */
     public static Map<String,PrimSig> atom2sig(A4Solution solution) throws Err {
        Map<String,PrimSig> map = new HashMap<String,PrimSig>();
-       for(Sig s: solution.getAllReachableSigs()) if (s instanceof PrimSig) for(A4Tuple t: (A4TupleSet) solution.eval(s,0)) {
+       for(Sig s: solution.getAllReachableSigs()) if (s instanceof PrimSig) for(A4Tuple t: (A4TupleSet) solution.eval(s)) {
           // We skip over SubsetSig and only care about PrimSig
           String atom = t.atom(0);
           PrimSig old = map.get(atom);

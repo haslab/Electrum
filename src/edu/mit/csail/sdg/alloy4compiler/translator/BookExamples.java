@@ -361,7 +361,7 @@ final class BookExamples {
           return null;
        }
     }
-
+    
     /** This constructs a Kodkod Tuple from the list of atoms, and returns null if no such Tuple can be constructed. */
     private static Tuple t_tuple (TupleFactory factory, Object... atoms) {
         try {

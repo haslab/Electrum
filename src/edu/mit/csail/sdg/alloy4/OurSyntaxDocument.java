@@ -37,7 +37,8 @@ import javax.swing.text.TabStop;
 /** Graphical syntax-highlighting StyledDocument.
  *
  * <p><b>Thread Safety:</b> Can be called only by the AWT event thread
- * @modified: nmm
+ *
+ * @modified: nmm, Eduardo Pessoa (pt.uminho.haslab.pt): temporal keywords
  */
 
 class OurSyntaxDocument extends DefaultStyledDocument {
