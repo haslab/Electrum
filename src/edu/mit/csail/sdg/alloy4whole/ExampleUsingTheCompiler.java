@@ -77,7 +77,7 @@ public final class ExampleUsingTheCompiler {
                 //System.out.println("KODKOD: "+TranslateAlloyToKodkod.alloy2kodkod(ans,).toString());
                 System.out.println(ans.getAllAtoms().toString());
                 // Print the outcome
-                System.out.println(ans.formulas.toString());
+//                System.out.println(ans.formulas.toString());
                 System.out.println(ans.getAllReachableSigs().toString());
                 // If satisfiable...
                 /*if (ans.satisfiable()) {

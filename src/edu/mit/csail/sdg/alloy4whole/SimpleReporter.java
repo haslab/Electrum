@@ -539,7 +539,7 @@ public final class SimpleReporter extends A4Reporter { 	// pt.uminho.haslab: pub
              } catch (Exception e) {
                  e.printStackTrace();
              }
-            for (int i = 1; i <= a4Solution.traceLength; i++) {
+            for (int i = 1; i <= a4Solution.getTraceLength(); i++) {
                 a4Solution.renameTemporalSolution(i);
                 try {
                     writeXML(simpleReporter, latestModule, filename +"Time"+ i + ".xml", a4Solution, kkSRC, i);

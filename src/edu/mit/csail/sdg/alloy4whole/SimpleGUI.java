@@ -1070,7 +1070,7 @@ public final class SimpleGUI implements ComponentListener, Listener {
            if (subrunningTask==2){
                viz.loadXML(f, true);
                // pt.uminho.haslab: the jpanel with temporal states is created
-               viz.addTemporalJPanel(viz.getVizState().getOriginalInstance().originalA4.traceLength);
+               viz.addTemporalJPanel(viz.getVizState().getOriginalInstance().originalA4.getTraceLength());
            } else if (AutoVisualize.get() || subrunningTask==1) doVisualize("XML: "+f);
         }
         return null;
@@ -1603,7 +1603,7 @@ public final class SimpleGUI implements ComponentListener, Listener {
         if (arg.startsWith("XML: ")) { // XML: filename
             viz.loadXML(Util.canon(arg.substring(5)), false);
             viz.getVizState().useOriginalName(true); // pt.uminho.haslab: the instance show the atoms' original names
-            viz.addTemporalJPanel(viz.getVizState().getOriginalInstance().originalA4.traceLength);//pt.uminho.haslab: the jpanel with temporal states is created
+            viz.addTemporalJPanel(viz.getVizState().getOriginalInstance().originalA4.getTraceLength());//pt.uminho.haslab: the jpanel with temporal states is created
             viz.doShowViz();
         }
         return null;

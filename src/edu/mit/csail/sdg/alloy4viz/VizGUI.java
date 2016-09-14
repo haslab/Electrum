@@ -669,7 +669,7 @@ public final class VizGUI implements ComponentListener {
 		wrapper.add(atomComboTime);
 		wrapper.add(rightTime);
 		final int initialIndex = 0;
-		final int backIndex = getVizState().getOriginalInstance().originalA4.backLoop;
+		final int backIndex = getVizState().getOriginalInstance().originalA4.getBackLoop();
 
 		leftTime.setEnabled(initialIndex > 0);
 		rightTime.setEnabled(initialIndex < atomnames.length - 1 || backIndex != -1);
@@ -683,7 +683,7 @@ public final class VizGUI implements ComponentListener {
 		});
 		rightTime.addActionListener(new ActionListener() {
 			public final void actionPerformed(ActionEvent e) {
-				if (atomComboTime.getSelectedIndex() == getVizState().getOriginalInstance().originalA4.traceLength)
+				if (atomComboTime.getSelectedIndex() == getVizState().getOriginalInstance().originalA4.getTraceLength())
 					atomComboTime.setSelectedIndex(backIndex);
 				else {
 					int curIndex = atomComboTime.getSelectedIndex();

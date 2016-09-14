@@ -381,10 +381,10 @@ public final class A4SolutionReader {
 		// create the A4Solution object
 		A4Options opt = new A4Options();
 		opt.originalFilename = inst.getAttribute("filename");
-		sol = new A4Solution(inst.getAttribute("command"), bitwidth, maxseq, strings, atoms, null, opt, 1);
-		sol.traceLength = tracelength; // pt.uminho.haslab
-		sol.backLoop = backloop; // pt.uminho.haslab
+		sol = new A4Solution(inst.getAttribute("command"), bitwidth, maxseq, strings, atoms, null, opt, 1); // pt.uminho.haslab
 		factory = sol.getFactory();
+		sol.setBackLoop(backloop); // pt.uminho.haslab
+		sol.setTraceLength(tracelength); // pt.uminho.haslab
 		// parse all the sigs, fields, and skolems
 		for (Map.Entry<String, XMLNode> e : nmap.entrySet())
 			if (e.getValue().is("sig"))
