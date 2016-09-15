@@ -1,4 +1,5 @@
 /* Alloy Analyzer 4 -- Copyright (c) 2006-2009, Felix Chang
+ * Electrum -- Copyright (c) 2014-present, Nuno Macedo
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files
  * (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify,
@@ -37,7 +38,10 @@ import edu.mit.csail.sdg.alloy4compiler.ast.Sig.Field;
 import edu.mit.csail.sdg.alloy4compiler.ast.Sig.PrimSig;
 import edu.mit.csail.sdg.alloy4compiler.ast.Sig.SubsetSig;
 
-/** Immutable; this class assigns each sig and field to some Kodkod relation or expression, then set the bounds. */
+/** Immutable; this class assigns each sig and field to some Kodkod relation or expression, then set the bounds. 
+ * 
+ * @modified: nmm, Eduardo Pessoa (pt.uminho.haslab): formulas adapted to temporal.
+ */
 
 final class BoundsComputer {
 
@@ -105,24 +109,21 @@ final class BoundsComputer {
 
     //==============================================================================================================//
 
-    /** Allocate relations for nonbuiltin PrimSigs bottom-up. */
+    /** Allocate relations for nonbuiltin PrimSigs bottom-up. 
+     * pt.uminho.haslab: temporal formulas. */
     private Expression allocatePrimSig(PrimSig sig) throws Err {
         // Recursively allocate all children expressions, and form the union of them
         Expression sum = null;
-        if(!sig.children().isEmpty()) {
-            List<Expression> listOfSubSings = new ArrayList<Expression>();
-            for (PrimSig child : sig.children()) {
-                Expression childexpr = allocatePrimSig(child);
-                listOfSubSings.add(childexpr);
-                if (sum == null) {
-                    sum = childexpr;
-                    continue;
-                }
-                // subsigs are disjoint
-                // sol.addFormula(sum.intersection(childexpr).no(), child.isSubsig);
-                 sum = sum.union(childexpr);
-            }
-        }
+		for (PrimSig child : sig.children()) {
+			Expression childexpr = allocatePrimSig(child);
+			if (sum == null) {
+				sum = childexpr;
+				continue;
+			}
+			// subsigs are disjoint
+			sol.addFormula(sum.intersection(childexpr).no().always(), child.isSubsig); // pt.uminho.haslab
+			sum = sum.union(childexpr);
+		}
 
         TupleSet lower = lb.get(sig).clone(), upper = ub.get(sig).clone();
         if (sum == null) {
@@ -148,7 +149,8 @@ final class BoundsComputer {
 
     //==============================================================================================================//
 
-    /** Allocate relations for SubsetSig top-down. */
+	/** Allocate relations for SubsetSig top-down. pt.uminho.haslab: temporal
+	 * formulas. */
     private Expression allocateSubsetSig(SubsetSig sig) throws Err {
         // We must not visit the same SubsetSig more than once, so if we've been here already, then return the old value right away
         Expression sum = sol.a2k(sig);
@@ -222,7 +224,8 @@ final class BoundsComputer {
         return null;
     }
 
-    /** Computes the bounds for sigs/fields, then construct a BoundsComputer object that you can query. */
+    /** Computes the bounds for sigs/fields, then construct a BoundsComputer object that you can query. 
+     * pt.uminho.haslab: adapted to temporal formulas. */
     private BoundsComputer(A4Reporter rep, A4Solution sol, ScopeComputer sc, Iterable<Sig> sigs) throws Err {
         this.sc = sc;
         this.factory = sol.getFactory();
@@ -310,25 +313,25 @@ final class BoundsComputer {
             final int n = sc.sig2scope(s);
             if (s.isOne!=null && (lower.size()!=1 || upper.size()!=1)) {
                 rep.bound("Sig "+s+" in "+upper+" with size==1\n");
-                sol.addFormula(exp.one(), s.isOne);
+                sol.addFormula(exp.one().always(), s.isOne); // pt.uminho.haslab
                 continue;
             }
-            if (s.isSome!=null && lower.size()<1) sol.addFormula(exp.some(), s.isSome);
-            if (s.isLone!=null && upper.size()>1) sol.addFormula(exp.lone(), s.isLone);
+            if (s.isSome!=null && lower.size()<1) sol.addFormula(exp.some().always(), s.isSome); // pt.uminho.haslab
+            if (s.isLone!=null && upper.size()>1) sol.addFormula(exp.lone().always(), s.isLone); // pt.uminho.haslab
             if (n<0) continue; // This means no scope was specified
             if (lower.size()==n && upper.size()==n && sc.isExact(s)) {
                 rep.bound("Sig "+s+" == "+upper+"\n");
             }
             else if (sc.isExact(s)) {
                 rep.bound("Sig "+s+" in "+upper+" with size=="+n+"\n");
-                sol.addFormula(size(s,n,true), Pos.UNKNOWN);
+                sol.addFormula(size(s,n,true).always(), Pos.UNKNOWN); // pt.uminho.haslab
             }
             else if (upper.size()<=n){
                 rep.bound("Sig "+s+" in "+upper+"\n");
             }
             else {
                 rep.bound("Sig "+s+" in "+upper+" with size<="+n+"\n");
-                sol.addFormula(size(s,n,false), Pos.UNKNOWN);
+                sol.addFormula(size(s,n,false).always(), Pos.UNKNOWN); // pt.uminho.haslab
             }
         }
     }

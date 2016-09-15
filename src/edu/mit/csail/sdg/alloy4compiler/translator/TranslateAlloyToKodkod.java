@@ -170,31 +170,7 @@ public final class TranslateAlloyToKodkod extends VisitReturn<Object> {
                    // p("FORMULA not static: " + expression.post().eq(expression).always().toString());
                      frame.addFormula(expression.post().eq(expression).always(), s); // pt.uminho.haslab
                 }
-                // if the sig is one :: one sig X ... ToKK ... G (one X)
-                //Constants (s.attibutes = []) not considered (String,Int....)
-                if (s.isOne != null){
-                    frame.addFormula(expression.one().always(), s); // pt.uminho.haslab
-                }
-                if (s.isLone != null){
-                    frame.addFormula(expression.lone().always(), s); // pt.uminho.haslab
-                }
-                if (s.isSome != null){
-                    frame.addFormula(expression.some().always(), s); // pt.uminho.haslab
-                }
             }
-
-			if (s instanceof PrimSig && !s.equals(UNIV)) {
-				// the next block of code handles the hierarchy of the
-				// signatures
-				// get subsignatures (if exist) of s
-				SafeList<PrimSig> list = ((PrimSig) s).children();
-				if (list != null) {
-					// ex: hierarchy = no (A & B)
-					Formula hierarchy = this.getAllExpressionsCombination(list);
-					if (hierarchy != null)
-						frame.addFormula(hierarchy.always(), s); // pt.uminho.haslab
-				}
-			}
 
             for(Decl d: s.getFieldDecls()) {
                 k2pos_enabled = false;
@@ -231,34 +207,6 @@ public final class TranslateAlloyToKodkod extends VisitReturn<Object> {
         }
         k2pos_enabled = true;
         recursiveAddFormula(facts);
-    }
-
-
-    /*
-    * function responsible for returning a formula with all combinations par in a list of kk expressions
-    *
-    * #example:
-    *
-    * sig a1,a2,a3 {}
-    *
-    * The output of applying this is function in  [a1,a2,a3] is
-    * ((no (a1 & a2) && no (a1 & a3)) && no (a2 & a3))
-    *
-    * */
-    private Formula getAllExpressionsCombination(SafeList<PrimSig> list){
-        Formula f = null;
-        for(int i = 0;i < list.size();i++){
-        	Expression a = frame.a2k(list.get(i));
-            for(int j = i+1;j<list.size();j++){
-            	Expression b = frame.a2k(list.get(j));
-                if (f != null){
-                    f = f.and(a.intersection(b).no());
-                } else{
-                    f = a.intersection(b).no();
-                }
-            }
-        }
-        return f;
     }
 
     /** Break up x into conjuncts then add them each as a fact. */

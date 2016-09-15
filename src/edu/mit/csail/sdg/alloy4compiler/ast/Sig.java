@@ -1,5 +1,5 @@
 /* Alloy Analyzer 4 -- Copyright (c) 2006-2009, Felix Chang
- * Electrum -- Copyright (c) 2015-present, Nuno Macedo
+ * Electrum -- Copyright (c) 2014-present, Nuno Macedo
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files
  * (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify,
@@ -35,7 +35,7 @@ import edu.mit.csail.sdg.alloy4compiler.ast.Attr.AttrType;
 
 /** Mutable; represents a signature. 
  * 
- * @modified: nmm
+ * @modified: nmm, Eduardo Pessoa (pt.uminho.haslab): variables sigs and fields.
  */
 
 public abstract class Sig extends Expr {
@@ -103,9 +103,6 @@ public abstract class Sig extends Expr {
 	 */
 	public final Pos isAbstract;
 
-	public final Pos isVariable; //pt.uminho.haslab: whether the sig is variable
-
-
 	/** Nonnull if this sig is a PrimSig and therefore not a SubsetSig. */
 	public final Pos isSubsig;
 
@@ -144,6 +141,10 @@ public abstract class Sig extends Expr {
 	 */
 	public final Pos isMeta;
 
+	/** Nonnull if this sig is a Variable. 
+	 * pt.uminho.haslab. */
+	public final Pos isVariable;
+
 	/** The label for this sig; this name does not need to be unique. */
 	public final String label;
 
@@ -158,8 +159,8 @@ public abstract class Sig extends Expr {
 		return (this!=NONE) && (this instanceof PrimSig) && (this==UNIV || ((PrimSig)this).parent==UNIV);
 	}
 
-	/** Constructs a new builtin PrimSig. */
-	//pt.uminho.haslab: extended with variable sigs
+	/** Constructs a new builtin PrimSig. 
+	 * pt.uminho.haslab: extended with variable sigs. */
 	private Sig(String label) {
 		super(Pos.UNKNOWN, null);
 		Expr oneof = ExprUnary.Op.ONEOF.make(null, this);
@@ -180,8 +181,8 @@ public abstract class Sig extends Expr {
 		this.attributes = ConstList.make();
 	}
 
-	/** Constructs a new PrimSig or SubsetSig. */
-	//pt.uminho.haslab: extended with variable sigs
+	/** Constructs a new PrimSig or SubsetSig. 
+	 * pt.uminho.haslab: extended with variable sigs. */
 	private Sig(Type type, String label, Attr... attributes) throws Err {
 		super(AttrType.WHERE.find(attributes), type);
 		this.attributes = Util.asList(attributes);
@@ -218,7 +219,6 @@ public abstract class Sig extends Expr {
 		if (isOne!=null  && isSome!=null) throw new ErrorSyntax(isOne.merge(isSome),  "You cannot declare a sig to be both one and some.");
 		if (isSubset!=null && isAbstract!=null) throw new ErrorSyntax(isAbstract,  "Subset signature cannot be abstract.");
 		if (isSubset!=null && isSubsig!=null)   throw new ErrorSyntax(isAbstract,  "Subset signature cannot be a regular subsignature.");
-//      if (isSubset!=null && isVariable!=null) throw new ErrorSyntax(isAbstract,  "Dynamic subset signatures not supported.");   //pt.uminho.haslab
 	}
 
 	/** Returns true if we can determine the two expressions are equivalent; may sometimes return false. */
@@ -317,7 +317,8 @@ public abstract class Sig extends Expr {
 		}
 
 		/** Constructs a non-builtin sig.
-		 *
+		 * pt.uminho.haslab: extended with variable sigs.
+		 * 
 		 * @param label - the name of this sig (it does not need to be unique)
 		 * @param parent - the parent (must not be null, and must not be NONE)
 		 * @param attributes - the list of optional attributes such as ABSTRACT, LONE, ONE, SOME, SUBSIG, PRIVATE, META, or ENUM
@@ -325,7 +326,6 @@ public abstract class Sig extends Expr {
 		 * @throws ErrorSyntax if the signature has two or more multiplicities
 		 * @throws ErrorType if you attempt to extend the builtin sigs NONE, SIGINT, SEQIDX, or STRING
 		 */
-		//pt.uminho.haslab: extended with variable sigs
 		public PrimSig (String label, PrimSig parent, Attr... attributes) throws Err {
 			super(((parent!=null && parent.isEnum!=null) ? parent.type : null), label, Util.append(attributes, Attr.SUBSIG));
 			if (parent==SIGINT) throw new ErrorSyntax(pos, "sig "+label+" cannot extend the builtin \"Int\" signature");
@@ -392,7 +392,7 @@ public abstract class Sig extends Expr {
 
 	//==============================================================================================================//
 
-	/** Mutable; reresents a subset signature. */
+	/** Mutable; represents a subset signature. */
 
 	public static final class SubsetSig extends Sig {
 
@@ -469,7 +469,9 @@ public abstract class Sig extends Expr {
 		/** Nonnull if this field is a meta field. */
 		public final Pos isMeta;
 
-		public final Pos isVariable; //pt.uminho.haslab: whether the field is variable
+		/** Nonnull if this field is variable. 
+		 * pt.uminho.haslab. */
+		public final Pos isVariable;
 
 		/** True if this is a defined field. */
 		public final boolean defined;
@@ -480,8 +482,8 @@ public abstract class Sig extends Expr {
 		/** Return the declaration that this field came from. */
 		public Decl decl() { return decl; }
 
-		/** Constructs a new Field object. */
-		//pt.uminho.haslab: extended with variable fields
+		/** Constructs a new Field object. 
+		 * pt.uminho.haslab: extended with variable fields. */
 		private Field(Pos pos, Pos isPrivate, Pos isMeta, Pos isVar, Pos disjoint, Pos disjoint2, Sig sig, String label, Expr bound) throws Err {
 			super(pos, label, sig.type.product(bound.type));
 			this.defined = bound.mult() == ExprUnary.Op.EXACTLYOF;
@@ -568,6 +570,7 @@ public abstract class Sig extends Expr {
 
 	/** Add then return a new field, where "all x: ThisSig | x.F in bound"
 	 * <p> Note: the bound must be fully-typechecked and have exactly 0 free variable, or have "x" as its sole free variable.
+	 * pt.uminho.haslab: extended with variable fields.
 	 *
 	 * @param pos - the position in the original file where this field was defined (can be null if unknown)
 	 * @param isPrivate - if nonnull, that means the user intended this field to be "private"
@@ -579,7 +582,6 @@ public abstract class Sig extends Expr {
 	 * @throws ErrorSyntax  if the bound contains a predicate/function call
 	 * @throws ErrorType    if the bound is not fully typechecked or is not a set/relation
 	 */
-	//pt.uminho.haslab: extended with variable field
 	public final Field[] addTrickyField (Pos pos, Pos isPrivate, Pos isDisjoint, Pos isDisjoint2, Pos isMeta, Pos isVar, String[] labels, Expr bound) throws Err {
 		bound = bound.typecheck_as_set();
 		if (bound.ambiguous) bound = bound.resolve_as_set(null);
