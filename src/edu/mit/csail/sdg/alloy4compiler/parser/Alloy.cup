@@ -44,6 +44,7 @@ import edu.mit.csail.sdg.alloy4.Pair;
 import edu.mit.csail.sdg.alloy4.Util;
 import edu.mit.csail.sdg.alloy4.Version;
 import edu.mit.csail.sdg.alloy4compiler.ast.Attr.AttrType;
+import edu.mit.csail.sdg.alloy4compiler.ast.BinaryExprTemp;
 import edu.mit.csail.sdg.alloy4compiler.ast.CommandScope;
 import edu.mit.csail.sdg.alloy4compiler.ast.Decl;
 import edu.mit.csail.sdg.alloy4compiler.ast.Expr;
@@ -558,6 +559,10 @@ nonterminal List<ExprVar>              Names;
 nonterminal List<ExprVar>              Namex;
 nonterminal Expr                       NegExprA;
 nonterminal Expr                       NegExprB;
+nonterminal Expr                       TempUnaryA; // pt.uminho.haslab
+nonterminal Expr                       TempUnaryB; // pt.uminho.haslab
+nonterminal Expr                       TempBinaryA; // pt.uminho.haslab
+nonterminal Expr                       TempBinaryB; // pt.uminho.haslab
 nonterminal Expr                       NumUnopExprA;
 nonterminal Expr                       NumUnopExprB;
 nonterminal Expr                       OrExprA;
@@ -877,16 +882,6 @@ Bind ::= SOME2:o  Declp:a SuperOrBar:b {: RESULT = ExprQt.Op.SOME    	   .make(o
 Bind ::= LONE2:o  Declp:a SuperOrBar:b {: RESULT = ExprQt.Op.LONE    	   .make(o, null, a, b); 	:};
 Bind ::= ONE2:o   Declp:a SuperOrBar:b {: RESULT = ExprQt.Op.ONE     	   .make(o, null, a, b); 	:};
 Bind ::= SUM2:o   Declp:a SuperOrBar:b {: RESULT = ExprQt.Op.SUM     	   .make(o, null, a, b); 	:};
-Bind ::= ALWAYS:o SuperOrBar:b 		   {: RESULT = ExprTemp.Op.ALWAYS	   .make(o, null, b); 	:}; //pt.uminho.haslab: ltl ops
-Bind ::= EVENTUALLY:o SuperOrBar:b 	   {: RESULT = ExprTemp.Op.EVENTUALLY  .make(o, null, b); 	:}; //pt.uminho.haslab: ltl ops
-Bind ::= AFTER:o SuperOrBar:b 	   	   {: RESULT = ExprTemp.Op.AFTER	   .make(o, null, b); 	:}; //pt.uminho.haslab: ltl ops
-Bind ::= HISTORICALLY:o SuperOrBar:b   {: RESULT = ExprTemp.Op.HISTORICALLY.make(o, null, b); 	:}; //pt.uminho.haslab: ltl ops
-Bind ::= ONCE:o SuperOrBar:b 	   	   {: RESULT = ExprTemp.Op.ONCE        .make(o, null, b); 	:}; //pt.uminho.haslab: ltl ops
-Bind ::= PREVIOUS:o SuperOrBar:b 	   {: RESULT = ExprTemp.Op.PREVIOUS	   .make(o, null, b); 	:}; //pt.uminho.haslab: ltl ops
-
-Bind ::= Super:a UNTIL:o Super:b 	   {: RESULT = BinaryExprTemp.Op.UNTIL	   .make(o, null,a, b); 	:}; //pt.uminho.haslab: ltl ops
-Bind ::= Super:a RELEASE:o Super:b 	   {: RESULT = BinaryExprTemp.Op.RELEASE   .make(o, null,a, b); 	:}; //pt.uminho.haslab: ltl ops
-
 
 OrExprA ::=                EquivExprA:a  {: RESULT=a;                                    :};
 OrExprA ::= OrExprB:a OR:o Bind:b        {: RESULT=ExprBinary.Op.OR.make(o, null, a, b); :};
@@ -915,10 +910,38 @@ ImpliesExprCloseB ::= AndExprB:a IMPLIES:o ImpliesExprCloseB:b ELSE ImpliesExprC
 ImpliesExprOpenB  ::= AndExprB:a IMPLIES:o ImpliesExprCloseB:b ELSE ImpliesExprOpenB:c  {: RESULT = ExprITE.make(o,a,b,c);                     :};
 ImpliesExprOpenB  ::= AndExprB:a IMPLIES:o ImpliesExprB:b                               {: RESULT = ExprBinary.Op.IMPLIES.make(o, null, a, b); :};
 
-AndExprA ::= NegExprA:a                   {: RESULT=a;                                     :};
-AndExprA ::= AndExprB:a AND:o Bind:b      {: RESULT=ExprBinary.Op.AND.make(o, null, a, b); :};
-AndExprB ::=                  NegExprB:b  {: RESULT=b;                                     :};
-AndExprB ::= AndExprB:a AND:o NegExprB:b  {: RESULT=ExprBinary.Op.AND.make(o, null, a, b); :};
+AndExprA ::= 				  TempBinaryA:a {: RESULT=a;                                     :};
+AndExprA ::= AndExprB:a AND:o Bind:b        {: RESULT=ExprBinary.Op.AND.make(o, null, a, b); :};
+AndExprB ::=                  TempBinaryB:b {: RESULT=b;                                     :};
+AndExprB ::= AndExprB:a AND:o TempBinaryB:b {: RESULT=ExprBinary.Op.AND.make(o, null, a, b); :};
+
+TempBinaryA ::= 						TempUnaryA:a {: RESULT=a;                            				        :}; //pt.uminho.haslab: ltl ops
+TempBinaryA ::= TempBinaryB:a UNTIL:o 	Bind:b       {: RESULT = BinaryExprTemp.Op.UNTIL	.make(o, null, a, b); 	:}; //pt.uminho.haslab: ltl ops
+TempBinaryA ::= TempBinaryB:a RELEASE:o Bind:b       {: RESULT = BinaryExprTemp.Op.RELEASE  .make(o, null, a, b); 	:}; //pt.uminho.haslab: ltl ops
+TempBinaryB ::=                  		TempUnaryB:b {: RESULT=b;				                                    :}; //pt.uminho.haslab: ltl ops
+TempBinaryB ::= TempBinaryB:a UNTIL:o 	TempUnaryB:b {: RESULT = BinaryExprTemp.Op.UNTIL	.make(o, null, a, b); 	:}; //pt.uminho.haslab: ltl ops
+TempBinaryB ::= TempBinaryB:a RELEASE:o TempUnaryB:b {: RESULT = BinaryExprTemp.Op.RELEASE	.make(o, null, a, b); 	:}; //pt.uminho.haslab: ltl ops
+
+TempUnaryA ::= 					NegExprA:a 		{: RESULT=a; 												:}; //pt.uminho.haslab: ltl ops
+TempUnaryA ::= ALWAYS:o 		Bind:a 			{: RESULT = ExprTemp.Op.ALWAYS	   		.make(o, null, a); 	:}; //pt.uminho.haslab: ltl ops
+TempUnaryA ::= EVENTUALLY:o 	Bind:a 			{: RESULT = ExprTemp.Op.EVENTUALLY  	.make(o, null, a); 	:}; //pt.uminho.haslab: ltl ops
+TempUnaryA ::= AFTER:o 			Bind:a 			{: RESULT = ExprTemp.Op.AFTER  			.make(o, null, a); 	:}; //pt.uminho.haslab: ltl ops
+TempUnaryA ::= HISTORICALLY:o 	Bind:a 			{: RESULT = ExprTemp.Op.HISTORICALLY  	.make(o, null, a); 	:}; //pt.uminho.haslab: ltl ops
+TempUnaryA ::= ONCE:o 			Bind:a 			{: RESULT = ExprTemp.Op.ONCE  			.make(o, null, a); 	:}; //pt.uminho.haslab: ltl ops
+TempUnaryA ::= PREVIOUS:o 		Bind:a 			{: RESULT = ExprTemp.Op.PREVIOUS  		.make(o, null, a); 	:}; //pt.uminho.haslab: ltl ops
+TempUnaryA ::= ALWAYS:o 		TempUnaryA:a 	{: RESULT = ExprTemp.Op.ALWAYS	   		.make(o, null, a); 	:}; //pt.uminho.haslab: ltl ops
+TempUnaryA ::= EVENTUALLY:o 	TempUnaryA:a 	{: RESULT = ExprTemp.Op.EVENTUALLY  	.make(o, null, a); 	:}; //pt.uminho.haslab: ltl ops
+TempUnaryA ::= AFTER:o 			TempUnaryA:a 	{: RESULT = ExprTemp.Op.AFTER  			.make(o, null, a); 	:}; //pt.uminho.haslab: ltl ops
+TempUnaryA ::= HISTORICALLY:o 	TempUnaryA:a 	{: RESULT = ExprTemp.Op.HISTORICALLY  	.make(o, null, a); 	:}; //pt.uminho.haslab: ltl ops
+TempUnaryA ::= ONCE:o 			TempUnaryA:a 	{: RESULT = ExprTemp.Op.ONCE  			.make(o, null, a); 	:}; //pt.uminho.haslab: ltl ops
+TempUnaryA ::= PREVIOUS:o 		TempUnaryA:a 	{: RESULT = ExprTemp.Op.PREVIOUS  		.make(o, null, a); 	:}; //pt.uminho.haslab: ltl ops
+TempUnaryB ::= 					NegExprB:a 		{: RESULT=a; 												:}; //pt.uminho.haslab: ltl ops
+TempUnaryB ::= ALWAYS:o 		TempUnaryB:a 	{: RESULT = ExprTemp.Op.ALWAYS	   		.make(o, null, a); 	:}; //pt.uminho.haslab: ltl ops
+TempUnaryB ::= EVENTUALLY:o 	TempUnaryB:a 	{: RESULT = ExprTemp.Op.EVENTUALLY  	.make(o, null, a); 	:}; //pt.uminho.haslab: ltl ops
+TempUnaryB ::= AFTER:o 			TempUnaryB:a 	{: RESULT = ExprTemp.Op.AFTER  			.make(o, null, a); 	:}; //pt.uminho.haslab: ltl ops
+TempUnaryB ::= HISTORICALLY:o 	TempUnaryB:a 	{: RESULT = ExprTemp.Op.HISTORICALLY  	.make(o, null, a); 	:}; //pt.uminho.haslab: ltl ops
+TempUnaryB ::= ONCE:o 			TempUnaryB:a 	{: RESULT = ExprTemp.Op.ONCE  			.make(o, null, a); 	:}; //pt.uminho.haslab: ltl ops
+TempUnaryB ::= PREVIOUS:o 		TempUnaryB:a 	{: RESULT = ExprTemp.Op.PREVIOUS  		.make(o, null, a); 	:}; //pt.uminho.haslab: ltl ops
 
 NegExprA ::=         CompareExprA:b         {: RESULT=b;                           :};
 NegExprA ::= NOT:o   Bind:b                 {: RESULT=ExprUnary.Op.NOT.make(o, b); :};

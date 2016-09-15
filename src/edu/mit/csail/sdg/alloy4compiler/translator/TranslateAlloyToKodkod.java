@@ -160,53 +160,45 @@ public final class TranslateAlloyToKodkod extends VisitReturn<Object> {
         // convert into a form that hopefully gives better unsat core
         facts = (Expr) (new ConvToConjunction()).visitThis(facts);
         // add the field facts and appended facts
-        for(Sig s: frame.getAllReachableSigs()) {
-
-            // Constants (s.attibutes = []) not considered (String,Int....)
-            if (s.attributes.size()>0) {
-                //if a signature s is not  temporal a formula always(s' = s) is created.
-                Expression expression = a2k(s);
-                if (s.isVariable == null) {
-                   // p("FORMULA not static: " + expression.post().eq(expression).always().toString());
-                     frame.addFormula(expression.post().eq(expression).always(), s); // pt.uminho.haslab
-                }
-            }
-
-            for(Decl d: s.getFieldDecls()) {
-                k2pos_enabled = false;
-                for(ExprHasName n: d.names) {
-                    Field f = (Field)n;
-                    MultiplicityAndTyping multiplicity =  new MultiplicityAndTyping(this,f,s,d.expr);
-                    if (multiplicity.finalFormula != null) {
-                       // p("FORMULA decl/typing: "+multiplicity.finalFormula.toString());
-                        frame.addFormula(multiplicity.finalFormula, f);
-                    }
-                    // Given the above, we can be sure that every column is well-bounded (except possibly the first column).
-                    // Thus, we need to add a bound that the first column is a subset of s.
-                  /*  if (s.isOne==null) {
-                        Expression sr = a2k(s), fr = a2k(f);
-                        for(int i=f.type().arity(); i>1; i--) fr=fr.join(Relation.UNIV);
-                        frame.addFormula(fr.in(sr).always(), f);
-                    }*/
-                }
-                if (s.isOne==null && d.disjoint2!=null) for(ExprHasName f: d.names) {
-                    Decl that = s.oneOf("that");
-                    Expr formula = s.decl.get().equal(that.get()).not().implies(s.decl.get().join(f).intersect(that.get().join(f)).no());
-                    frame.addFormula(cform(formula.forAll(that).forAll(s.decl)).always(), d.disjoint2);  // pt.uminho.haslab
-                }
-                if (d.names.size()>1 && d.disjoint!=null) {  
-                	frame.addFormula(cform(ExprList.makeDISJOINT(d.disjoint, null, d.names)).always(), d.disjoint);   // pt.uminho.haslab
-                	}
-            }
-            k2pos_enabled = true;
-            for(Expr f: s.getFacts()) {
-                Expr form = s.isOne==null ? f.forAll(s.decl) : ExprLet.make(null, (ExprVar)(s.decl.get()), s, f);
-                //p("FORMULA facts: "+cform(form).always().toString());
-                frame.addFormula(cform(form).always(), f); // pt.uminho.haslab
-            }
-        }
-        k2pos_enabled = true;
-        recursiveAddFormula(facts);
+		for (Sig s : frame.getAllReachableSigs()) {
+			for (Decl d : s.getFieldDecls()) {
+				k2pos_enabled = false;
+				for (ExprHasName n : d.names) {
+					Field f = (Field) n;
+					MultiplicityAndTyping multiplicity = new MultiplicityAndTyping(this, f, s, d.expr); // pt.uminho.haslab
+					if (multiplicity.finalFormula != null) {
+						frame.addFormula(multiplicity.finalFormula, f);
+					}
+					// Given the above, we can be sure that every column is
+					// well-bounded (except possibly the first column).
+					// Thus, we need to add a bound that the first column is a
+					// subset of s.
+					/*
+					 * if (s.isOne==null) { Expression sr = a2k(s), fr = a2k(f);
+					 * for(int i=f.type().arity(); i>1; i--)
+					 * fr=fr.join(Relation.UNIV);
+					 * frame.addFormula(fr.in(sr).always(), f); }
+					 */
+				}
+				if (s.isOne == null && d.disjoint2 != null)
+					for (ExprHasName f : d.names) {
+						Decl that = s.oneOf("that");
+						Expr formula = s.decl.get().equal(that.get()).not()
+								.implies(s.decl.get().join(f).intersect(that.get().join(f)).no());
+						frame.addFormula(cform(formula.forAll(that).forAll(s.decl)).always(), d.disjoint2); // pt.uminho.haslab
+					}
+				if (d.names.size() > 1 && d.disjoint != null) {
+					frame.addFormula(cform(ExprList.makeDISJOINT(d.disjoint, null, d.names)).always(), d.disjoint); // pt.uminho.haslab
+				}
+			}
+			k2pos_enabled = true;
+			for (Expr f : s.getFacts()) {
+				Expr form = s.isOne == null ? f.forAll(s.decl) : ExprLet.make(null, (ExprVar) (s.decl.get()), s, f);
+				frame.addFormula(cform(form).always(), f); // pt.uminho.haslab
+			}
+		}
+		k2pos_enabled = true;
+		recursiveAddFormula(facts);
     }
 
     /** Break up x into conjuncts then add them each as a fact. */
