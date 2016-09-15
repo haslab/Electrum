@@ -225,7 +225,6 @@ public final class A4Solution {
 	 * pt.uminho.haslab */
 	private int backLoop;
 
-	// TODO: remove
 	//pessoa: enum that handles the context to write a xml file
 	//if the context is "evalToAllStates" the xml with all atoms is being write
 	public enum WritingType {evalToSingleState,evalToAllStates};
@@ -1197,35 +1196,59 @@ public final class A4Solution {
 		if (eval == null) return "---OUTCOME---\nUnsatisfiable.\n";
 		String answer = toStringCache;
 		if (answer != null) return answer;
-		TemporalInstance sol = (TemporalInstance) eval.instance();
+		Instance sol = eval.instance();
 		StringBuilder sb = new StringBuilder();
-        sb.append("---INSTANCE---\nloop=");
-        sb.append(sol.loop);
-        sb.append("\nintegers={");
-        boolean firstTuple = true;
-        for(IndexedEntry<TupleSet> e:sol.intTuples()) {
-            if (firstTuple) firstTuple=false; else sb.append(", ");
-            // No need to print e.index() since we've ensured the Int atom's String representation is always equal to ""+e.index()
-            Object atom = e.value().iterator().next().atom(0);
-            sb.append(atom2name(atom));
-        }
-        sb.append("}\n");
-		for(int i = 0;i<=sol.end;i++) {  // pt.uminho.haslab
-			sb.append("------State "+i+"-------\n");
-			this.renameTemporalSolution(i);
+        sb.append("---INSTANCE---");
+		if (sol instanceof TemporalInstance) {
+			sb.append("\nloop=");
+			sb.append(((TemporalInstance) sol).loop);
+			sb.append("\nend=");
+			sb.append(((TemporalInstance) sol).end);
+		}
+		sb.append("\nintegers={");
+		boolean firstTuple = true;
+		for (IndexedEntry<TupleSet> e : sol.intTuples()) {
+			if (firstTuple)
+				firstTuple = false;
+			else
+				sb.append(", ");
+			// No need to print e.index() since we've ensured the Int atom's
+			// String representation is always equal to ""+e.index()
+			Object atom = e.value().iterator().next().atom(0);
+			sb.append(atom2name(atom));
+		}
+		sb.append("}\n");
+		if (sol instanceof TemporalInstance) {
+			for (int i = 0; i <= ((TemporalInstance) sol).end; i++) { // pt.uminho.haslab
+				sb.append("------State " + i + "-------\n");
+				this.renameTemporalSolution(i);
+				try {
+					for (Sig s : sigs) {
+						sb.append(s.label).append("=").append(eval(s, i)).append("\n");
+						for (Field f : s.getFields())
+							sb.append(s.label).append("<:").append(f.label).append("=").append(eval(f, i)).append("\n");
+					}
+					for (ExprVar v : skolems) {
+						sb.append("skolem ").append(v.label).append("=").append(eval(v, i)).append("\n");
+					}
+				} catch (Err er) {
+					return toStringCache = ("<Evaluator error occurred at Time " + i + " : " + er + ">");
+				}
+			}
+		} else {
 			try {
 				for (Sig s : sigs) {
-					sb.append(s.label).append("=" ).append(eval(s, i)).append("\n" );
+					sb.append(s.label).append("=").append(eval(s)).append("\n");
 					for (Field f : s.getFields())
-						sb.append(s.label).append("<:" ).append(f.label).append("=" ).append(eval(f, i)).append("\n" );
+						sb.append(s.label).append("<:").append(f.label).append("=").append(eval(f)).append("\n");
 				}
 				for (ExprVar v : skolems) {
-					sb.append("skolem " ).append(v.label).append("=" ).append(eval(v, i)).append("\n" );
+					sb.append("skolem ").append(v.label).append("=").append(eval(v)).append("\n");
 				}
 			} catch (Err er) {
-				return toStringCache = ("<Evaluator error occurred at Time "+i+" : " + er + ">" );
+				return toStringCache = ("<Evaluator error occurred: " + er + ">");
 			}
-		}
+}
 		return toStringCache = sb.toString();
 	}
 
