@@ -199,12 +199,6 @@ public final class A4Solution {
 	/** The map from each Sig/Field/Skolem/Atom to its corresponding Kodkod expression. */
 	private Map<Expr,Expression> a2k;
 
-	/** The map from each Sig to its sub signatures. */ // pessoa
-	private Map<Sig,List<Expression>> subSigstoGivenaSig;
-
-	/** The map from each Sig to its kodkod relation. */ // pessoa
-	private Map<Sig,Relation> sigToKKRelation;
-
 	/** The map from each String literal to its corresponding Kodkod expression. */
 	private final ConstMap<String,Expression> s2k;
 
@@ -258,8 +252,6 @@ public final class A4Solution {
 		this.originalCommand = (originalCommand==null ? "" : originalCommand);
 		this.bitwidth = bitwidth;
 		this.maxseq = maxseq;
-		this.subSigstoGivenaSig = new LinkedHashMap<Sig, List<Expression>>(); // pessoa
-		this.sigToKKRelation = new LinkedHashMap<Sig, Relation>(); // pessoa
 		if (bitwidth < 0)   throw new ErrorSyntax("Cannot specify a bitwidth less than 0");
 		if (bitwidth > 30)  throw new ErrorSyntax("Cannot specify a bitwidth greater than 30");
 		if (maxseq < 0)     throw new ErrorSyntax("The maximum sequence length cannot be negative.");
@@ -359,8 +351,6 @@ public final class A4Solution {
 		seqidxBounds = old.seqidxBounds;
 		stringBounds = old.stringBounds;
 		solver = old.solver;
-		subSigstoGivenaSig = old.subSigstoGivenaSig; // pessoa: keep subSignatures struture
-		sigToKKRelation = old.sigToKKRelation ;// pessoa: keep sigToKodkodRelation struture
 		bounds = old.bounds;
 		formulas = old.formulas;
 		sigs = old.sigs;
@@ -524,30 +514,6 @@ public final class A4Solution {
 		a2k.put(v, expr);
 		skolems.add(v);
 		return v;
-	}
-
-	// pessoa: add a list of an kk expression of a sig
-	void addSubSignatures(Sig s, List<Expression> list) {
-		this.subSigstoGivenaSig.put(s, list);
-	}
-
-	// pessoa: returns a list of expression given a signature
-	List<Expression> getSubSigs(Sig s) {
-		if (this.subSigstoGivenaSig.containsKey(s))
-			return this.subSigstoGivenaSig.get(s);
-		return null;
-	}
-	
-	// pessoa: add a list of an kk expression of a sig
-	void addKKRelToSig(Sig s, Relation rel) {
-		this.sigToKKRelation.put(s, rel);
-	}
-
-	// pessoa: returns a list of expression given a signature
-	Expression getKKRelationGivenaSig(Sig s) {
-		if (this.sigToKKRelation.containsKey(s))
-			return this.sigToKKRelation.get(s);
-		return null;
 	}
 
 	/** Returns an unmodifiable copy of the map from each Sig/Field/Skolem/Atom to its corresponding Kodkod expression. */

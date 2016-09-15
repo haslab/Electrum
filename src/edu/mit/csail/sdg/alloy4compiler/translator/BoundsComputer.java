@@ -122,9 +122,6 @@ final class BoundsComputer {
                 // sol.addFormula(sum.intersection(childexpr).no(), child.isSubsig);
                  sum = sum.union(childexpr);
             }
-
-            // pessoa: creates a map between a certain sig and its subsigs.
-            sol.addSubSignatures(sig,listOfSubSings);
         }
 
         TupleSet lower = lb.get(sig).clone(), upper = ub.get(sig).clone();
@@ -144,9 +141,6 @@ final class BoundsComputer {
            }
             Expression relation = sol.addRel(sig.label+" remainder", lower, upper,sig);
             sum = sum.union(relation);
-
-            // pessoa: add the respective kk relation of sig to the list. It's a map between the sig and its kk relation
-            sol.addKKRelToSig(sig, (Relation) relation);
         }
         sol.addSig(sig, sum);
         return sum;
@@ -174,7 +168,7 @@ final class BoundsComputer {
         sol.addSig(sig, r);
         // Add a constraint that it is INDEED a subset of the union of its parents
         // modified  : if A in B then G (A in B)
-        sol.addFormula(r.in(sum).always(), sig.isSubset);
+        sol.addFormula(r.in(sum).always(), sig.isSubset); // pt.uminho.haslab
         return r;
     }
 

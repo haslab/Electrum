@@ -52,9 +52,6 @@ public abstract class Sig extends Expr {
 	/** The built-in "String" signature. */
 	public static final PrimSig STRING = new PrimSig("String", UNIV, true);
 
-//	/** The built-in "Time" signature. */ // pt.uminho.haslab: time scopes currently managed in the options
-//	public static final PrimSig TIME = new PrimSig("Time", UNIV, true);
-
 	/** The built-in "none" signature. */
 	public static final PrimSig NONE = new PrimSig("none", null, false);
 
@@ -439,7 +436,6 @@ public abstract class Sig extends Expr {
 						if (parent==SIGINT) throw new ErrorSyntax(pos, "sig "+label+" cannot be a subset of the builtin \"Int\" signature");
 						if (parent==SEQIDX) throw new ErrorSyntax(pos, "sig "+label+" cannot be a subset of the builtin \"seq/Int\" signature");
 						if (parent==STRING) throw new ErrorSyntax(pos, "sig "+label+" cannot be a subset of the builtin \"String\" signature");
-//						if (parent==TIME)   throw new ErrorSyntax(pos, "sig "+label+" cannot be a subset of the builtin \"Time\" signature"); // pt.uminho.haslab: time scope currently managed in the options
 					}
 					if (parent==Sig.UNIV) {temp.clear(); temp.add(UNIV); break;}
 					if (parent!=Sig.NONE && !temp.contains(parent)) temp.add(parent);

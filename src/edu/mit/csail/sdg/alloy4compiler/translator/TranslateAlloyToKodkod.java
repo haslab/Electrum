@@ -23,6 +23,7 @@ import java.util.*;
 
 import edu.mit.csail.sdg.alloy4compiler.ast.*;
 import edu.mit.csail.sdg.alloy4compiler.ast.Decl;
+import edu.mit.csail.sdg.alloy4compiler.ast.Sig.PrimSig;
 import kodkod.ast.*;
 import kodkod.ast.operator.ExprOperator;
 import kodkod.engine.CapacityExceededException;
@@ -41,6 +42,7 @@ import edu.mit.csail.sdg.alloy4.ErrorSyntax;
 import edu.mit.csail.sdg.alloy4.ErrorType;
 import edu.mit.csail.sdg.alloy4.Pair;
 import edu.mit.csail.sdg.alloy4.Pos;
+import edu.mit.csail.sdg.alloy4.SafeList;
 import edu.mit.csail.sdg.alloy4.Util;
 import edu.mit.csail.sdg.alloy4compiler.ast.Sig.Field;
 
@@ -171,47 +173,28 @@ public final class TranslateAlloyToKodkod extends VisitReturn<Object> {
                 // if the sig is one :: one sig X ... ToKK ... G (one X)
                 //Constants (s.attibutes = []) not considered (String,Int....)
                 if (s.isOne != null){
-                //    p("FORMULA is one: " + expression.one().always().toString()); 
                     frame.addFormula(expression.one().always(), s); // pt.uminho.haslab
                 }
-            }
-
-            //the next block of code handles the hierarchy of the signatures
-            Formula hierarchy = null;
-            //get subsignatures (if exist) of s
-            List list = frame.getSubSigs(s);
-            if (list != null) {
-                // ex: hierarchy = no (A & B)
-                hierarchy = this.getAllExpressionsCombination(list);
-
-                // get the respective kk relation if there exists.
-                // Just the not abstract signatures have it
-                Expression relation = frame.getKKRelationGivenaSig(s);
-                if (relation != null) {
-                    if (hierarchy == null){
-                        //the case where we have for instance:
-                        //sig A
-                        //sig a1 extends A{}
-                        //hierarchy = a1 in A
-                        hierarchy = this.getUnionOfSubSignatures(list).in(relation);
-                    }
-                    else{
-                        //the case where we have for instance:
-                        //sig A
-                        //sig a1,a2 extends A{}
-                        //hierarchy = (a1 + a2) in A and no (a1 & a2)
-                        hierarchy = this.getUnionOfSubSignatures(list).in(relation).and(hierarchy);
-                    }
-                    frame.addFormula(hierarchy.always(),s); // pt.uminho.haslab
-                   // p("FORMULA: "+hierarchy.always().toString());
-                }else{
-                    //if the signature is abstract and has at least two sub-sigs (ex : no (X & Y))
-                    if (hierarchy != null) {
-                    //    p("FORMULA hierarchy: "+hierarchy.always().toString());
-                        frame.addFormula(hierarchy.always(),s);  // pt.uminho.haslab
-                    }
+                if (s.isLone != null){
+                    frame.addFormula(expression.lone().always(), s); // pt.uminho.haslab
+                }
+                if (s.isSome != null){
+                    frame.addFormula(expression.some().always(), s); // pt.uminho.haslab
                 }
             }
+
+			if (s instanceof PrimSig && !s.equals(UNIV)) {
+				// the next block of code handles the hierarchy of the
+				// signatures
+				// get subsignatures (if exist) of s
+				SafeList<PrimSig> list = ((PrimSig) s).children();
+				if (list != null) {
+					// ex: hierarchy = no (A & B)
+					Formula hierarchy = this.getAllExpressionsCombination(list);
+					if (hierarchy != null)
+						frame.addFormula(hierarchy.always(), s); // pt.uminho.haslab
+				}
+			}
 
             for(Decl d: s.getFieldDecls()) {
                 k2pos_enabled = false;
@@ -262,38 +245,22 @@ public final class TranslateAlloyToKodkod extends VisitReturn<Object> {
     * ((no (a1 & a2) && no (a1 & a3)) && no (a2 & a3))
     *
     * */
-    private Formula getAllExpressionsCombination(List<Expression> list){
+    private Formula getAllExpressionsCombination(SafeList<PrimSig> list){
         Formula f = null;
         for(int i = 0;i < list.size();i++){
+        	Expression a = frame.a2k(list.get(i));
             for(int j = i+1;j<list.size();j++){
+            	Expression b = frame.a2k(list.get(j));
                 if (f != null){
-                    f = f.and(list.get(i).intersection(list.get(j)).no());
+                    f = f.and(a.intersection(b).no());
                 } else{
-                    f = list.get(i).intersection(list.get(j)).no();
+                    f = a.intersection(b).no();
                 }
             }
         }
         return f;
     }
 
-    /*
-    * function responsible for returning the union of all signatures presented on 'list'
-    *
-    * #example:
-    * sig a1,a2,a3  {}
-    *
-    * The output of applying this is function in  [a1,a2,a3] is (a1 + a2 + a3)
-    *
-    * */
-    private Expression getUnionOfSubSignatures(List<Expression> list){
-        Expression expression = null;
-        for(Expression e : list){
-            if(expression == null){expression = e;}
-            else{expression = expression.union(e);}
-        }
-        return expression;
-
-    }
     /** Break up x into conjuncts then add them each as a fact. */
     private void recursiveAddFormula(Expr x) throws Err {
         if (x instanceof ExprList && ((ExprList)x).op==ExprList.Op.AND) {
