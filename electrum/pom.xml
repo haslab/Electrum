@@ -1,0 +1,76 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>pt.uminho.haslab.electrum</groupId>
+  <artifactId>electrum</artifactId>
+  <version>0.2.0</version>
+  <name>electrum</name>
+  <packaging>jar</packaging>
+   
+ <build>
+
+
+
+    <plugins>
+
+
+                
+                
+                <plugin>
+                  <groupId>org.apache.maven.plugins</groupId>
+                  <artifactId>maven-assembly-plugin</artifactId>
+                  <configuration>
+                    <archive>
+                      <manifest>
+                          <mainClass>edu.mit.csail.sdg.alloy4whole.SimpleGUI</mainClass>
+                          <addClasspath>true</addClasspath>
+                      </manifest>
+                    </archive>
+                  </configuration>
+                  <executions>
+                     <execution>
+                       <id>create-my-bundle</id>
+                       <phase>package</phase>
+                       <goals>
+                         <goal>single</goal>
+                       </goals>
+                       <configuration>
+                         <descriptorRefs>
+                           <descriptorRef>jar-with-dependencies</descriptorRef>
+                         </descriptorRefs>
+                       </configuration>
+                     </execution>
+                   </executions>
+                </plugin>
+        
+   
+      <plugin>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.3</version>
+        <configuration>
+          <source>1.7</source>
+          <target>1.7</target>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+  <dependencies>
+
+  	<dependency>
+        <groupId>pt.uminho.haslab.pardinus</groupId>
+        <artifactId>pardinus</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+  	</dependency>
+    <dependency>
+		<groupId>junit</groupId>
+		<artifactId>junit</artifactId>
+		<version>4.12</version>
+		<!--scope>test</scope -->
+	</dependency>
+	<dependency>
+        <groupId>com.apple</groupId>
+        <artifactId>AppleJavaExtensions</artifactId>
+        <version>1.4</version>
+    </dependency>
+    
+	  </dependencies>
+</project>
