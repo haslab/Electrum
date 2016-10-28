@@ -27,9 +27,11 @@
             </goals>
             <configuration>
               <descriptorRefs>
-                <descriptorRef>runnable</descriptorRef>
+                <descriptorRef>jar-with-dependencies</descriptorRef>
               </descriptorRefs>
-            </configuration>
+        	<finalName>${project.artifactId}-${project.version}-runnable</finalName>
+        	<appendAssemblyId>false</appendAssemblyId>
+                    </configuration>
           </execution>
         </executions>
       </plugin>
