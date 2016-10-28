@@ -1,5 +1,10 @@
 # Electrum
 
+This extension to the Alloy Analyzer by the [High-Assurance Software Laboratory](http://haslab.di.uminho.pt) provides an analyzer for Electrum models, a temporal extension to the Alloy modeling language.
+
+[Alloy](http://alloy.mit.edu/) is a simple structural modeling language based on first-order logic developed at the [Software Design Group](http://sdg.csail.mit.edu/). Its Analyzer can generate instances of invariants, simulate the execution of operations, and check user-specified properties of a model.
+
+Electrum is open-source and available under the [MIT license](LICENSE), as is the Alloy Analyzer. However, it utilizes several third-party packages whose code may be distributed under a different license (see the various LICENSE files in the distribution for details), including [Kodod](https://github.com/emina/kodkod)'s extension [Pardinus](https://github.com/nmacedo/Pardinus) and its underlying solvers ([SAT4J](http://www.sat4j.org), [MiniSat](http://minisat.se), [Glucose/Syrup](http://www.labri.fr/perso/lsimon/glucose/), [(P)Lingeling](http://fmv.jku.at/lingeling/), and [Yices](http://yices.csl.sri.com)), as well as [CUP](http://www2.cs.tum.edu/projects/cup/) and [JFlex](http://jflex.de/) to generate the parser.
 
 ### Building Electrum
 
@@ -8,17 +13,17 @@ system, which requires Python 2.5 or later, and needs a C/C++ compiler for the u
 
 * Clone the Electrum repository, as well as Pardinus' as a submodule 
 
- `$ git clone -b master --recursive https://github.com/nmacedo/Electrum`
- `$ cd Electrum`
+  `$ git clone -b master --recursive https://github.com/nmacedo/Electrum`  
+  `$ cd Electrum`
 
-* Run the Maven script to generate a self containable executable. This will compile Electrum/Pardinus, as well as the underlying native libraries (see []())
+* Run the Maven script to generate a self containable executable under `electrum/target`. This will compile Electrum and Pardinus, as well as the underlying native libraries (see respective installation [notes](https://github.com/nmacedo/Pardinus)).
 
- `$ mvn clean install`
+ `$  mvn clean package -DskipTests`
 
 ### Running
 
-[Download]() the executable ``jar`` (or [build]() it) and launch it simply as
+[Download]() the executable ``jar`` (or [build](#building-electrum) it) and launch it simply as
 
-`$ java electrum.jar`
+`$ java -jar electrum-runnable.jar`
 
-This will launch Electrum's/Alloy Analyzer's simple GUI.
+This will launch Electrum's/Alloy Analyzer's simple GUI, which is packaged with several examples.
