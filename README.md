@@ -11,14 +11,14 @@ system, which requires Python 2.5 or later, and needs a C/C++ compiler for the u
   `$ git clone -b master --recursive https://github.com/nmacedo/Electrum`  
   `$ cd Electrum`
 
-* Run the Maven script to generate a self containable executable. This will compile Electrum/Pardinus, as well as the underlying native libraries (see []())
+* Run the Maven script to generate a self containable executable under `electrum/target`. This will compile Electrum and Pardinus, as well as the underlying native libraries (see respective installation [notes](https://github.com/nmacedo/Pardinus)).
 
- `$ mvn clean install`
+ `$  mvn clean package -DskipTests`
 
 ### Running
 
 [Download]() the executable ``jar`` (or [build]() it) and launch it simply as
 
-`$ java electrum.jar`
+`$ java -jar electrum-runnable.jar`
 
 This will launch Electrum's/Alloy Analyzer's simple GUI.
