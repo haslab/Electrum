@@ -1,5 +1,6 @@
 # Electrum
 
+This tool provides an analyzer for Electrum models as an extension to the Alloy Analyzer.
 
 ### Building Electrum
 
@@ -17,8 +18,8 @@ system, which requires Python 2.5 or later, and needs a C/C++ compiler for the u
 
 ### Running
 
-[Download]() the executable ``jar`` (or [build]() it) and launch it simply as
+[Download]() the executable ``jar`` (or [build](#building-electrum) it) and launch it simply as
 
 `$ java -jar electrum-runnable.jar`
 
-This will launch Electrum's/Alloy Analyzer's simple GUI.
+This will launch Electrum's/Alloy Analyzer's simple GUI, which is packaged with several examples.
