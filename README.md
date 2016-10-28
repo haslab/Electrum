@@ -8,13 +8,12 @@ system, which requires Python 2.5 or later, and needs a C/C++ compiler for the u
 
 * Clone the Electrum repository, as well as Pardinus' as a submodule 
 
-`$ git clone -b master --recursive https://github.com/nmacedo/Electrum`
-
-`$ cd Electrum`
+ `$ git clone -b master --recursive https://github.com/nmacedo/Electrum`
+ `$ cd Electrum`
 
 * Run the Maven script to generate a self containable executable. This will compile Electrum/Pardinus, as well as the underlying native libraries (see []())
 
-`$ mvn clean install`
+ `$ mvn clean install`
 
 ### Running
 
