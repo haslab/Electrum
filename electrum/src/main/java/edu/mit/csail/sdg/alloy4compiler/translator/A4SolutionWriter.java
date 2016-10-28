@@ -155,8 +155,6 @@ public final class A4SolutionWriter {
 			out.print("   <types>");
 			for (PrimSig sig : ps)
 				Util.encodeXMLs(out, " <type ID=\"", map(sig), "\"/>");
-			if (/* Test.version == Test.Version.VERSION1 */true)
-				Util.encodeXMLs(out, " <type ID=\"", String.valueOf(-1), "\"/>"); // pt.uminho.haslab: ???
 			out.print(" </types>\n");
 		}
 		return true;
