@@ -1,6 +1,6 @@
 # Electrum
 
-This extension to the Alloy Analyzer by the [High-Assurance Software Laboratory](htto://haslab.di.uminho.pt) provides an analyzer for Electrum models, a temporal extension to the Alloy modeling language.
+This extension to the Alloy Analyzer by the [High-Assurance Software Laboratory](http://haslab.di.uminho.pt) provides an analyzer for Electrum models, a temporal extension to the Alloy modeling language.
 
 [Alloy](http://alloy.mit.edu/) is a simple structural modeling language based on first-order logic developed at the [Software Design Group](http://sdg.csail.mit.edu/). Its Analyzer tool can generate instances of invariants, simulate the execution of operations, and check user-specified properties of a model.
 
