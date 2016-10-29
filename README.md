@@ -43,7 +43,7 @@ This will launch Electrum's/Alloy Analyzer's simple GUI, which is packaged with 
 
 ### Electrum (0.1.0) (September 2016) 
 <!--- FSE 16 -->
-- Initial release accompannying the FSE'16 [publication]()
+- First release accompannying the FSE'16 [submission](http://dx.doi.org/10.1145/2950290.2950318)
 - Bounded model checking of Electrum models
 - Electrum models expanded into Alloy models
 - Expanded Alloy models returned to the visualizer
