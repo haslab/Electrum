@@ -6,7 +6,7 @@ This extension to the Alloy Analyzer by the [High-Assurance Software Laboratory]
 
 Electrum is open-source and available under the [MIT license](LICENSE), as is the Alloy Analyzer. However, it utilizes several third-party packages whose code may be distributed under a different license (see the various LICENSE files in the distribution for details), including [Kodod](https://github.com/emina/kodkod)'s extension [Pardinus](https://github.com/nmacedo/Pardinus) and its underlying solvers ([SAT4J](http://www.sat4j.org), [MiniSat](http://minisat.se), [Glucose/Syrup](http://www.labri.fr/perso/lsimon/glucose/), [(P)Lingeling](http://fmv.jku.at/lingeling/), and [Yices](http://yices.csl.sri.com)), as well as [CUP](http://www2.cs.tum.edu/projects/cup/) and [JFlex](http://jflex.de/) to generate the parser.
 
-### Building Electrum
+## Building Electrum
 
 Electrum needs Java 8 and can be built using Maven. The script will also build Kodkod/Pardinus, which uses the [Waf](https://github.com/waf-project/waf) build
 system, which requires Python 2.5 or later, and needs a C/C++ compiler for the underlying solvers.
@@ -20,10 +20,30 @@ system, which requires Python 2.5 or later, and needs a C/C++ compiler for the u
 
  `$  mvn clean package -DskipTests`
 
-### Running
+## Running
 
 [Download]() the executable ``jar`` (or [build](#building-electrum) it) and launch it simply as
 
 `$ java -jar electrum-runnable.jar`
 
 This will launch Electrum's/Alloy Analyzer's simple GUI, which is packaged with several examples.
+
+## Collaborators
+- Nuno Macedo, HASLab, Portugal
+- Julien Brunel, ONERA, France
+- David Chemouil, ONERA, France
+- Alcino Cunha, HASLab, Portugal
+- Denis Kuperberg TU Munich, Germany
+- Eduardo Pessoa, HASLab, Portugal
+
+## History
+### Electrum (0.2.0) (November 2016) 
+- Direct embedding into a temporal extension to Kodkod ([Pardinus](https://github.com/nmacedo/Pardinus))
+- Visualizer natively supports temporal solutions
+
+### Electrum (0.1.0) (September 2016) 
+<!--- FSE 16 -->
+- Initial release accompannying the FSE'16 [publication]()
+- Bounded model checking of Electrum models
+- Electrum models expanded into Alloy models
+- Expanded Alloy models returned to the visualizer
