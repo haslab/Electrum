@@ -38,9 +38,12 @@ This will launch Electrum's/Alloy Analyzer's simple GUI, which is packaged with 
 
 ## History
 ### Electrum (0.2.0) (November 2016) 
-- Direct embedding into a temporal extension to Kodkod
-- Seamless integration with the visualizer
+- Direct embedding into a temporal extension to Kodkod ([Pardinus](https://github.com/nmacedo/Pardinus))
+- Visualizer natively supports temporal solutions
 
 ### Electrum (0.1.0) (September 2016) 
 <!--- FSE 16 -->
-- Initial support 
+- Initial release accompannying the FSE'16 [publication]()
+- Bounded model checking of Electrum models
+- Electrum models expanded into Alloy models
+- Expanded Alloy models returned to the visualizer
