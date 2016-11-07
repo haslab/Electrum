@@ -621,7 +621,7 @@ public final class SimpleReporter extends A4Reporter { // pt.uminho.haslab:
 			int tries = 0;
 			while (true) {
 				sol = sol.next();
-				cb("pop", sol.toString());
+				cb("debug", sol.toString()); // [HASLab]
 				if (!sol.satisfiable()) {
 					cb("pop", "There are no more satisfying instances.\n\n"
 							+ "Note: due to symmetry breaking and other optimizations,\n"
@@ -727,11 +727,10 @@ public final class SimpleReporter extends A4Reporter { // pt.uminho.haslab:
 							result.add(tempCNF + ".core");
 						else
 							result.add("");
-						rep.cb("bold", ai.toString());
+						rep.cb("debug", ai.toString()); // [HASLab]
 
 					}
-			(new File(tempdir)).delete(); // In case it was UNSAT, or
-											// canceled...
+			(new File(tempdir)).delete(); // In case it was UNSAT, or canceled...
 			if (result.size() > 1) {
 				rep.cb("bold", "" + result.size() + " commands were executed. The results are:\n");
 				for (int i = 0; i < result.size(); i++) {
@@ -748,6 +747,7 @@ public final class SimpleReporter extends A4Reporter { // pt.uminho.haslab:
 							rep.cb("", ", contrary to expectation");
 						else if (r.expects == 1)
 							rep.cb("", ", as expected");
+
 					} else if (result.get(i).endsWith(".core")) {
 						rep.cb("", "   #" + (i + 1) + ": ");
 						rep.cb("link", r.check ? "No counterexample found. " : "No instance found. ",
