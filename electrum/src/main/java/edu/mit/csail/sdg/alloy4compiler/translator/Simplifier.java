@@ -28,6 +28,7 @@ import kodkod.ast.Relation;
 import kodkod.ast.operator.ExprCompOperator;
 import kodkod.ast.operator.ExprOperator;
 import kodkod.ast.operator.FormulaOperator;
+import kodkod.engine.ltl2fol.TemporalTranslator;
 import kodkod.instance.TupleSet;
 import edu.mit.csail.sdg.alloy4.A4Reporter;
 import edu.mit.csail.sdg.alloy4.Err;
@@ -231,6 +232,7 @@ public class Simplifier {
 
     /** Simplify the bounds based on the fact that "form is true"; return false if we discover the formula is unsat. */
     private final boolean simplify_in (Formula form) {
+       if (TemporalTranslator.isTemporal(form)) return true; // [HASLab]
        if (form instanceof NaryFormula) {
           NaryFormula f = (NaryFormula)form;
           if (f.op() == FormulaOperator.AND) {
@@ -258,6 +260,7 @@ public class Simplifier {
 
     /** Simplify the bounds based on the fact that "form is true"; return false if we discover the formula is unsat. */
     private final boolean simplify_eq (Formula form) {
+       if (TemporalTranslator.isTemporal(form)) return true; // [HASLab]
        if (form instanceof NaryFormula) {
           NaryFormula f = (NaryFormula)form;
           if (f.op() == FormulaOperator.AND) {
