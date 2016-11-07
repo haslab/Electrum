@@ -65,7 +65,7 @@ public final class ExprUnary extends Expr {
     @Override public void toString(StringBuilder out, int indent) {
         if (indent<0) {
             switch(op) {
-              case POST: sub.toString(out,-1); out.append('\''); return;
+              case PRIME: sub.toString(out,-1); out.append('\''); return;
               case SOMEOF: out.append("some "); break;
               case LONEOF: out.append("lone "); break;
               case ONEOF: out.append("one "); break;
@@ -120,7 +120,7 @@ public final class ExprUnary extends Expr {
         /** lone  x (where x is a set or relation)                       */  LONE("lone"),
         /** one   x (where x is a set or relation)                       */  ONE("one"),
         /** transpose                                                    */  TRANSPOSE("~"),
-        /** post 	                                                     */  POST("\'"),
+        /** post 	                                                     */  PRIME("\'"),
         /** reflexive closure                                            */  RCLOSURE("*"),
         /** closure                                                      */  CLOSURE("^"),
         /** cardinality of x (truncated to the current integer bitwidth) */  CARDINALITY("#"),

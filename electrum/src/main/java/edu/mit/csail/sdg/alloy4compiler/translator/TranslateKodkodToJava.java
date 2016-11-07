@@ -646,7 +646,7 @@ public final class TranslateKodkodToJava implements VoidVisitor {
 		String newname=makename(temporalExpr); if (newname==null) return;
 		String sub=make(temporalExpr.expression());
 		switch(temporalExpr.op()) {
-			case PRIME:file.printf("Expression %s=%s.post();%n", newname, sub);break;
+			case PRIME:file.printf("Expression %s=%s.prime();%n", newname, sub);break;
 			default:throw new RuntimeException("Unknown temporal kodkod operator \"" + temporalExpr.op() + "\" encountered");
 		}
 	}

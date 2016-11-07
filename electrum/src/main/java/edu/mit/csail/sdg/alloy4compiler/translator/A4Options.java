@@ -25,7 +25,7 @@ import edu.mit.csail.sdg.alloy4.Util;
 
 /** Mutable; this class encapsulates the customizable options of the Alloy-to-Kodkod translator. 
  * 
- * @modified: nmm, Eduardo Pessoa (pt.uminho.haslab.pt): maximum trace length
+ * @modified: Nuno Macedo, Eduardo Pessoa // [HASLab] maximum trace length
 */
 
 public final class A4Options implements Serializable {
@@ -184,8 +184,8 @@ public final class A4Options implements Serializable {
     /** This option controls how deep we unroll loops and unroll recursive predicate/function/macros (negative means it's disallowed) */
     public int unrolls = (-1);
 
-    /** This option controls the maximum trace length that will be explored in temporal. 
-     * pt.uminho.haslab */
+    /** This option controls the maximum trace length that will be explored in temporal. */
+    // [HASLab]
 	public int maxTraceLength;
 
     /** This method makes a copy of this Options object. */
@@ -202,7 +202,7 @@ public final class A4Options implements Serializable {
         x.recordKodkod = recordKodkod;
         x.noOverflow = noOverflow;
         x.coreGranularity = coreGranularity;
-        x.maxTraceLength = maxTraceLength; // pt.uminho.haslab
+        x.maxTraceLength = maxTraceLength; // [HASLab]
         return x;
     }
 }

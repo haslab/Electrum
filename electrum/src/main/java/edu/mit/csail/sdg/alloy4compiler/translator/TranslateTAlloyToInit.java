@@ -119,7 +119,7 @@ public final class TranslateTAlloyToInit extends VisitReturn<Expr> {
 	@Override
 	public Expr visit(ExprUnary x) throws Err {
 		Expr res = null;
-		if (x.op == Op.POST) {
+		if (x.op == Op.PRIME) {
 			throw new UnsupportedOperationException("Temporal: "+x);
 		}
 		Expr a = x.sub.accept(this);

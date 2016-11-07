@@ -87,7 +87,7 @@ import java_cup.runtime.*;
           i++;
           if (i>=txt.length()) throw new ErrorSyntax(p, "String literal cannot end with a single \\");
           c = txt.charAt(i);
-          if (c=='n') c='\n'; else if (c!='\'' && c!='\"' && c!='\\') throw new ErrorSyntax(p, "String literal currenty only supports\nfour escape sequences: \\\\, \\n, \\\', and \\\"");
+          if (c=='n') c='\n'; else if (c!='\"' && c!='\\') throw new ErrorSyntax(p, "String literal currenty only supports\nthree escape sequences: \\\\, \\n, and \\\""); // [HASLab]
        }
        sb.append(c);
     }
@@ -99,11 +99,6 @@ import java_cup.runtime.*;
     Pos p=alloy_here(txt);
     if (alloy_seenDollar.size()==0 && txt.indexOf('$')>=0) alloy_seenDollar.add(null);
     return new Symbol(CompSym.ID, p, ExprVar.make(p,txt));
- }
- private final Symbol alloy_postid(String txt) throws Err {  // pt.uminho.haslab: ltl tokens
-    Pos p=alloy_here(txt);
-    if (alloy_seenDollar.size()==0 && txt.indexOf('$')>=0) alloy_seenDollar.add(null);
-    return new Symbol(CompSym.POSTID, p, ExprVar.make(p,txt.substring(0,txt.length()-1),true));
  }
  private final Symbol alloy_num(String txt) throws Err {
     Pos p=alloy_here(txt);
@@ -119,6 +114,7 @@ import java_cup.runtime.*;
 
 %%
 
+"'"                   { return alloy_sym(yytext(), CompSym.PRIME       );}
 "!"                   { return alloy_sym(yytext(), CompSym.NOT         );}
 "#"                   { return alloy_sym(yytext(), CompSym.HASH        );}
 "&&"                  { return alloy_sym(yytext(), CompSym.AND         );}
@@ -215,15 +211,13 @@ import java_cup.runtime.*;
 "univ"                { return alloy_sym(yytext(), CompSym.UNIV        );}
 //"Time"                { return alloy_sym(yytext(), CompSym.TIME        );} //pt.uminho.haslab: time scopes currently managed at the options
 
-[\"] ([^\\\"] | ("\\" .))* [\"] [\$0-9a-zA-Z_\'\"] [\$0-9a-zA-Z_\'\"]* { throw new ErrorSyntax(alloy_here(yytext()),"String literal cannot be followed by a legal identifier character."); }
+[\"] ([^\\\"] | ("\\" .))* [\"] [\$0-9a-zA-Z_\"] [\$0-9a-zA-Z_\"]* { throw new ErrorSyntax(alloy_here(yytext()),"String literal cannot be followed by a legal identifier character."); }  // [HASLab]
 [\"] ([^\\\"] | ("\\" .))* [\"]                                        { return alloy_string(yytext()); }
-[\"] ([^\\\"] | ("\\" .))*                                             { throw new ErrorSyntax(alloy_here(yytext()),"String literal is missing its closing \" character"); }
-[0-9][0-9]*[\$a-zA-Z_\'\"][\$0-9a-zA-Z_\'\"]*                          { throw new ErrorSyntax(alloy_here(yytext()),"Name cannot start with a number."); }
+[\"] ([^\\\"] | ("\\" .))*                                             { throw new ErrorSyntax(alloy_here(yytext()),"String literal is missing its closing \" character"); }  // [HASLab]
+[0-9][0-9]*[\$a-zA-Z_\"][\$0-9a-zA-Z_\"]*                          { throw new ErrorSyntax(alloy_here(yytext()),"Name cannot start with a number."); } // [HASLab]
 [0-9][0-9]*                                                            { return alloy_num (yytext()); }
-[:jletter:][[:jletterdigit:]\'\"]*\'                                   { return alloy_postid  (yytext()); } // pt.uminho.haslab: ltl tokens
-//[\$a-zA-Z][\$0-9a-zA-Z_\'\"]*\'                                      { return alloy_postid  (yytext()); } // pt.uminho.haslab: ltl tokens
-[:jletter:][[:jletterdigit:]\'\"]*                                     { return alloy_id  (yytext()); }
-//[\$a-zA-Z][\$0-9a-zA-Z_\'\"]*                                        { return alloy_id  (yytext()); }
+[:jletter:][[:jletterdigit:]\"]*                                     { return alloy_id  (yytext()); }
+//[\$a-zA-Z][\$0-9a-zA-Z_\"]*                                        { return alloy_id  (yytext()); }
 
 "/**" ~"*/"                  { }
 

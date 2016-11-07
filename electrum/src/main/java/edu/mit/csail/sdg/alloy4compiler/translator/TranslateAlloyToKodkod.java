@@ -610,7 +610,7 @@ public final class TranslateAlloyToKodkod extends VisitReturn<Object> {
             case EXACTLYOF: case SOMEOF: case LONEOF: case ONEOF: case SETOF: return cset(x.sub);
             case NOOP: return visitThis(x.sub);
             case NOT:  return k2pos( cform(x.sub).not() , x );
-            case POST:  return ((Expression)x.sub.accept(this)).prime(); //Post operator expansion.
+            case PRIME:  return ((Expression)x.sub.accept(this)).prime(); //Post operator expansion.
             case SOME: return k2pos( cset(x.sub).some() , x);
             case LONE: return k2pos( cset(x.sub).lone() , x);
             case ONE:  return k2pos( cset(x.sub).one() , x);

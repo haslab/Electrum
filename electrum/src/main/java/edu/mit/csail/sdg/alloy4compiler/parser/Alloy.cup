@@ -232,7 +232,7 @@ parser code {:
     ch.put(CompSym.TILDE, "~");
     ch.put(CompSym.UNIV, "univ");
     ch.put(CompSym.ID, "NAME");
-    ch.put(CompSym.POSTID, "POSTNAME"); // pt.uminho.haslab: ltl tokens
+    ch.put(CompSym.PRIME, "'"); // pt.uminho.haslab: ltl tokens
     ch.put(CompSym.NUMBER, "NUMBER");
     ch.put(CompSym.STR, "STRING");
 //  ch.put(CompSym.TIME, "Time"); //pt.haslab.uminho: time scopes currently managed at the options
@@ -504,9 +504,9 @@ terminal Pos THIS;             //  this
 //terminal Pos TIME;         	   //  Time		  //pt.haslab.uminho: time scopes currently managed at the options
 terminal Pos TILDE;            //  ~
 terminal Pos UNIV;             //  univ
+terminal Pos PRIME; 	   // '		 // pt.uminho.haslab: ltl tokens
 
 terminal ExprVar ID;
-terminal ExprVar POSTID; 	   // v'		 // pt.uminho.haslab: ltl tokens
 
 terminal ExprConstant NUMBER, STR;
 
@@ -597,7 +597,11 @@ nonterminal Expr                       UnionDiffExprA;
 nonterminal Expr                       UnionDiffExprB;
 nonterminal Expr                       UnopExprA;
 nonterminal Expr                       UnopExprB;
+nonterminal Expr                       PUnopExprA;
+nonterminal Expr                       PUnopExprB;
 nonterminal Pos                        Vis;
+
+precedence left PRIME;
 
 //===========================================================================//
 
@@ -776,9 +780,7 @@ Name ::= THIS:a SLASH NameHelper:b {: RESULT=ExprVar.make(a.merge(b.pos), "this/
 Name ::= SEQ:a  SLASH NameHelper:b {: RESULT=ExprVar.make(a.merge(b.pos),  "seq/"+b.label); :};
 
 NameHelper ::= ID:x                     	{: RESULT=x;                                                  :};
-NameHelper ::= POSTID:x                 	{: RESULT=x;                                                  :}; // pt.uminho.haslab: ltl tokens
 NameHelper ::= NameHelper:a SLASH ID:b  	{: RESULT=ExprVar.make(a.pos.merge(b.pos), a.label+"/"+b.label); :};
-NameHelper ::= NameHelper:a SLASH POSTID:b  {: RESULT=ExprVar.make(a.pos.merge(b.pos), a.label+"/"+b.label); :}; // pt.uminho.haslab: ltl tokens
 
 Names ::= Name:x                   {: nod(x); RESULT=new ArrayList<ExprVar>(); RESULT.add(x);  :};
 Names ::= Names:a COMMA Name:b     {: nod(b); a.add(b); RESULT=a;                              :};
@@ -1000,6 +1002,7 @@ ShiftExprB ::= ShiftExprB:a SHL:o UnionDiffExprB:b        {: RESULT=ExprBinary.O
 ShiftExprB ::= ShiftExprB:a SHR:o UnionDiffExprB:b        {: RESULT=ExprBinary.Op.SHR.make(o, null, a, b); :};
 ShiftExprB ::= ShiftExprB:a SHA:o UnionDiffExprB:b        {: RESULT=ExprBinary.Op.SHA.make(o, null, a, b); :};
 
+
 UnionDiffExprA ::=                           MulExprA:b    {: RESULT=b;                                       :};
 UnionDiffExprA ::= UnionDiffExprB:a PLUS:o   Bind:b        {: RESULT=ExprBinary.Op.PLUS .make(o, null, a, b); :};
 UnionDiffExprA ::= UnionDiffExprB:a MINUS:o  Bind:b        {: RESULT=ExprBinary.Op.MINUS.make(o, null, a, b); :};
@@ -1096,6 +1099,7 @@ DotExprB ::= BracketExprB:a DOT:o TOTALORDER:b {: RESULT=t(o, null, a, ExprVar.m
 DotExprB ::= BracketExprB:a DOT:o INT       {: RESULT=ExprUnary.Op.CAST2SIGINT.make(o, ExprUnary.Op.CAST2INT.make(o, a)); :};
 DotExprB ::= BracketExprB:a DOT:o SUM       {: RESULT=ExprUnary.Op.CAST2SIGINT.make(o, ExprUnary.Op.CAST2INT.make(o, a)); :};
 
+
 UnopExprA ::= TILDE:o  Bind:b       {: RESULT=ExprUnary.Op.TRANSPOSE.make(o,b); :};
 UnopExprA ::= STAR:o   Bind:b       {: RESULT=ExprUnary.Op.RCLOSURE .make(o,b); :};
 UnopExprA ::= CARET:o  Bind:b       {: RESULT=ExprUnary.Op.CLOSURE  .make(o,b); :};
@@ -1106,6 +1110,11 @@ UnopExprB ::=          BaseExpr:b   {: RESULT=b;                                
 UnopExprB ::= TILDE:o  UnopExprB:b  {: RESULT=ExprUnary.Op.TRANSPOSE.make(o,b); :};
 UnopExprB ::= STAR:o   UnopExprB:b  {: RESULT=ExprUnary.Op.RCLOSURE .make(o,b); :};
 UnopExprB ::= CARET:o  UnopExprB:b  {: RESULT=ExprUnary.Op.CLOSURE  .make(o,b); :};
+UnopExprA ::= Bind:b PRIME:o      {: RESULT=ExprUnary.Op.PRIME.make(o,b); :};
+UnopExprA ::= UnopExprA:b PRIME:o {: RESULT=ExprUnary.Op.PRIME.make(o,b); :};
+UnopExprB ::= UnopExprB:b PRIME:o {: RESULT=ExprUnary.Op.PRIME.make(o,b); :};
+
+
 
 BaseExpr ::= NUMBER:x                               {: RESULT = x;                                                        :};
 BaseExpr ::= STR:x                                  {: RESULT = x;                                                        :};

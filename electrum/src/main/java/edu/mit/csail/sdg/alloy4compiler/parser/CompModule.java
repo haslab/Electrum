@@ -428,7 +428,7 @@ public final class CompModule extends Browsable implements Module {
 			Expr obj = resolve(x.pos, x.label);
 			Expr res;
 			if (obj instanceof Macro) res = ((Macro)obj).instantiate(this, warns); else res = obj;
-			if (x.isPost) res = ExprUnary.Op.POST.make(x.pos, res); //pt.uminho.haslab: post operator
+			if (x.isPost) res = ExprUnary.Op.PRIME.make(x.pos, res); //pt.uminho.haslab: post operator
 			return res;
 		}
 
