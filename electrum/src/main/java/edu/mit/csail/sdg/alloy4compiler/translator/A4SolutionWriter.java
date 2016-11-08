@@ -100,52 +100,63 @@ public final class A4SolutionWriter {
 			// inside "type"
 			Expr sum = type.toExpr();
 			int lastSize = (-1);
-			if (sol.type == A4Solution.WritingType.evalToAllStates) { // pt.uminho.haslab: write separate xmls.
-				if (sol.temporalAtoms.exprToAtoms.containsKey(expr)) {
-					for (GatherTemporalAtoms.Tuple t : sol.temporalAtoms.evalExpr(expr).getTupleSet()) {
-						out.print("   <tuple>");
-						for (Object o : t.getTuple())
-							Util.encodeXMLs(out, " <atom label=\"", o.toString(), "\"/>");
-						out.print(" </tuple>\n");
-					}
-				}
-			} else { // pt.uminho.haslab: write single xml.
-				while (true) {
-					A4TupleSet ts = (A4TupleSet) (sol.eval(expr.minus(sum), state));
-					int n = ts.size();
-					if (n <= 0)
-						break;
-					if (lastSize > 0 && lastSize <= n)
-						throw new ErrorFatal("An internal error occurred in the evaluator.");
-					lastSize = n;
-					Type extra = ts.iterator().next().type();
-					type = type.merge(extra);
-					sum = sum.plus(extra.toExpr());
-				}
-				// Now, write out the tupleset
-				A4TupleSet ts = (A4TupleSet) (sol.eval(expr, state));
-				// pessoa: a tupleset initialised to add into the control structure GatherTemporalAtoms.
-				sol.temporalAtoms.initTupleSet();
-				for (A4Tuple t : ts) {
-					if (prefix.length() > 0) {
-						out.print(prefix);
-						prefix = "";
-					}
-					out.print("   <tuple>");
-					// pessoa: a tuple initialised to add into the control structure GatherTemporalAtoms.
-					sol.temporalAtoms.initTuple();
-					for (int j = 0; j < t.arity(); j++) {
-						// pessoa: a atom is added into the tuple previously created						
-						sol.temporalAtoms.addAtomInTuple(t.atom(j));
-						Util.encodeXMLs(out, " <atom label=\"", t.atom(j), "\"/>");
-					}
-					out.print(" </tuple>\n");
-					// pessoa: the tuple is added into a tupleSet
-					sol.temporalAtoms.addAtomInTupleSet();
-				}
-				// pessoa: the expression here explored is added into the control structure
-				sol.temporalAtoms.addTupleSetToExprx(expr);
-			}
+//			if (sol.type == A4Solution.WritingType.evalToAllStates) { 
+				// pt.uminho.haslab: write separate xmls.
+		          while(true) {
+		             A4TupleSet ts = (A4TupleSet)(sol.eval(expr.minus(sum),state));
+		             int n = ts.size();
+		             if (n<=0) break;
+		             if (lastSize>0 && lastSize<=n) throw new ErrorFatal("An internal error occurred in the evaluator.");
+		             lastSize=n;
+		             Type extra = ts.iterator().next().type();
+		             type = type.merge(extra);
+		             sum = sum.plus(extra.toExpr());
+		          }
+		          // Now, write out the tupleset
+		          A4TupleSet ts = (A4TupleSet)(sol.eval(expr,state));
+		          for(A4Tuple t: ts) {
+		             if (prefix.length()>0) { out.print(prefix); prefix=""; }
+		             out.print("   <tuple>");
+		             for(int i=0; i<t.arity(); i++) Util.encodeXMLs(out, " <atom label=\"", t.atom(i), "\"/>");
+		             out.print(" </tuple>\n");
+		          }
+//			} else { // pt.uminho.haslab: write single xml.
+//				while (true) {
+//					A4TupleSet ts = (A4TupleSet) (sol.eval(expr.minus(sum), state));
+//					int n = ts.size();
+//					if (n <= 0)
+//						break;
+//					if (lastSize > 0 && lastSize <= n)
+//						throw new ErrorFatal("An internal error occurred in the evaluator.");
+//					lastSize = n;
+//					Type extra = ts.iterator().next().type();
+//					type = type.merge(extra);
+//					sum = sum.plus(extra.toExpr());
+//				}
+//				// Now, write out the tupleset
+//				A4TupleSet ts = (A4TupleSet) (sol.eval(expr, state));
+//				// pessoa: a tupleset initialised to add into the control structure GatherTemporalAtoms.
+//				sol.temporalAtoms.initTupleSet();
+//				for (A4Tuple t : ts) {
+//					if (prefix.length() > 0) {
+//						out.print(prefix);
+//						prefix = "";
+//					}
+//					out.print("   <tuple>");
+//					// pessoa: a tuple initialised to add into the control structure GatherTemporalAtoms.
+//					sol.temporalAtoms.initTuple();
+//					for (int j = 0; j < t.arity(); j++) {
+//						// pessoa: a atom is added into the tuple previously created						
+//						sol.temporalAtoms.addAtomInTuple(t.atom(j));
+//						Util.encodeXMLs(out, " <atom label=\"", t.atom(j), "\"/>");
+//					}
+//					out.print(" </tuple>\n");
+//					// pessoa: the tuple is added into a tupleSet
+//					sol.temporalAtoms.addAtomInTupleSet();
+//				}
+//				// pessoa: the expression here explored is added into the control structure
+//				sol.temporalAtoms.addTupleSetToExprx(expr);
+//			}
 		}
 	
 		// Now, write out the type
@@ -206,22 +217,22 @@ public final class A4SolutionWriter {
 		out.print("\">\n");
 		try {
 			if (sol != null && x != Sig.UNIV && x != Sig.SIGINT && x != Sig.SEQIDX) {
-				if (sol.type == A4Solution.WritingType.evalToAllStates) { // [HASLab] write separate xmls.
+//				if (sol.type == A4Solution.WritingType.evalToAllStates) { // [HASLab] write separate xmls.
 					ts = (A4TupleSet) (sol.eval(x, state));
 
 					for (A4Tuple t : ts.minus(ts2)) 
 						Util.encodeXMLs(out, "   <atom label=\"", t.toString(), "\"/>\n");
-				} else { // pt.uminho.haslab: write single xml.
-					sol.temporalAtoms.initTuple();
-					sol.temporalAtoms.initTupleSet();
-					ts = (A4TupleSet) (sol.eval(x, state));
-					for (A4Tuple t : ts.minus(ts2)) {
-						sol.temporalAtoms.addAtomInTuple(t.atom(0));
-						Util.encodeXMLs(out, "   <atom label=\"", t.atom(0), "\"/>\n");
-					}
-					sol.temporalAtoms.addAtomInTupleSet();
-					sol.temporalAtoms.addTupleSetToExprx(x);
-				}
+//				} else { // pt.uminho.haslab: write single xml.
+//					sol.temporalAtoms.initTuple();
+//					sol.temporalAtoms.initTupleSet();
+//					ts = (A4TupleSet) (sol.eval(x, state));
+//					for (A4Tuple t : ts.minus(ts2)) {
+//						sol.temporalAtoms.addAtomInTuple(t.atom(0));
+//						Util.encodeXMLs(out, "   <atom label=\"", t.atom(0), "\"/>\n");
+//					}
+//					sol.temporalAtoms.addAtomInTupleSet();
+//					sol.temporalAtoms.addTupleSetToExprx(x);
+//				}
 			}
 		} catch (Throwable ex) {
 			throw new ErrorFatal("Error evaluating sig " + x.label, ex);
