@@ -22,6 +22,7 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentEvent;
@@ -40,6 +41,7 @@ import java.util.Set;
 import java.util.prefs.Preferences;
 import java.util.regex.Pattern;
 
+import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.Icon;
 import javax.swing.JButton;
@@ -55,6 +57,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTextArea;
 import javax.swing.JToolBar;
+import javax.swing.border.EmptyBorder;
 import javax.swing.plaf.basic.BasicSplitPaneUI;
 
 import edu.mit.csail.sdg.alloy4.Computer;
@@ -652,22 +655,17 @@ public final class VizGUI implements ComponentListener {
 	}
 
 	// pt.uminho.haslab: control structures to make the JPanel with the times
-	private JPanel wrapper;
 	private JComboBox atomComboTime;
 	private JButton leftTime, rightTime;
 
 	// pessoa: function that make the JPanel with the times
 	public final void addTemporalJPanel(int states) {
-		wrapper = new JPanel();
 
 		leftTime = new JButton("<<");
 		rightTime = new JButton(">>");
 		final String[] atomnames = this.createTimeComboAtoms(states+1);
 		atomComboTime = new OurCombobox(atomnames.length < 1 ? new String[] { " " } : atomnames);
-
-		wrapper.add(leftTime);
-		wrapper.add(atomComboTime);
-		wrapper.add(rightTime);
+		
 		final int initialIndex = 0;
 		final int backIndex = getVizState().getOriginalInstance().originalA4.getBackLoop();
 
@@ -711,7 +709,12 @@ public final class VizGUI implements ComponentListener {
 			}
 
 		});
-		toolbar.add(wrapper);
+		atomComboTime.setMaximumSize( atomComboTime.getPreferredSize() );
+		toolbar.add(Box.createHorizontalGlue());
+		toolbar.add(leftTime);
+		toolbar.add(atomComboTime);
+		toolbar.add(rightTime);
+		toolbar.setBorder(new EmptyBorder(0, 0, 0, 10));
 	}
 
 	// pessoa: create a list with n times with the purpose of adding it to the
@@ -1180,9 +1183,6 @@ public final class VizGUI implements ComponentListener {
 		if (wrap)
 			return wrapMe();
 		xmlLoaded.remove(xmlFileName);
-		if (wrapper != null && toolbar != null && xmlLoaded.isEmpty()) { // pt.uminho.haslab
-			toolbar.remove(wrapper);
-		}
 		if (xmlLoaded.size() > 0) { // pt.uminho.haslab
 			doLoadInstance(xmlLoaded.get(xmlLoaded.size() - 1));
 			refreshComboAtomTime((Integer) cacheForXmlState.get(xmlLoaded.get(xmlLoaded.size() - 1)));
@@ -1445,8 +1445,6 @@ public final class VizGUI implements ComponentListener {
 					String[] s = xmlFileName.split(Pattern.quote("."));
 					xmlFileName = s[0] + ".cnf.xml";
 				}
-				if (toolbar != null && wrapper != null)
-					toolbar.remove(wrapper);
 				enumerator.compute(xmlFileName);
 			} catch (Throwable ex) {
 				OurDialog.alert(ex.getMessage());
