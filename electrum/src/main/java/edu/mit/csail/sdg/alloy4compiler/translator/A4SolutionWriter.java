@@ -186,7 +186,7 @@ public final class A4SolutionWriter {
 		if (x.builtin)
 			out.print("\" builtin=\"yes");
 		if (x.isVariable != null)
-			out.print("\" var=\"yes"); // pt.uminho.haslab: mark sig as var.
+			out.print("\" var=\"yes"); // [HASLab] mark sig as var.
 		if (x.isAbstract != null)
 			out.print("\" abstract=\"yes");
 		if (x.isOne != null)
@@ -206,11 +206,11 @@ public final class A4SolutionWriter {
 		out.print("\">\n");
 		try {
 			if (sol != null && x != Sig.UNIV && x != Sig.SIGINT && x != Sig.SEQIDX) {
-				if (sol.type == A4Solution.WritingType.evalToAllStates) { // pt.uminho.haslab: write separate xmls.
-					GatherTemporalAtoms.Tuple t = ((GatherTemporalAtoms.TupleSet) sol.temporalAtoms.evalExpr(x))
-							.getTupleSet().get(0);
-					for (Object o : t.getTuple())
-						Util.encodeXMLs(out, "   <atom label=\"", o.toString(), "\"/>\n");
+				if (sol.type == A4Solution.WritingType.evalToAllStates) { // [HASLab] write separate xmls.
+					ts = (A4TupleSet) (sol.eval(x, state));
+
+					for (A4Tuple t : ts.minus(ts2)) 
+						Util.encodeXMLs(out, "   <atom label=\"", t.toString(), "\"/>\n");
 				} else { // pt.uminho.haslab: write single xml.
 					sol.temporalAtoms.initTuple();
 					sol.temporalAtoms.initTupleSet();

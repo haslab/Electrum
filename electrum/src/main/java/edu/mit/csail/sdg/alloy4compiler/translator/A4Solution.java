@@ -238,6 +238,9 @@ public final class A4Solution {
 	 // [HASLab] adapted to consider temporal problems, solutions and options.
 	public A4Solution(String originalCommand, int bitwidth, int maxseq, Set<String> stringAtoms, Collection<String> atoms, final A4Reporter rep, A4Options opt, int expected) throws Err {  // [HASLab] public
 		opt = opt.dup();
+		this.canAddSkolems = true; // [HASLab] pessoa: in the first renaming the atoms are added
+		this.temporalAtoms = new GatherTemporalAtoms(); // [HASLab] pessoa: the object is initialized to gather all atoms in the renaming procedure
+		this.type = WritingType.evalToSingleState; // [HASLab] pessoa: in this point we are writing a xml per time
 		this.unrolls = opt.unrolls;
 		this.sigs = new SafeList<Sig>(Arrays.asList(UNIV, SIGINT, SEQIDX, STRING, NONE));
 		this.a2k = Util.asMap(new Expr[]{UNIV, SIGINT, SEQIDX, STRING, NONE}, Relation.INTS.union(KK_STRING), Relation.INTS, KK_SEQIDX, KK_STRING, Relation.NONE);
@@ -323,9 +326,6 @@ public final class A4Solution {
 		solver.options().setSkolemDepth(opt.skolemDepth);
 		solver.options().setBitwidth(bitwidth > 0 ? bitwidth : (int) Math.ceil(Math.log(atoms.size())) + 1);
 		solver.options().setIntEncoding(Options.IntEncoding.TWOSCOMPLEMENT);
-		this.canAddSkolems = true; // [HASLab] pessoa: in the first renaming the atoms are added
-		this.temporalAtoms = new GatherTemporalAtoms(); // [HASLab] pessoa: the object is initialized to gather all atoms in the renaming procedure
-		this.type = WritingType.evalToSingleState; // [HASLab] pessoa: in this point we are writing a xml per time
 	}
 
 	/** Construct a new A4Solution that is the continuation of the old one, but with the "next" instance. */
@@ -626,7 +626,7 @@ public final class A4Solution {
 	PrimSig atom2sig(Object atom) { PrimSig sig=atom2sig.get(atom); return sig==null ? UNIV : sig; }
 
 	/** Caches eval(Sig) and eval(Field) results. */
-	private Map<Expr,A4TupleSet> evalCache = new LinkedHashMap<Expr,A4TupleSet>();
+	private Map<Integer,Map<Expr,A4TupleSet>> evalCache = new LinkedHashMap<Integer,Map<Expr,A4TupleSet>>(); // [HASLab]
 
 	/** Return the A4TupleSet for the given sig (if solution not yet solved, or unsatisfiable, or sig not found, then return an empty tupleset). */
 	// [HASLab] evals to 0. 
@@ -639,13 +639,15 @@ public final class A4Solution {
 	public A4TupleSet eval(Sig sig, int state) {
 		try {
 			if (!solved || eval==null) return new A4TupleSet(factory.noneOf(1), this);
-			A4TupleSet ans = evalCache.get(sig);
+			if (evalCache.get(state) == null) evalCache.put(state, new LinkedHashMap<Expr, A4TupleSet>()); // [HASLab]
+			A4TupleSet ans = evalCache.get(state).get(sig);  // [HASLab]
 			if (ans!=null) return ans;
 			TupleSet ts = null;
 			if (sig.isVariable != null) ts = eval.evaluate((Expression) TranslateAlloyToKodkod.alloy2kodkod(this, sig), state); // [HASLab] 
-			else ts = eval.evaluate((Expression) TranslateAlloyToKodkod.alloy2kodkod(this, sig));
+			else 
+				ts = eval.evaluate((Expression) TranslateAlloyToKodkod.alloy2kodkod(this, sig));
 			ans = new A4TupleSet(ts, this);
-			evalCache.put(sig, ans);
+			evalCache.get(state).put(sig, ans);  // [HASLab]
 			return ans;
 		} catch(Err er) {
 			return new A4TupleSet(factory.noneOf(1), this);
@@ -663,13 +665,14 @@ public final class A4Solution {
 	public A4TupleSet eval(Field field, int state) {
 		try {
 			if (!solved || eval==null) return new A4TupleSet(factory.noneOf(field.type().arity()), this);
-			A4TupleSet ans = evalCache.get(field);
-			//if (ans!=null) return ans;
+			if (evalCache.get(state) == null) evalCache.put(state, new LinkedHashMap<Expr, A4TupleSet>()); // [HASLab]
+			A4TupleSet ans = evalCache.get(state).get(field); // [HASLab]
+			//if (ans!=null) return ans; 
 			TupleSet ts = null;
 			if (field.isVariable != null) ts = eval.evaluate((Expression) TranslateAlloyToKodkod.alloy2kodkod(this, field), state); // [HASLab] 
 			else ts = eval.evaluate((Expression) TranslateAlloyToKodkod.alloy2kodkod(this, field));
 			ans = new A4TupleSet(ts, this);
-			evalCache.put(field, ans);
+			evalCache.get(state).put(field, ans);  // [HASLab]
 			return ans;
 		} catch(Err er) {
 			return new A4TupleSet(factory.noneOf(field.type().arity()), this);
@@ -1106,7 +1109,7 @@ public final class A4Solution {
 			while(it.hasNext()) this.universeList.add(it.next());
 			instance = inst;
 			eval = new Evaluator(inst, solver.options());
-			rename(this, null, null, new UniqueNameGenerator());
+//			temporalRename();
 		}
 		// report the result
 		solved();
@@ -1127,9 +1130,9 @@ public final class A4Solution {
 	// [HASLab] pessoa: Object of GatherTemporalAtoms class in order to build a xml file with all atoms that appear in the renaming
 	public GatherTemporalAtoms temporalAtoms;
 
-	// [HASLab] pessoa:  this function performs the renaming of a solution given a particular state.
-	//To do that, the control structures are initialised as well as the evaluator with the original instance.
-	public A4Solution renameTemporalSolution(int state){
+	// [HASLab] pessoa: this function performs the renaming of a solution given a particular state.
+	// To do that, the control structures are initialised as well as the evaluator with the original instance.
+	public A4Solution temporalRename(int state){
 		try {
 			originalA2k = new HashMap<>();
 			for (Expr e : a2k.keySet()){
@@ -1185,7 +1188,7 @@ public final class A4Solution {
 		if (sol instanceof TemporalInstance) {
 			for (int i = 0; i <= ((TemporalInstance) sol).end; i++) { // [HASLab]
 				sb.append("------State " + i + "-------\n");
-				this.renameTemporalSolution(i);
+				this.temporalRename(i);
 				try {
 					for (Sig s : sigs) {
 						sb.append(s.label).append("=").append(eval(s, i)).append("\n");

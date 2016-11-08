@@ -570,8 +570,8 @@ public final class SimpleReporter extends A4Reporter { // pt.uminho.haslab:
 	private static void writeXML(A4Reporter rep, Module mod, String filename, A4Solution sol,
 			Map<String, String> sources, int state) throws Exception {
 		sol.writeXML(rep, filename, /* mod.getAllFunc() */new ArrayList<Func>(), sources, state); // pt.uminho.haslab
-		if ("yes".equals(System.getProperty("debug")))
-			validate(filename);
+//		if ("yes".equals(System.getProperty("debug"))) // [HASLab]
+//			validate(filename);
 	}
 
 	private int warn = 0;
@@ -801,12 +801,14 @@ public final class SimpleReporter extends A4Reporter { // pt.uminho.haslab:
 		@Override
 		public void run() {
 			try { // pt.uminho.haslab
-				for (int i = 0; i <= a4Solution.getTraceLength(); i++) {
-					a4Solution.renameTemporalSolution(i);
-					writeXML(simpleReporter, latestModule, filename + "Time" + i + ".xml", a4Solution, kkSRC, i);
-				}
-				writeXML(simpleReporter, latestModule, filename + ".xml", a4Solution, kkSRC, 0); 
 				a4Solution.type = A4Solution.WritingType.evalToAllStates;
+				for (int i = 0; i <= a4Solution.getTraceLength(); i++) {
+					a4Solution.temporalRename(i);
+					writeXML(simpleReporter, latestModule, filename + "Time" + i + ".xml", a4Solution, kkSRC, i);
+					simpleReporter.debug(i +": "+a4Solution);
+				}
+				a4Solution.type = A4Solution.WritingType.evalToSingleState;
+				writeXML(simpleReporter, latestModule, filename + ".xml", a4Solution, kkSRC, 0); 
 				a4Solution.temporalAtoms.optimizeTemporalAtoms();
 				writeXML(simpleReporter, latestModule, filename + "Evaluator.xml", a4Solution, kkSRC, 0);
 			} catch (Exception e) {

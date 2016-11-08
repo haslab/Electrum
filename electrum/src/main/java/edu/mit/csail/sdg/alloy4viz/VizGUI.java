@@ -702,10 +702,10 @@ public final class VizGUI implements ComponentListener {
 				if (loadXmlFile) {
 					String[] s = getXMLfilename().split(Pattern.quote("."));
 					String file = s[0] + ".cnf." + s[2];
-					if (atomComboTime.getSelectedIndex() != 0)
-						loadXML(splitTemporalFileName(atomComboTime.getSelectedIndex(), file), false);
-					else
-						loadXML(file, false);
+//					if (atomComboTime.getSelectedIndex() != 0)
+						loadXML(file, false, atomComboTime.getSelectedIndex());
+//					else
+//						loadXML(file, false);
 					cacheForXmlState.put(getXMLfilename(), atomComboTime.getSelectedIndex());
 				}
 			}
@@ -1033,9 +1033,14 @@ public final class VizGUI implements ComponentListener {
 		return myGraphPanel.alloyGetViewer();
 	}
 
-	/** Load the XML instance. */
 	public void loadXML(final String fileName, boolean forcefully) {
-		final String xmlFileName = Util.canon(fileName);
+		loadXML(fileName, forcefully, 0);
+	}
+	
+	/** Load the XML instance. */
+	public void loadXML(final String fileName, boolean forcefully, int state) {
+		String dfileName = splitTemporalFileName(state, fileName);  // [HASLab]
+		final String xmlFileName = Util.canon(dfileName);
 		File f = new File(xmlFileName);
 		if (forcefully || !xmlFileName.equals(this.xmlFileName)) {
 			AlloyInstance myInstance;
@@ -1044,14 +1049,14 @@ public final class VizGUI implements ComponentListener {
 					throw new IOException("File " + xmlFileName + " does not exist.");
 				myInstance = StaticInstanceReader.parseInstance(f);
 			} catch (Throwable e) {
-				xmlLoaded.remove(fileName);
+				xmlLoaded.remove(dfileName);
 				xmlLoaded.remove(xmlFileName);
 				StringBuilder sb = new StringBuilder();
 				for (StackTraceElement s : e.getStackTrace()) sb.append(s+"\n");
 				System.out.println(sb.toString());
 				OurDialog.alert("Cannot read or parse Alloy instance: " + xmlFileName + "\n\nError: " + e.getMessage()+"\n"+sb.toString());
 				if (xmlLoaded.size() > 0) {
-					loadXML(xmlLoaded.get(xmlLoaded.size() - 1), false);
+					loadXML(xmlLoaded.get(xmlLoaded.size() - 1), false, state);
 					return;
 				}
 				doCloseAll();
@@ -1152,7 +1157,7 @@ public final class VizGUI implements ComponentListener {
 		if (file == null)
 			return null;
 		Util.setCurrentDirectory(file.getParentFile());
-		loadXML(file.getPath(), true);
+		loadXML(file.getPath(), false);
 		return null;
 	}
 

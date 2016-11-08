@@ -140,7 +140,7 @@ final class BoundsComputer {
               lower.removeAll(childTS);
               upper.removeAll(childTS);
            }
-            Expression relation = sol.addRel(sig.label+" remainder", lower, upper,sig);
+            Expression relation = sol.addRel(sig.label+" remainder", lower, upper, sig);
             sum = sum.union(relation);
         }
         sol.addSig(sig, sum);
