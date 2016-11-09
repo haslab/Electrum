@@ -1071,7 +1071,7 @@ public final class SimpleGUI implements ComponentListener, Listener {
            if (subrunningTask==2){
                viz.loadXML(f, true);
                // pt.uminho.haslab: the jpanel with temporal states is created
-               viz.addTemporalJPanel(viz.getVizState().getOriginalInstance().originalA4.getTraceLength());
+               viz.setTemporalJPanel(viz.getVizState().getOriginalInstance().originalA4.getLastTrace());
            } else if (AutoVisualize.get() || subrunningTask==1) doVisualize("XML: "+f);
         }
         return null;
@@ -1604,7 +1604,7 @@ public final class SimpleGUI implements ComponentListener, Listener {
         if (arg.startsWith("XML: ")) { // XML: filename
             viz.loadXML(Util.canon(arg.substring(5)), false);
             viz.getVizState().useOriginalName(true); // pt.uminho.haslab: the instance show the atoms' original names
-            viz.addTemporalJPanel(viz.getVizState().getOriginalInstance().originalA4.getTraceLength());//pt.uminho.haslab: the jpanel with temporal states is created
+            viz.setTemporalJPanel(viz.getVizState().getOriginalInstance().originalA4.getLastTrace()); // [HASLab]
             viz.doShowViz();
         }
         return null;
@@ -1796,7 +1796,7 @@ public final class SimpleGUI implements ComponentListener, Listener {
         // Put up a slash screen
         final JFrame frame = new JFrame("Alloy Analyzer");
         frame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
-        frame.pack();
+//        frame.pack(); // [HASLab]
         if (!Util.onMac() && !Util.onWindows()) {
            String gravity = System.getenv("_JAVA_AWT_WM_STATIC_GRAVITY");
            if (gravity==null || gravity.length()==0) {

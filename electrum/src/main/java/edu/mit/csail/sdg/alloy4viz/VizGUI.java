@@ -603,6 +603,7 @@ public final class VizGUI implements ComponentListener {
 					"Save the current theme customization as a new theme file", "images/24_save.gif", doSaveThemeAs()));
 			toolbar.add(resetSettingsButton = OurUtil.button("Reset", "Reset the theme customization",
 					"images/24_settings_close2.gif", doResetTheme()));
+            addTemporalJPanel();//pt.uminho.haslab: the jpanel with temporal states is created
 		} finally {
 			wrap = false;
 		}
@@ -657,20 +658,17 @@ public final class VizGUI implements ComponentListener {
 	// pt.uminho.haslab: control structures to make the JPanel with the times
 	private JComboBox atomComboTime;
 	private JButton leftTime, rightTime;
-
-	// pessoa: function that make the JPanel with the times
-	public final void addTemporalJPanel(int states) {
+	private int backindex = -1;
+	
+	public final void addTemporalJPanel() {
 
 		leftTime = new JButton("<<");
 		rightTime = new JButton(">>");
-		final String[] atomnames = this.createTimeComboAtoms(states+1);
+		final String[] atomnames = this.createTimeComboAtoms(0);
 		atomComboTime = new OurCombobox(atomnames.length < 1 ? new String[] { " " } : atomnames);
 		
-		final int initialIndex = 0;
-		final int backIndex = getVizState().getOriginalInstance().originalA4.getBackLoop();
-
-		leftTime.setEnabled(initialIndex > 0);
-		rightTime.setEnabled(initialIndex < atomnames.length - 1 || backIndex != -1);
+		leftTime.setEnabled(false);
+		rightTime.setEnabled(false);
 
 		leftTime.addActionListener(new ActionListener() {
 			public final void actionPerformed(ActionEvent e) {
@@ -681,30 +679,32 @@ public final class VizGUI implements ComponentListener {
 		});
 		rightTime.addActionListener(new ActionListener() {
 			public final void actionPerformed(ActionEvent e) {
-				if (atomComboTime.getSelectedIndex() == getVizState().getOriginalInstance().originalA4.getTraceLength())
-					atomComboTime.setSelectedIndex(backIndex);
+				if (atomComboTime.getSelectedIndex() == getVizState().getOriginalInstance().originalA4.getLastTrace())
+					atomComboTime.setSelectedIndex(backindex);
 				else {
 					int curIndex = atomComboTime.getSelectedIndex();
 					if (curIndex < atomComboTime.getItemCount() - 1)
 						atomComboTime.setSelectedIndex(curIndex + 1);
-					else if (backIndex >= 0)
-						atomComboTime.setSelectedIndex(backIndex);
+					else if (backindex >= 0)
+						atomComboTime.setSelectedIndex(backindex);
 				}
 			}
 		});
 		atomComboTime.addActionListener(new ActionListener() {
 			public final void actionPerformed(ActionEvent e) {
 				leftTime.setEnabled(atomComboTime.getSelectedIndex() > 0);
-				rightTime.setEnabled(atomComboTime.getSelectedIndex() < atomnames.length - 1 || backIndex != -1);
+				rightTime.setEnabled(atomComboTime.getSelectedIndex() < atomComboTime.getItemCount() - 1 || backindex != -1);
 				xmlLoaded.remove(getXMLfilename());
 				if (loadXmlFile) {
 					String[] s = getXMLfilename().split(Pattern.quote("."));
 					String file = s[0] + ".cnf." + s[2];
-//					if (atomComboTime.getSelectedIndex() != 0)
-						loadXML(file, false, atomComboTime.getSelectedIndex());
-//					else
-//						loadXML(file, false);
-					cacheForXmlState.put(getXMLfilename(), atomComboTime.getSelectedIndex());
+					if (atomComboTime.getSelectedIndex() >= 0)  {
+//						if (atomComboTime.getSelectedIndex() != 0)
+							loadXML(file, false, atomComboTime.getSelectedIndex());
+//						else
+//							loadXML(file, false);
+						cacheForXmlState.put(getXMLfilename(), atomComboTime.getSelectedIndex());
+					}
 				}
 			}
 
@@ -715,6 +715,21 @@ public final class VizGUI implements ComponentListener {
 		toolbar.add(atomComboTime);
 		toolbar.add(rightTime);
 		toolbar.setBorder(new EmptyBorder(0, 0, 0, 10));
+	}
+	
+	// pessoa: function that make the JPanel with the times
+	public final void setTemporalJPanel(int last) {
+
+		final String[] atomnames = this.createTimeComboAtoms(last+1);
+		atomComboTime.removeAllItems();
+		for (String s : atomnames)
+			atomComboTime.addItem(s);
+		
+		backindex = getVizState().getOriginalInstance().originalA4.getBackLoop();
+
+		leftTime.setEnabled(false);
+		rightTime.setEnabled(atomnames.length > 0 || backindex == 0);
+
 	}
 
 	// pessoa: create a list with n times with the purpose of adding it to the
@@ -1076,7 +1091,7 @@ public final class VizGUI implements ComponentListener {
 		if (!xmlLoaded.contains(xmlFileName))
 			xmlLoaded.add(xmlFileName);
 		toolbar.setEnabled(true);
-		settingsOpen = 0;
+//		settingsOpen = 0; // [HASLab]
 		thememenu.setEnabled(true);
 		windowmenu.setEnabled(true);
 		if (frame != null) {

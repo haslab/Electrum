@@ -802,10 +802,10 @@ public final class SimpleReporter extends A4Reporter { // pt.uminho.haslab:
 		public void run() {
 			try { // pt.uminho.haslab
 //				a4Solution.type = A4Solution.WritingType.evalToAllStates;
-				for (int i = 0; i <= a4Solution.getTraceLength(); i++) {
-					a4Solution.temporalRename(i);
+				for (int i = 0; i <= a4Solution.getLastTrace(); i++) {
+					a4Solution.renameTemporal(i);
 					writeXML(simpleReporter, latestModule, filename + "Time" + i + ".xml", a4Solution, kkSRC, i);
-					simpleReporter.debug(i +": "+a4Solution);
+					if (simpleReporter != null) simpleReporter.debug(i +": "+a4Solution);
 				}
 				a4Solution.type = A4Solution.WritingType.evalToSingleState;
 //				writeXML(simpleReporter, latestModule, filename + ".xml", a4Solution, kkSRC, 0); 

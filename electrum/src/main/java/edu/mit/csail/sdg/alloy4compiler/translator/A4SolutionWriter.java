@@ -316,7 +316,7 @@ public final class A4SolutionWriter {
 		if (sol == null)
 			out.print("\" metamodel=\"yes");
 		else {
-			out.print("\" tracelength=\""); out.print(sol.getTraceLength()); // pt.uminho.haslab: the trace length of the instance
+			out.print("\" tracelength=\""); out.print(sol.getLastTrace()); // pt.uminho.haslab: the trace length of the instance
 			out.print("\" backloop=\""); out.print(sol.getBackLoop()); // pt.uminho.haslab: the back loop of the instance
 		}
 		out.print("\">\n");

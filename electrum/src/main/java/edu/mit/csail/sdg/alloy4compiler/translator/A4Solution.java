@@ -603,7 +603,7 @@ public final class A4Solution {
 
 	/** Returns the trace length of this instance. */
 	// [HASLab]
-	public int getTraceLength() { return traceLength; }
+	public int getLastTrace() { return traceLength; }
 
 	//===================================================================================================//
 
@@ -1132,7 +1132,7 @@ public final class A4Solution {
 
 	// [HASLab] pessoa: this function performs the renaming of a solution given a particular state.
 	// To do that, the control structures are initialised as well as the evaluator with the original instance.
-	public A4Solution temporalRename(int state){
+	public A4Solution renameTemporal(int state){
 		try {
 			originalA2k = new HashMap<>();
 			for (Expr e : a2k.keySet()){
@@ -1188,7 +1188,7 @@ public final class A4Solution {
 		if (sol instanceof TemporalInstance) {
 			for (int i = 0; i <= ((TemporalInstance) sol).end; i++) { // [HASLab]
 				sb.append("------State " + i + "-------\n");
-				this.temporalRename(i);
+				this.renameTemporal(i);
 				try {
 					for (Sig s : sigs) {
 						sb.append(s.label).append("=").append(eval(s, i)).append("\n");
