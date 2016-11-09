@@ -110,7 +110,7 @@ class OurSyntaxDocument extends DefaultStyledDocument {
 
 	/** Returns true if "c" can be in the start or middle or end of an identifier. */
 	private static final boolean do_iden(char c) {
-		return (c>='A' && c<='Z') || (c>='a' && c<='z') || c=='$' || (c>='0' && c<='9') || c=='_' || c=='\'' || c=='\"';
+		return (c>='A' && c<='Z') || (c>='a' && c<='z') || c=='$' || (c>='0' && c<='9') || c=='_' /*|| c=='\''*/ || c=='\"'; // [HASLab]
 	}
 
 	/** Constructor. */
