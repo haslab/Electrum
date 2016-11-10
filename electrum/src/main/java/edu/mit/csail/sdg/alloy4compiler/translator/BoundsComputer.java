@@ -143,6 +143,8 @@ final class BoundsComputer {
             Expression relation = sol.addRel(sig.label+" remainder", lower, upper, sig);
             sum = sum.union(relation);
         }
+        if (sig.isOne != null) // [HASLab]
+        	sol.addFormula(sum.one().always(), sig.isOne);
         sol.addSig(sig, sum);
         return sum;
     }

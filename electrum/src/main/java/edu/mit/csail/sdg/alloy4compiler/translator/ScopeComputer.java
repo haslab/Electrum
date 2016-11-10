@@ -308,8 +308,10 @@ final class ScopeComputer {
             if (exact) makeExact(cmd.pos, s);
         }
         // Force "one" sigs to be exactly one, and "lone" to be at most one
-        for(Sig s:sigs) if (s instanceof PrimSig) {
-            if (s.isOne!=null) { makeExact(cmd.pos, s); sig2scope(s,1); } else if (s.isLone!=null && sig2scope(s)!=0) sig2scope(s,1);
+        for(Sig s:sigs) if (s instanceof PrimSig) { // [HASLab]
+            if (s.isOne!=null && s.isVariable==null) { makeExact(cmd.pos, s); sig2scope(s,1); } 
+            if (s.isOne!=null && s.isVariable!=null) { sig2scope(s,1); } 
+            else if (s.isLone!=null && sig2scope(s)!=0) sig2scope(s,1);
         }
         // Derive the implicit scopes
         while(true) {

@@ -454,11 +454,11 @@ public final class A4Solution {
 		if (solved) throw new ErrorFatal("Cannot add a Kodkod relation since solve() has completed.");
 		Relation rel;
 		if (expr instanceof  Field){
-			if (((Field) expr).isVariable != null){rel = VarRelation.nary(label, upper.arity());}
+			if (((Field) expr).isVariable != null){rel = VarRelation.nary(label, upper.arity());} // [HASLab]
 			else{rel = Relation.nary(label, upper.arity());}
 		}  else {
 			if (expr instanceof  Sig){
-				if (((Sig) expr).isVariable != null){rel = VarRelation.nary(label, upper.arity());}
+				if (((Sig) expr).isVariable != null){rel = VarRelation.nary(label, upper.arity());} // [HASLab]
 				else{rel = Relation.nary(label, upper.arity());}
 			}else{
 				rel = Relation.nary(label, upper.arity());

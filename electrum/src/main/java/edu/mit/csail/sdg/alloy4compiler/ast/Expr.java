@@ -734,4 +734,13 @@ public abstract class Expr extends Browsable {
     * <p> this must be an integer expression
     */
    public final Expr cast2sigint() { return ExprUnary.Op.CAST2SIGINT.make(span(), this); }
+   
+   // [HASLab]
+   public final Expr always() { return ExprUnary.Op.ALWAYS.make(span(), this); }
+   public final Expr eventually() { return ExprUnary.Op.EVENTUALLY.make(span(), this); }
+   public final Expr after() { return ExprUnary.Op.AFTER.make(span(), this); }
+   public final Expr previous() { return ExprUnary.Op.PREVIOUS.make(span(), this); }
+   public final Expr historically() { return ExprUnary.Op.HISTORICALLY.make(span(), this); }
+   public final Expr once() { return ExprUnary.Op.ONCE.make(span(), this); }
+
 }
