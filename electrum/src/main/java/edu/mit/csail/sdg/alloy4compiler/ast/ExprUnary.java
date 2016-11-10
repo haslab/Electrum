@@ -253,10 +253,10 @@ public final class ExprUnary extends Expr {
         ErrorWarning w1=null, w2=null;
         Type s=p;
         switch(op) {
-          case NOT: case AFTER: case ALWAYS: case EVENTUALLY: case PREVIOUS: case HISTORICALLY: case ONCE: // [HASLab]
+          case NOT: case AFTER: case ALWAYS: case EVENTUALLY: case PREVIOUS: case HISTORICALLY: case ONCE:
             s=Type.FORMULA;
             break;
-          case TRANSPOSE: case RCLOSURE: case CLOSURE: case PRIME: // [HASLab]
+          case TRANSPOSE: case RCLOSURE: case CLOSURE:
             if (warns!=null && op!=Op.TRANSPOSE && type.join(type).hasNoTuple())
                w1=new ErrorWarning(pos, this+" is redundant since its domain and range are disjoint: "+sub.type.extract(2));
             s = (op!=Op.TRANSPOSE) ? resolveClosure(p, sub.type) : sub.type.transpose().intersect(p).transpose() ;
