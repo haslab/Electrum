@@ -96,6 +96,7 @@ public final class ExprCall extends Expr {
         @Override public Type visit(ExprBinary x) throws Err {
             switch(x.op) {
               case IMPLIES: case GT: case GTE: case LT: case LTE: case IFF: case EQUALS: case IN: case OR: case AND:
+              case RELEASE: case UNTIL: case SINCE: // [HASLab]
               case NOT_LT: case NOT_GT: case NOT_LTE: case NOT_GTE: case NOT_IN: case NOT_EQUALS:
                   return Type.FORMULA;
               case MUL: case DIV: case REM: case SHL: case SHR: case SHA:
@@ -118,7 +119,7 @@ public final class ExprCall extends Expr {
         @Override public Type visit(ExprUnary x) throws Err {
             Type t = x.sub.accept(this);
             switch(x.op) {
-              case NOOP: case LONEOF: case ONEOF: case SETOF: case SOMEOF: case EXACTLYOF: return t;
+              case NOOP: case LONEOF: case ONEOF: case SETOF: case SOMEOF: case EXACTLYOF: case PRIME: return t; // [HASLab]
               case CARDINALITY: case CAST2INT: return Type.smallIntType();
               case CAST2SIGINT: return Sig.SIGINT.type;
               case TRANSPOSE: return t.transpose();
@@ -142,14 +143,6 @@ public final class ExprCall extends Expr {
             return (ans==null) ? EMPTY : ans;
         }
 
-        @Override
-        public Type visit(BinaryExprTemp x) throws Err {
-            return Type.FORMULA;
-        }
-
-        @Override public Type visit(ExprTemp x) throws Err {
-            return Type.FORMULA;
-        }
         @Override public Type visit(ExprLet x) throws Err {
             env.put(x.var, x.expr.accept(this));
             Type ans = x.sub.accept(this);

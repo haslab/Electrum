@@ -868,13 +868,4 @@ public final class SimInstance extends VisitReturn<Object> {
        }
     }
     
-    /** {@inheritDoc} */
-    @Override public Object visit(ExprTemp x) throws Err {
-        throw new ErrorFatal(x.pos, "Unsupported operator ("+x.op+") encountered during ExprTemp.accept()");
-    }
-
-    @Override
-    public Object visit(BinaryExprTemp x) throws Err {
-        throw new ErrorFatal(x.pos, "Unsupported operator ("+x.op+") encountered during BinaryExprTemp.accept()");
-    }
 }

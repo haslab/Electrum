@@ -449,20 +449,6 @@ public final class CompModule extends Browsable implements Module {
 		/** {@inheritDoc} */
 		@Override public Expr visit(Field x) { return x; }
 
-		@Override
-		public Expr visit(ExprTemp x) throws Err {
-			Expr sub = visitThis(x.sub);
-			sub=sub.resolve_as_formula(warns);
-			return x.op.make(x.pos, x.closingBracket, sub);
-		}
-
-		/** {@inheritDoc} */
-		@Override public Expr visit(BinaryExprTemp x) throws Err {
-			Expr left = visitThis(x.left);
-			Expr right = visitThis(x.right);
-			return x.op.make(x.pos, x.closingBracket, left, right);
-		}
-
 	}
 
 	//============================================================================================================================//

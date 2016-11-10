@@ -58,12 +58,6 @@ public abstract class VisitReturn<T> {
     /** Visits an ExprQt node. */
     public abstract T visit(ExprQt x) throws Err;
 
-    /** Visits a BinaryExprTemp node. */
-    public abstract T visit(BinaryExprTemp x) throws Err;
-
-    /** Visits an ExprTemp node. */
-    public abstract T visit(ExprTemp x) throws Err;
-
     /** Visits an ExprUnary node. */
     public abstract T visit(ExprUnary x) throws Err;
 

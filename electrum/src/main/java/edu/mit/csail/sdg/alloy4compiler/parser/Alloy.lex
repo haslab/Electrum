@@ -161,8 +161,9 @@ import java_cup.runtime.*;
 "historically"        { return alloy_sym(yytext(), CompSym.HISTORICALLY);} //pt.uminho.haslab: ltl tokens
 "previous"            { return alloy_sym(yytext(), CompSym.PREVIOUS    );} //pt.uminho.haslab: ltl tokens
 "once"                { return alloy_sym(yytext(), CompSym.ONCE        );} //pt.uminho.haslab: ltl tokens
-"release"             { return alloy_sym(yytext(), CompSym.RELEASE    );} //pt.uminho.haslab: ltl tokens
-"until"               { return alloy_sym(yytext(), CompSym.UNTIL        );} //pt.uminho.haslab: ltl tokens
+"release"             { return alloy_sym(yytext(), CompSym.RELEASE     );} //pt.uminho.haslab: ltl tokens
+"until"               { return alloy_sym(yytext(), CompSym.UNTIL       );} //pt.uminho.haslab: ltl tokens
+"since"               { return alloy_sym(yytext(), CompSym.SINCE       );} //pt.uminho.haslab: ltl tokens
 "and"                 { return alloy_sym(yytext(), CompSym.AND         );}
 "assert"              { return alloy_sym(yytext(), CompSym.ASSERT      );}
 "as"                  { return alloy_sym(yytext(), CompSym.AS          );}

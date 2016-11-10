@@ -38,7 +38,7 @@ import javax.swing.text.TabStop;
  *
  * <p><b>Thread Safety:</b> Can be called only by the AWT event thread
  *
- * @modified: nmm, Eduardo Pessoa (pt.uminho.haslab.pt): temporal keywords
+ * @modified: Nuno Macedo, Eduardo Pessoa // [HASLab] temporal keywords
  */
 
 class OurSyntaxDocument extends DefaultStyledDocument {
@@ -96,7 +96,7 @@ class OurSyntaxDocument extends DefaultStyledDocument {
 		"disjoint", "else", "enum", "exactly", "exh", "exhaustive", "expect", "extends", "fact", "for", "fun", "iden",
 		"iff", "implies", "in", "Int", "int", "let", "lone", "module", "no", "none", "not", "one", "open", "or", "part",
 		"partition", "pred", "private", "run", "seq", "set", "sig", "some", "String", "sum", "this", "univ", 
-		"eventually", "always", "after", "once", "historically", "previous", "until", "release" // pt.uminho.haslab: temporal keywords
+		"eventually", "always", "after", "once", "historically", "since", "previous", "until", "release" // [HASLab] temporal keywords
 	};
 
 	/** Returns true if array[start .. start+len-1] matches one of the reserved keyword. */
@@ -110,7 +110,7 @@ class OurSyntaxDocument extends DefaultStyledDocument {
 
 	/** Returns true if "c" can be in the start or middle or end of an identifier. */
 	private static final boolean do_iden(char c) {
-		return (c>='A' && c<='Z') || (c>='a' && c<='z') || c=='$' || (c>='0' && c<='9') || c=='_' /*|| c=='\''*/ || c=='\"'; // [HASLab]
+		return (c>='A' && c<='Z') || (c>='a' && c<='z') || c=='$' || (c>='0' && c<='9') || c=='_' /*|| c=='\''*/ || c=='\"'; // [HASLab] primed expressions
 	}
 
 	/** Constructor. */

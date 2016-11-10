@@ -50,17 +50,6 @@ final class ConvToConjunction extends VisitReturn<Expr> {
     }
 
     /** {@inheritDoc} */
-    @Override public Expr visit(BinaryExprTemp x) throws Err {
-        return x;
-    }
-
-
-    /** {@inheritDoc} */
-    @Override public Expr visit(ExprTemp x) throws Err {
-        return x.sub.deNOP();
-    }
-    
-    /** {@inheritDoc} */
     @Override public Expr visit(ExprUnary x) throws Err {
         if (x.op == ExprUnary.Op.NOOP) {
             return visitThis(x.sub);

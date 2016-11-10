@@ -190,7 +190,10 @@ public final class ExprBinary extends Expr {
       /** !in             */  NOT_IN("!in",false),
       /** &amp;&amp;      */  AND("&&",false),
       /** ||              */  OR("||",false),
-      /** &lt;=&gt;       */  IFF("<=>",false);
+      /** &lt;=&gt;       */  IFF("<=>",false),
+      /** until;          */  UNTIL("until",false), // [HASLab]
+      /** release;        */  RELEASE("release",false), // [HASLab]
+      /** since;          */  SINCE("since",false); // [HASLab]
 
       /** The constructor.
        * @param label - the label (for printing debugging messages)
@@ -230,7 +233,7 @@ public final class ExprBinary extends Expr {
               right = right.typecheck_as_int();
               break;
            }
-           case IFF: case IMPLIES: {
+           case IFF: case IMPLIES: case RELEASE: case UNTIL: case SINCE: { // [HASLab]
               left = left.typecheck_as_formula();
               right = right.typecheck_as_formula();
               break;
@@ -264,7 +267,7 @@ public final class ExprBinary extends Expr {
          JoinableList<Err> errs = left.errors.make(right.errors);
          if (errs.isEmpty()) switch(this) {
            case LT: case LTE: case GT: case GTE: case NOT_LT: case NOT_LTE: case NOT_GT: case NOT_GTE:
-           case AND: case OR: case IFF: case IMPLIES:
+           case AND: case OR: case IFF: case IMPLIES: case RELEASE: case UNTIL: case SINCE: // [HASLab]
               type = Type.FORMULA;
               break;
            case MUL: case DIV: case REM: case SHL: case SHR: case SHA:
@@ -341,7 +344,7 @@ public final class ExprBinary extends Expr {
            a=(b=Type.smallIntType());
            break;
         }
-        case AND: case OR: case IFF: case IMPLIES: {
+        case AND: case OR: case IFF: case IMPLIES: case RELEASE: case UNTIL: case SINCE: { // [HASLab]
            a=(b=Type.FORMULA);
            break;
         }

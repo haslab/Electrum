@@ -37,13 +37,6 @@ public abstract class VisitQuery<T> extends VisitReturn<T> {
         return ans;
     }
 
-    /** Visits an BinaryExprTemp node (A OP B) by calling accept() on A then B. */
-    @Override public T visit(BinaryExprTemp x) throws Err {
-        T ans=x.left.accept(this);
-        if (ans==null) ans=x.right.accept(this);
-        return ans;
-    }
-
     /** Visits an ExprList node F[X1,X2,X3..] by calling accept() on X1, X2, X3... */
     @Override public T visit(ExprList x) throws Err {
         for(Expr y:x.args) { T ans=y.accept(this); if (ans!=null) return ans; }
@@ -86,11 +79,6 @@ public abstract class VisitQuery<T> extends VisitReturn<T> {
         return x.sub.accept(this);
     }
     
-    /** Visits an ExprTemp node (always F) by calling accept() on F. */
-    @Override public T visit(ExprTemp x) throws Err {
-        return x.sub.accept(this);
-    }
-
     /** Visits an ExprUnary node (OP X) by calling accept() on X. */
     @Override public T visit(ExprUnary x) throws Err {
         return x.sub.accept(this);

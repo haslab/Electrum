@@ -112,14 +112,10 @@ public final class TranslateTAlloyToInit extends VisitReturn<Expr> {
 	}
 
 	@Override
-	public Expr visit(BinaryExprTemp x) throws Err {
-		return null;
-	}
-
-	@Override
 	public Expr visit(ExprUnary x) throws Err {
 		Expr res = null;
-		if (x.op == Op.PRIME) {
+		if (x.op == Op.PRIME || x.op == Op.ALWAYS || x.op == Op.AFTER || x.op == Op.PREVIOUS || 
+				x.op == Op.HISTORICALLY || x.op == Op.EVENTUALLY || x.op == Op.ONCE) {
 			throw new UnsupportedOperationException("Temporal: "+x);
 		}
 		Expr a = x.sub.accept(this);
@@ -150,11 +146,6 @@ public final class TranslateTAlloyToInit extends VisitReturn<Expr> {
 		return x;
 //		if (x.isVariable != null) return x;
 //		else throw new UnsupportedOperationException("Temporal: "+x);
-	}
-
-	@Override
-	public Expr visit(ExprTemp x) throws Err {
-		throw new UnsupportedOperationException("Temporal: "+x);
 	}
 
 	@Override

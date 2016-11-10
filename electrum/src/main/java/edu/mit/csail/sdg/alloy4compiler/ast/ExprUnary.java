@@ -109,18 +109,24 @@ public final class ExprUnary extends Expr {
 
     /** This class contains all possible unary operators. */
     public enum Op {
-        /** :some     x (where x is a unary set)                         */  SOMEOF("some of"),
-        /** :lone     x (where x is a unary set)                         */  LONEOF("lone of"),
-        /** :one      x (where x is a unary set)                         */  ONEOF("one of"),
-        /** :set      x (where x is a set or relation)                   */  SETOF("set of"),
-        /** :exactly  x (where x is a set or relation)                   */  EXACTLYOF("exactly of"),
-        /** not   f (where f is a formula)                               */  NOT("!"),
-        /** no    x (where x is a set or relation)                       */  NO("no"),
-        /** some  x (where x is a set or relation)                       */  SOME("some"),
-        /** lone  x (where x is a set or relation)                       */  LONE("lone"),
-        /** one   x (where x is a set or relation)                       */  ONE("one"),
+        /** :some        x (where x is a unary set)                      */  SOMEOF("some of"),
+        /** :lone        x (where x is a unary set)                      */  LONEOF("lone of"),
+        /** :one         x (where x is a unary set)                      */  ONEOF("one of"),
+        /** :set         x (where x is a set or relation)                */  SETOF("set of"),
+        /** :exactly     x (where x is a set or relation)                */  EXACTLYOF("exactly of"),
+        /** not   	     f (where f is a formula)                        */  NOT("!"),
+        /** after        f (where f is a formula)                        */  AFTER("after"), // [HASLab]
+        /** always       f (where f is a formula)                        */  ALWAYS("always"), // [HASLab]
+        /** eventually   f (where f is a formula)                        */  EVENTUALLY("eventually"), // [HASLab]
+        /** previous     f (where f is a formula)                        */  PREVIOUS("previous"), // [HASLab]
+        /** historically f (where f is a formula)                        */  HISTORICALLY("historically"), // [HASLab]
+        /** once         f (where f is a formula)                        */  ONCE("once"), // [HASLab]
+        /** no           x (where x is a set or relation)                */  NO("no"),
+        /** some         x (where x is a set or relation)                */  SOME("some"),
+        /** lone         x (where x is a set or relation)                */  LONE("lone"),
+        /** one          x (where x is a set or relation)                */  ONE("one"),
         /** transpose                                                    */  TRANSPOSE("~"),
-        /** post 	                                                     */  PRIME("\'"),
+        /** post 	                                                     */  PRIME("\'"), // [HASLab]
         /** reflexive closure                                            */  RCLOSURE("*"),
         /** closure                                                      */  CLOSURE("^"),
         /** cardinality of x (truncated to the current integer bitwidth) */  CARDINALITY("#"),
@@ -171,7 +177,8 @@ public final class ExprUnary extends Expr {
             extraError=null;
             switch(this) {
                case NOOP: break;
-               case NOT: sub=sub.typecheck_as_formula(); break;
+               case NOT: case AFTER: case ALWAYS: case EVENTUALLY: case PREVIOUS: case HISTORICALLY: case ONCE: // [HASLab]
+            	   sub=sub.typecheck_as_formula(); break;
                case CAST2SIGINT: 
                    if (sub instanceof ExprUnary)
                        if (((ExprUnary) sub).op == CAST2SIGINT)
@@ -198,7 +205,7 @@ public final class ExprUnary extends Expr {
                 if (type==EMPTY) extraError=new ErrorType(sub.span(), "After the some/lone/one multiplicity symbol, " +
                    "this expression must be a unary set.\nInstead, its possible type(s) are:\n" + sub.type);
                 break;
-              case NOT: case NO: case SOME: case LONE: case ONE:
+              case NOT: case NO: case SOME: case LONE: case ONE: case AFTER: case ALWAYS: case EVENTUALLY: case PREVIOUS: case HISTORICALLY: case ONCE: // [HASLab]
                 type=Type.FORMULA;
                 break;
               case TRANSPOSE:
@@ -246,10 +253,10 @@ public final class ExprUnary extends Expr {
         ErrorWarning w1=null, w2=null;
         Type s=p;
         switch(op) {
-          case NOT:
+          case NOT: case AFTER: case ALWAYS: case EVENTUALLY: case PREVIOUS: case HISTORICALLY: case ONCE: // [HASLab]
             s=Type.FORMULA;
             break;
-          case TRANSPOSE: case RCLOSURE: case CLOSURE:
+          case TRANSPOSE: case RCLOSURE: case CLOSURE: case PRIME: // [HASLab]
             if (warns!=null && op!=Op.TRANSPOSE && type.join(type).hasNoTuple())
                w1=new ErrorWarning(pos, this+" is redundant since its domain and range are disjoint: "+sub.type.extract(2));
             s = (op!=Op.TRANSPOSE) ? resolveClosure(p, sub.type) : sub.type.transpose().intersect(p).transpose() ;

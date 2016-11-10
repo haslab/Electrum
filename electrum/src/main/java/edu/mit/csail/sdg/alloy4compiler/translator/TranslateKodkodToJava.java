@@ -636,6 +636,7 @@ public final class TranslateKodkodToJava implements VoidVisitor {
 		switch(temporalFormula.op()) {
 			case RELEASE: file.printf("Expression %s=%s.release(%s);%n", newname, left, right); break;
 			case UNTIL: file.printf("Expression %s=%s.until(%s);%n", newname, left, right); break;
+			case SINCE: file.printf("Expression %s=%s.since(%s);%n", newname, left, right); break;
 			default: throw new RuntimeException("Unknown temporal kodkod operator \""+temporalFormula.op()+"\" encountered");
 		}
 	}

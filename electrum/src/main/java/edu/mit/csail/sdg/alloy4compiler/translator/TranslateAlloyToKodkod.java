@@ -610,7 +610,13 @@ public final class TranslateAlloyToKodkod extends VisitReturn<Object> {
             case EXACTLYOF: case SOMEOF: case LONEOF: case ONEOF: case SETOF: return cset(x.sub);
             case NOOP: return visitThis(x.sub);
             case NOT:  return k2pos( cform(x.sub).not() , x );
-            case PRIME:  return ((Expression)x.sub.accept(this)).prime(); //Post operator expansion.
+            case AFTER:  	   return k2pos( cform(x.sub).next() , x ); // [HASLab]
+            case ALWAYS:  	   return k2pos( cform(x.sub).always() , x ); // [HASLab]
+            case EVENTUALLY:   return k2pos( cform(x.sub).eventually() , x ); // [HASLab]
+            case PREVIOUS:     return k2pos( cform(x.sub).previous() , x ); // [HASLab]
+            case HISTORICALLY: return k2pos( cform(x.sub).historically() , x ); // [HASLab]
+            case ONCE:  	   return k2pos( cform(x.sub).once() , x ); // [HASLab]
+            case PRIME:return cset(x.sub).prime(); // [HASLab]
             case SOME: return k2pos( cset(x.sub).some() , x);
             case LONE: return k2pos( cset(x.sub).lone() , x);
             case ONE:  return k2pos( cset(x.sub).one() , x);
@@ -786,6 +792,9 @@ public final class TranslateAlloyToKodkod extends VisitReturn<Object> {
             case NOT_GTE: i=cint(a);  f=i.gte(cint(b)).not();  return k2pos(f,x);
             case AND: f=cform(a); f=f.and(cform(b)); return k2pos(f,x);
             case OR:  f=cform(a); f=f.or(cform(b));  return k2pos(f,x);
+            case UNTIL: f=cform(a); f=f.until(cform(b)); return k2pos(f,x); // [HASLab]
+            case RELEASE: f=cform(a); f=f.release(cform(b)); return k2pos(f,x); // [HASLab]
+            case SINCE: f=cform(a); f=f.since(cform(b)); return k2pos(f,x); // [HASLab]
             case IFF: f=cform(a); f=f.iff(cform(b)); return k2pos(f,x);
             case PLUSPLUS: s=cset(a); return s.override(cset(b));
             case MUL: i=cint(a); return i.multiply(cint(b));
@@ -1051,43 +1060,6 @@ public final class TranslateAlloyToKodkod extends VisitReturn<Object> {
         return ans;
     }
 
-    // expansion of unary temporal operators
-    // pt.uminho.haslab
-	@Override
-	public Object visit(ExprTemp x) throws Err {
-        switch (x.op) {
-            case ALWAYS:
-                return ((Formula) x.sub.accept(this)).always();
-            case EVENTUALLY:
-                return ((Formula) x.sub.accept(this)).eventually();
-            case HISTORICALLY:
-                return ((Formula) x.sub.accept(this)).historically();
-            case ONCE:
-                return ((Formula) x.sub.accept(this)).once();
-            case PREVIOUS:
-                return ((Formula) x.sub.accept(this)).previous();
-            case AFTER:
-                return ((Formula) x.sub.accept(this)).next();
-            default: return x;
-        }
-	}
-
-
-    // expansion of binary temporal operators
-    @Override
-    public Object visit(BinaryExprTemp x) throws Err {
-        switch (x.op) {
-            case UNTIL:
-                return ((Formula)x.left.accept(this)).until(((Formula) x.right.accept(this)));
-            case RELEASE:
-                return ((Formula)x.left.accept(this)).release(((Formula) x.right.accept(this)));
-            default: return x;
-        }
-    }
-
-    public static void p(String s){
-        System.out.println(s);
-    }
 }
 
 
