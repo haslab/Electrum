@@ -52,11 +52,11 @@ import kodkod.ast.operator.ExprOperator;
 import kodkod.ast.operator.FormulaOperator;
 import kodkod.engine.CapacityExceededException;
 import kodkod.engine.Evaluator;
+import kodkod.engine.PardinusSolver;
 import kodkod.engine.Proof;
 import kodkod.engine.Solution;
-import kodkod.engine.TemporalKodkodSolver;
 import kodkod.engine.config.AbstractReporter;
-import kodkod.engine.config.BoundedExtendedOptions;
+import kodkod.engine.config.ExtendedOptions;
 import kodkod.engine.config.Options;
 import kodkod.engine.config.Reporter;
 import kodkod.engine.fol2sat.TranslationRecord;
@@ -66,7 +66,7 @@ import kodkod.engine.ucore.HybridStrategy;
 import kodkod.engine.ucore.RCEStrategy;
 import kodkod.instance.Bounds;
 import kodkod.instance.Instance;
-import kodkod.instance.TemporalBounds;
+import kodkod.instance.PardinusBounds;
 import kodkod.instance.TemporalInstance;
 import kodkod.instance.Tuple;
 import kodkod.instance.TupleFactory;
@@ -161,7 +161,7 @@ public final class A4Solution {
 
 	/** The Temporal Kodkod Solver object. */
 	// [HASLab]
-	private final TemporalKodkodSolver solver;
+	private final PardinusSolver solver;
 
 	//====== mutable fields (immutable after solve() has been called) ===================================//
 
@@ -170,7 +170,8 @@ public final class A4Solution {
 
 	/** The Kodkod Temporal Bounds object. */
 	// [HASLab]
-	private TemporalBounds bounds; 
+	private PardinusBounds bounds; 
+	private PardinusBounds vbounds; 
 
 	/** The list of Kodkod formulas; can be empty if unknown; once a solution is solved we must not modify this anymore */
 	private ArrayList<Formula> formulas = new ArrayList<Formula>();
@@ -260,7 +261,7 @@ public final class A4Solution {
 			atoms.add("<empty>");
 		}
 		kAtoms = ConstList.make(atoms);
-		bounds = new TemporalBounds(new Universe(kAtoms)); // [HASLab] temporal bounds
+		bounds = new PardinusBounds(new Universe(kAtoms)); // [HASLab] temporal bounds
 		factory = bounds.universe().factory();
 		TupleSet sigintBounds = factory.noneOf(1);
 		TupleSet seqidxBounds = factory.noneOf(1);
@@ -295,11 +296,13 @@ public final class A4Solution {
 		bounds.boundExactly(KK_STRING, this.stringBounds);
 		int sym = (expected==1 ? 0 : opt.symmetry);
 
-		BoundedExtendedOptions varOptions = new BoundedExtendedOptions(); // [HASLab] extended options
-		solver = new TemporalKodkodSolver(varOptions); // [HASLab] temporal solver
-		solver.options().setNoOverflow(opt.noOverflow);
-		solver.options().setMaxTraceLength(opt.maxTraceLength); // [HASLab] propagate options
+		ExtendedOptions varOptions = new ExtendedOptions(); // [HASLab] extended options
+		varOptions.setRunTemporal(true); // [HASLab] extended options
+		varOptions.setRunDecomposed(true); // [HASLab]
+		varOptions.setNoOverflow(opt.noOverflow);
+		varOptions.setMaxTraceLength(opt.maxTraceLength); // [HASLab] propagate options
 //		solver.options().setFlatten(false); // added for now, since multiplication and division circuit takes forever to flatten // [HASLab] kodkod 2.0+
+		// [HASLab] pushed solver creation further below as solver choice is needed for initialization
 		if (opt.solver.external()!=null) {
 			String ext = opt.solver.external();
 			if (opt.solverDirectory.length()>0 && ext.indexOf(File.separatorChar)<0) ext=opt.solverDirectory+File.separatorChar+ext;
@@ -307,25 +310,28 @@ public final class A4Solution {
 				File tmp = File.createTempFile("tmp", ".cnf", new File(opt.tempDirectory));
 				tmp.deleteOnExit(); 
 //				solver.options().setSolver(SATFactory.externalFactory(ext, tmp.getAbsolutePath(), "", opt.solver.options())); // [HASLab] kodkod 2.0+
-				solver.options().setSolver(SATFactory.externalFactory(ext, tmp.getAbsolutePath(), opt.solver.options()));
+				varOptions.setSolver(SATFactory.externalFactory(ext, tmp.getAbsolutePath(), opt.solver.options()));
 			} catch(IOException ex) { throw new ErrorFatal("Cannot create temporary directory.", ex); }
 		} else if (opt.solver.equals(A4Options.SatSolver.ZChaffJNI)) { // [HASLab] kodkod 2.0+
 //			solver.options().setSolver(SATFactory.ZChaff);
 			throw new UnsupportedOperationException("Kodkod no longer supports ZChaff.");
 		} else if (opt.solver.equals(A4Options.SatSolver.MiniSatJNI)) {
-			solver.options().setSolver(SATFactory.MiniSat);
+			varOptions.setSolver(SATFactory.MiniSat);
 		} else if (opt.solver.equals(A4Options.SatSolver.MiniSatProverJNI)) {
 			sym=20;
-			solver.options().setSolver(SATFactory.MiniSatProver);
-			solver.options().setLogTranslation(2);
-			solver.options().setCoreGranularity(opt.coreGranularity);
+			varOptions.setSolver(SATFactory.MiniSatProver);
+			varOptions.setLogTranslation(2);
+			varOptions.setCoreGranularity(opt.coreGranularity);
+		} else if (opt.solver.equals(A4Options.SatSolver.Electrod)) { // [HASLab]
+			varOptions.setRunUnbounded(true);
 		} else {
-			solver.options().setSolver(SATFactory.DefaultSAT4J); // Even for "KK" and "CNF", we choose SAT4J here; later, just before solving, we'll change it to a Write2CNF solver
+			varOptions.setSolver(SATFactory.DefaultSAT4J); // Even for "KK" and "CNF", we choose SAT4J here; later, just before solving, we'll change it to a Write2CNF solver
 		}
-		solver.options().setSymmetryBreaking(sym);
-		solver.options().setSkolemDepth(opt.skolemDepth);
-		solver.options().setBitwidth(bitwidth > 0 ? bitwidth : (int) Math.ceil(Math.log(atoms.size())) + 1);
-		solver.options().setIntEncoding(Options.IntEncoding.TWOSCOMPLEMENT);
+		varOptions.setSymmetryBreaking(sym);
+		varOptions.setSkolemDepth(opt.skolemDepth);
+		varOptions.setBitwidth(bitwidth > 0 ? bitwidth : (int) Math.ceil(Math.log(atoms.size())) + 1);
+		varOptions.setIntEncoding(Options.IntEncoding.TWOSCOMPLEMENT);
+		solver = new PardinusSolver(varOptions); // [HASLab] temporal solver
 	}
 
 	/** Construct a new A4Solution that is the continuation of the old one, but with the "next" instance. */
@@ -1066,6 +1072,7 @@ public final class A4Solution {
 		rep.debug("eff: "+fgoal.toString());
 		rep.debug("eff: "+bounds.toString());
 		rep.debug("eff: "+solver.options().toString());
+		bounds = new PardinusBounds(bounds,true); // [HASLab] support for decomposed
 		kEnumerator = new Peeker<Solution>(solver.solveAll(fgoal, bounds));
 		if (sol==null) sol = kEnumerator.next();
 
