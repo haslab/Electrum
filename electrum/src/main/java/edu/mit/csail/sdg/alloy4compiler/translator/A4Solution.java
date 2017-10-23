@@ -1072,8 +1072,8 @@ public final class A4Solution {
 		rep.debug("eff: "+fgoal.toString());
 		rep.debug("eff: "+bounds.toString());
 		rep.debug("eff: "+solver.options().toString());
-		bounds = new PardinusBounds(bounds,true); // [HASLab] support for decomposed
-		kEnumerator = new Peeker<Solution>(solver.solveAll(fgoal, bounds));
+		PardinusBounds b = new PardinusBounds(bounds,true); // [HASLab] support for decomposed
+		kEnumerator = new Peeker<Solution>(solver.solveAll(fgoal, b));
 		if (sol==null) sol = kEnumerator.next();
 
 //		}
