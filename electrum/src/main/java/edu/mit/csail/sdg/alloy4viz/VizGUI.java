@@ -694,6 +694,11 @@ public final class VizGUI implements ComponentListener {
 			public final void actionPerformed(ActionEvent e) {
 				leftTime.setEnabled(atomComboTime.getSelectedIndex() > 0);
 				rightTime.setEnabled(atomComboTime.getSelectedIndex() < atomComboTime.getItemCount() - 1 || backindex != -1);
+				if (atomComboTime.getSelectedIndex()<atomComboTime.getItemCount() - 1 || atomComboTime.getSelectedIndex() == -1)
+					rightTime.setText(">>");
+				else 
+					rightTime.setText("??");
+					
 				xmlLoaded.remove(getXMLfilename());
 				if (loadXmlFile) {
 					String[] s = getXMLfilename().split(Pattern.quote("."));

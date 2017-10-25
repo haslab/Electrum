@@ -323,6 +323,7 @@ public final class A4Solution {
 			varOptions.setLogTranslation(2);
 			varOptions.setCoreGranularity(opt.coreGranularity);
 		} else if (opt.solver.equals(A4Options.SatSolver.Electrod)) { // [HASLab]
+			varOptions.setSolver(SATFactory.electrod());
 			varOptions.setRunUnbounded(true);
 		} else {
 			varOptions.setSolver(SATFactory.DefaultSAT4J); // Even for "KK" and "CNF", we choose SAT4J here; later, just before solving, we'll change it to a Write2CNF solver
