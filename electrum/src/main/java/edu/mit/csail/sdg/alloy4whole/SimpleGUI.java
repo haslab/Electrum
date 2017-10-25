@@ -511,7 +511,7 @@ public final class SimpleGUI implements ComponentListener, Listener {
         // Record the locations
         System.setProperty("alloy.theme0", alloyHome() + fs + "models");
         System.setProperty("alloy.home", alloyHome());
-        System.setProperty("debug", "no"); // [HASLab]
+        System.setProperty("debug", "yes"); // [HASLab]
     }
 
     /** Called when this window is resized. */
