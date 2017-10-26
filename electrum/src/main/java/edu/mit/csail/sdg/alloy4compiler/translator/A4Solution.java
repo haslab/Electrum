@@ -26,10 +26,13 @@ import static kodkod.engine.Solution.Outcome.UNSATISFIABLE;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -171,7 +174,6 @@ public final class A4Solution {
 	/** The Kodkod Temporal Bounds object. */
 	// [HASLab]
 	private PardinusBounds bounds; 
-	private PardinusBounds vbounds; 
 
 	/** The list of Kodkod formulas; can be empty if unknown; once a solution is solved we must not modify this anymore */
 	private ArrayList<Formula> formulas = new ArrayList<Formula>();
@@ -332,6 +334,12 @@ public final class A4Solution {
 		varOptions.setSkolemDepth(opt.skolemDepth);
 		varOptions.setBitwidth(bitwidth > 0 ? bitwidth : (int) Math.ceil(Math.log(atoms.size())) + 1);
 		varOptions.setIntEncoding(Options.IntEncoding.TWOSCOMPLEMENT);
+		// [HASLab] create unique readable name
+		DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd-HH-mm");
+		String[] pths = getOriginalFilename().split("/");
+		String file = pths[pths.length-1].substring(0, pths[pths.length-1].length()-4).replace(' ', '_');
+		String check = getOriginalCommand().replace(' ', '_').replace('$', '-');
+		varOptions.setUniqueName(file+"-"+check+"-"+dateFormat.format(new Date())+"-"+this.hashCode());
 		solver = new PardinusSolver(varOptions); // [HASLab] temporal solver
 	}
 
