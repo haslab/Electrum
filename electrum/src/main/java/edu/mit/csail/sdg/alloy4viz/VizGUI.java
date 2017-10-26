@@ -20,9 +20,9 @@ import static edu.mit.csail.sdg.alloy4.OurUtil.menuItem;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
-import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentEvent;
@@ -41,13 +41,14 @@ import java.util.Set;
 import java.util.prefs.Preferences;
 import java.util.regex.Pattern;
 
-import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
@@ -57,6 +58,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTextArea;
 import javax.swing.JToolBar;
+import javax.swing.ListCellRenderer;
 import javax.swing.border.EmptyBorder;
 import javax.swing.plaf.basic.BasicSplitPaneUI;
 
@@ -667,6 +669,9 @@ public final class VizGUI implements ComponentListener {
 		final String[] atomnames = this.createTimeComboAtoms(0);
 		atomComboTime = new OurCombobox(atomnames.length < 1 ? new String[] { " " } : atomnames);
 		
+		// [HASLab]
+		atomComboTime.setRenderer(new TimePainter());
+		
 		leftTime.setEnabled(false);
 		rightTime.setEnabled(false);
 
@@ -692,13 +697,26 @@ public final class VizGUI implements ComponentListener {
 		});
 		atomComboTime.addActionListener(new ActionListener() {
 			public final void actionPerformed(ActionEvent e) {
+				int loop = getVizState().getOriginalInstance().originalA4.getBackLoop();
+				int leng = getVizState().getOriginalInstance().originalA4.getLastTrace();
+				
 				leftTime.setEnabled(atomComboTime.getSelectedIndex() > 0);
 				rightTime.setEnabled(atomComboTime.getSelectedIndex() < atomComboTime.getItemCount() - 1 || backindex != -1);
-				if (atomComboTime.getSelectedIndex()<atomComboTime.getItemCount() - 1 || atomComboTime.getSelectedIndex() == -1)
-					rightTime.setText(">>");
+				// [HASLab] change button when looping
+				if (atomComboTime.getSelectedIndex() == leng && loop != -1)
+					rightTime.setText(">0");
 				else 
-					rightTime.setText("??");
-					
+					rightTime.setText(">>");
+				// [HASLab] change text when loop state
+				if (atomComboTime.getSelectedIndex() == loop) {
+					atomComboTime.setFont(atomComboTime.getFont().deriveFont(Font.BOLD));
+					atomComboTime.setForeground(Color.BLUE);
+				}
+				else {
+					atomComboTime.setFont(atomComboTime.getFont().deriveFont(Font.PLAIN));
+					atomComboTime.setForeground(Color.BLACK);
+				}
+
 				xmlLoaded.remove(getXMLfilename());
 				if (loadXmlFile) {
 					String[] s = getXMLfilename().split(Pattern.quote("."));
@@ -1571,4 +1589,36 @@ public final class VizGUI implements ComponentListener {
 	// return wrapMe();
 	// }
 
+	// [HASLab]
+	private class TimePainter extends JLabel implements ListCellRenderer<Object> {
+	     public TimePainter() {
+	         setOpaque(true);
+	     }
+
+	     public Component getListCellRendererComponent(JList<?> list,
+	                                                   Object value,
+	                                                   int index,
+	                                                   boolean isSelected,
+	                                                   boolean cellHasFocus) {
+
+	         setText(value.toString());
+
+	         int bold;
+	         Color color;
+
+	         if (index == backindex) {
+	        	 bold = Font.BOLD;
+	        	 color = Color.BLUE;
+	         } else {
+	        	 bold = Font.PLAIN;
+	        	 color = Color.BLACK;
+	         };
+
+	         setFont(getFont().deriveFont(bold));
+	         setForeground(color);
+	         setBackground(Color.WHITE);
+	         
+	         return this;
+	     }
+	 }
 }
