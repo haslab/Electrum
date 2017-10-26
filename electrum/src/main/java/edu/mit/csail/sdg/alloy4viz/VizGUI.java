@@ -661,9 +661,12 @@ public final class VizGUI implements ComponentListener {
 	private JComboBox atomComboTime;
 	private JButton leftTime, rightTime;
 	private int backindex = -1;
+	private JLabel tempMsg;
 	
+	// [HASLab]
 	public final void addTemporalJPanel() {
 
+		tempMsg = new JLabel();
 		leftTime = new JButton("<<");
 		rightTime = new JButton(">>");
 		final String[] atomnames = this.createTimeComboAtoms(0);
@@ -703,18 +706,25 @@ public final class VizGUI implements ComponentListener {
 				leftTime.setEnabled(atomComboTime.getSelectedIndex() > 0);
 				rightTime.setEnabled(atomComboTime.getSelectedIndex() < atomComboTime.getItemCount() - 1 || backindex != -1);
 				// [HASLab] change button when looping
-				if (atomComboTime.getSelectedIndex() == leng && loop != -1)
-					rightTime.setText(">0");
-				else 
-					rightTime.setText(">>");
-				// [HASLab] change text when loop state
-				if (atomComboTime.getSelectedIndex() == loop) {
+				if (atomComboTime.getSelectedIndex() == leng && loop != -1) {
+					rightTime.setText(">"+loop);
 					atomComboTime.setFont(atomComboTime.getFont().deriveFont(Font.BOLD));
 					atomComboTime.setForeground(Color.BLUE);
+					tempMsg.setText("Last state before looping.");
 				}
 				else {
-					atomComboTime.setFont(atomComboTime.getFont().deriveFont(Font.PLAIN));
-					atomComboTime.setForeground(Color.BLACK);
+					rightTime.setText(">>");
+					// [HASLab] change text when loop state
+					if (atomComboTime.getSelectedIndex() == loop) {
+						atomComboTime.setFont(atomComboTime.getFont().deriveFont(Font.BOLD));
+						atomComboTime.setForeground(Color.GREEN);
+						tempMsg.setText("Loop starts here.");
+					}
+					else {
+						atomComboTime.setFont(atomComboTime.getFont().deriveFont(Font.PLAIN));
+						atomComboTime.setForeground(Color.BLACK);
+						tempMsg.setText("");
+					}
 				}
 
 				xmlLoaded.remove(getXMLfilename());
@@ -734,6 +744,8 @@ public final class VizGUI implements ComponentListener {
 		});
 		atomComboTime.setMaximumSize( atomComboTime.getPreferredSize() );
 		toolbar.add(Box.createHorizontalGlue());
+		toolbar.add(tempMsg);
+		toolbar.add(Box.createHorizontalStrut(15));
 		toolbar.add(leftTime);
 		toolbar.add(atomComboTime);
 		toolbar.add(rightTime);
@@ -1608,7 +1620,10 @@ public final class VizGUI implements ComponentListener {
 
 	         if (index == backindex) {
 	        	 bold = Font.BOLD;
-	        	 color = Color.BLUE;
+	        	 color = Color.GREEN;
+	         } else if (index == list.getModel().getSize()-1) {
+	        	 bold = Font.BOLD;
+	        	 color = Color.BLUE;	        	 
 	         } else {
 	        	 bold = Font.PLAIN;
 	        	 color = Color.BLACK;
