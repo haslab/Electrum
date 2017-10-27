@@ -710,7 +710,10 @@ public final class VizGUI implements ComponentListener {
 					rightTime.setText(">"+loop);
 					atomComboTime.setFont(atomComboTime.getFont().deriveFont(Font.BOLD));
 					atomComboTime.setForeground(Color.BLUE);
-					tempMsg.setText("Last state before looping.");
+					if (atomComboTime.getSelectedIndex() == loop)
+						tempMsg.setText("Loop starts and ends here.");
+					else
+						tempMsg.setText("Last state before looping.");
 				}
 				else {
 					rightTime.setText(">>");
@@ -1613,17 +1616,18 @@ public final class VizGUI implements ComponentListener {
 	                                                   boolean isSelected,
 	                                                   boolean cellHasFocus) {
 
-	         setText(value.toString());
+	    	 if (value!=null)
+	    		 setText(value.toString());
 
 	         int bold;
 	         Color color;
 
-	         if (index == backindex) {
-	        	 bold = Font.BOLD;
-	        	 color = Color.GREEN;
-	         } else if (index == list.getModel().getSize()-1) {
+	         if (index == list.getModel().getSize()-1) {
 	        	 bold = Font.BOLD;
 	        	 color = Color.BLUE;	        	 
+	         } else if (index == backindex) {
+        		 bold = Font.BOLD;
+        		 color = Color.GREEN;
 	         } else {
 	        	 bold = Font.PLAIN;
 	        	 color = Color.BLACK;
