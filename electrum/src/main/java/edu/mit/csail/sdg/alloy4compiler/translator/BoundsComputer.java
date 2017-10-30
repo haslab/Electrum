@@ -278,6 +278,7 @@ final class BoundsComputer {
            }
            for(Field f:s.getFields()) {
               boolean isOne = s.isOne!=null;
+              boolean isVar = s.isVariable!=null;
               if (isOne && f.decl().expr.mult()==ExprUnary.Op.EXACTLYOF) {
                  Expression sim = sim(f.decl().expr);
                  if (sim!=null) {
@@ -286,10 +287,9 @@ final class BoundsComputer {
                     continue;
                  }
               }
-              //Type t = isOne ? Sig.UNIV.type().join(f.type()) : f.type();
-
-              //Electrum declarations
-              Type t =  f.type();
+              
+              // [HASLab] avoid collapse of var one sigs
+              Type t = isOne&&isVar ? Sig.UNIV.type().join(f.type()) : f.type();
 
               TupleSet ub = factory.noneOf(t.arity());
               for(List<PrimSig> p:t.fold()) {
@@ -302,10 +302,9 @@ final class BoundsComputer {
               }
                Relation r = sol.addRel(s.label+"."+f.label, null, ub,f);
 
-               //sol.addField(f, isOne ? sol.a2k(s).product(r) : r);
+               // [HASLab] avoid collapse of var one sigs
+               sol.addField(f, isOne&&isVar ? sol.a2k(s).product(r) : r);
 
-               //Electrum declarations
-               sol.addField(f, r);
            }
         }
         // Add any additional SIZE constraints
