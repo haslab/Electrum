@@ -190,6 +190,10 @@ public final class A4Options implements Serializable {
     // [HASLab]
 	public int maxTraceLength;
 
+	// [HASLab]
+    public boolean decomposed = false;
+
+	
     /** This method makes a copy of this Options object. */
     public A4Options dup() {
         A4Options x = new A4Options();
@@ -205,6 +209,7 @@ public final class A4Options implements Serializable {
         x.noOverflow = noOverflow;
         x.coreGranularity = coreGranularity;
         x.maxTraceLength = maxTraceLength; // [HASLab]
+        x.decomposed = decomposed; // [HASLab]
         return x;
     }
 }

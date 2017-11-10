@@ -303,6 +303,7 @@ public final class A4Solution {
 		varOptions.setRunDecomposed(true); // [HASLab]
 		varOptions.setNoOverflow(opt.noOverflow);
 		varOptions.setMaxTraceLength(opt.maxTraceLength); // [HASLab] propagate options
+		varOptions.setRunDecomposed(opt.decomposed); // [HASLab] propagate options
 //		solver.options().setFlatten(false); // added for now, since multiplication and division circuit takes forever to flatten // [HASLab] kodkod 2.0+
 		// [HASLab] pushed solver creation further below as solver choice is needed for initialization
 		if (opt.solver.external()!=null) {

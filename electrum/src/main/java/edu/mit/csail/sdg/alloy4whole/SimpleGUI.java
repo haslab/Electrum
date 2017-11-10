@@ -231,7 +231,11 @@ public final class SimpleGUI implements ComponentListener, Listener {
 
     /** The temporal trace length.
      * pt.uminho.haslab */
+    // [HASLab]
     private static final IntPref MaxTraceLength = new IntPref("MaxTraceLength",1,20,100);
+
+    // [HASLab]
+    private static final BooleanPref Decomposed = new BooleanPref("Decomposed");
 
     /** The amount of memory (in M) to allocate for Kodkod and the SAT solvers. */
     private static final IntPref SubMemory = new IntPref("SubMemory",16,768,65535);
@@ -1019,6 +1023,7 @@ public final class SimpleGUI implements ComponentListener, Listener {
         opt.coreMinimization = CoreMinimization.get();
         opt.coreGranularity = CoreGranularity.get();
         opt.maxTraceLength = MaxTraceLength.get(); // pt.uminho.haslab
+        opt.decomposed = Decomposed.get(); // pt.uminho.haslab
         opt.originalFilename = Util.canon(text.get().getFilename());
         opt.solver = SatSolver.get();
         task.bundleIndex = i;
@@ -1280,13 +1285,14 @@ public final class SimpleGUI implements ComponentListener, Listener {
             for(int n=0; n<granLabelLong.length; n++) { menuItem(cgMenu, granLabelLong[n], doCoreGran(n), n==gran?iconYes:iconNo); }
             if (now!=SatSolver.MiniSatProverJNI) cgMenu.setEnabled(false);
             optmenu.add(cgMenu);
-            // pt.uminho.haslab: trace length
+            // [HASLAb]: trace length
             final int traceLength = MaxTraceLength.get();
             final JMenu length = new JMenu("Max trace length: "+traceLength);
             for(int n: new Integer[]{5,10,15,20,25,30,35,40}) {
                menuItem(length, ""+n, doOptMaxTraceLength(n), n==traceLength?iconYes:iconNo);
             }
             optmenu.add(length);
+            if (Version.experimental) menuItem(optmenu, "Decomposed solving: "+(Decomposed.get()?"Yes":"No"), doOptDecomposed()); // [HASLab]
             //
             menuItem(optmenu, "Visualize Automatically: "+(AutoVisualize.get()?"Yes":"No"), doOptAutoVisualize());
             menuItem(optmenu, "Record the Kodkod Input/Output: "+(RecordKodkod.get()?"Yes":"No"), doOptRecordKodkod());
@@ -1419,7 +1425,13 @@ public final class SimpleGUI implements ComponentListener, Listener {
         if (!wrap) NoOverflow.set(!NoOverflow.get());
         return wrapMe();
     }
-    
+
+    // [HASLab]
+    private Runner doOptDecomposed() {
+        if (!wrap) Decomposed.set(!Decomposed.get());
+        return wrapMe();
+    }
+
     /** This method toggles the "syntax highlighting" checkbox. */
     private Runner doOptSyntaxHighlighting() {
         if (!wrap) {
@@ -1432,6 +1444,7 @@ public final class SimpleGUI implements ComponentListener, Listener {
     
     /** This method changes the trace length of temporal rns. 
      pt.uminho.haslab */
+    // [HASLab]
     private Runner doOptMaxTraceLength(Integer length) {
         if (!wrap) MaxTraceLength.set(length.intValue());
         return wrapMe(length); // pt.uminho.haslab 
