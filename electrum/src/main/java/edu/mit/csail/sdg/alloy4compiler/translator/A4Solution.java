@@ -62,6 +62,7 @@ import kodkod.engine.config.AbstractReporter;
 import kodkod.engine.config.ExtendedOptions;
 import kodkod.engine.config.Options;
 import kodkod.engine.config.Reporter;
+import kodkod.engine.config.SLF4JReporter;
 import kodkod.engine.fol2sat.TranslationRecord;
 import kodkod.engine.fol2sat.Translator;
 import kodkod.engine.satlab.SATFactory;
@@ -325,8 +326,11 @@ public final class A4Solution {
 			varOptions.setSolver(SATFactory.MiniSatProver);
 			varOptions.setLogTranslation(2);
 			varOptions.setCoreGranularity(opt.coreGranularity);
-		} else if (opt.solver.equals(A4Options.SatSolver.Electrod)) { // [HASLab]
-			varOptions.setSolver(SATFactory.electrod());
+		} else if (opt.solver.equals(A4Options.SatSolver.ElectrodS)) { // [HASLab]
+			varOptions.setSolver(SATFactory.electrodS());
+			varOptions.setRunUnbounded(true);
+		} else if (opt.solver.equals(A4Options.SatSolver.ElectrodX)) { // [HASLab]
+			varOptions.setSolver(SATFactory.electrodX());
 			varOptions.setRunUnbounded(true);
 		} else {
 			varOptions.setSolver(SATFactory.DefaultSAT4J); // Even for "KK" and "CNF", we choose SAT4J here; later, just before solving, we'll change it to a Write2CNF solver
@@ -1030,7 +1034,8 @@ public final class A4Solution {
 		Solution sol = null;
 		final Reporter oldReporter = solver.options().reporter();
 		final boolean solved[] = new boolean[]{true};
-		solver.options().setReporter(new AbstractReporter() { // Set up a reporter to catch the type+pos of skolems
+		// [HASLab] sl4j reporter
+		solver.options().setReporter(new SLF4JReporter() { // Set up a reporter to catch the type+pos of skolems
 			@Override public void skolemizing(Decl decl, Relation skolem, List<Decl> predecl) {
 				try {
 					Type t=kv2typepos(decl.variable()).a;
