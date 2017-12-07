@@ -22,7 +22,7 @@
  * please refer to CompFilter.java
  */
 
-//@modified: nmm
+// @modified: Nuno Macedo // [HASLab] temporal solving
 
 import java.util.Stack;
 import java.util.List;
@@ -191,16 +191,16 @@ parser code {:
     ch.put(CompSym.NOTLTE, "!");
     ch.put(CompSym.ONE2, "one");
     ch.put(CompSym.ONE, "one");
-    ch.put(CompSym.VAR, "var"); 					// pt.uminho.haslab: variable tokens
-    ch.put(CompSym.ALWAYS, "always"); 				// pt.uminho.haslab: ltl tokens
-    ch.put(CompSym.EVENTUALLY, "eventually");		// pt.uminho.haslab: ltl tokens
-    ch.put(CompSym.AFTER, "after"); 				// pt.uminho.haslab: ltl tokens
-    ch.put(CompSym.PREVIOUS, "previous"); 			// pt.uminho.haslab: ltl tokens
-    ch.put(CompSym.HISTORICALLY, "historically"); 	// pt.uminho.haslab: ltl tokens
-    ch.put(CompSym.ONCE, "once");					// pt.uminho.haslab: ltl tokens
-    ch.put(CompSym.RELEASE, "release");				// pt.uminho.haslab: ltl tokens
-    ch.put(CompSym.UNTIL, "until");					// pt.uminho.haslab: ltl tokens
-    ch.put(CompSym.SINCE, "since");					// pt.uminho.haslab: ltl tokens
+    ch.put(CompSym.VAR, "var"); 					// [HASLab] variable tokens
+    ch.put(CompSym.ALWAYS, "always"); 				// [HASLab] ltl tokens
+    ch.put(CompSym.EVENTUALLY, "eventually");		// [HASLab] ltl tokens
+    ch.put(CompSym.AFTER, "after"); 				// [HASLab] ltl tokens
+    ch.put(CompSym.PREVIOUS, "previous"); 			// [HASLab] ltl tokens
+    ch.put(CompSym.HISTORICALLY, "historically"); 	// [HASLab] ltl tokens
+    ch.put(CompSym.ONCE, "once");					// [HASLab] ltl tokens
+    ch.put(CompSym.RELEASE, "release");				// [HASLab] ltl tokens
+    ch.put(CompSym.UNTIL, "until");					// [HASLab] ltl tokens
+    ch.put(CompSym.SINCE, "since");					// [HASLab] ltl tokens
     ch.put(CompSym.OPEN, "open");
     ch.put(CompSym.OR, "||");
     ch.put(CompSym.PART, "part");
@@ -231,10 +231,10 @@ parser code {:
     ch.put(CompSym.TILDE, "~");
     ch.put(CompSym.UNIV, "univ");
     ch.put(CompSym.ID, "NAME");
-    ch.put(CompSym.PRIME, "'"); // pt.uminho.haslab: ltl tokens
+    ch.put(CompSym.PRIME, "'"); // [HASLab] ltl tokens
     ch.put(CompSym.NUMBER, "NUMBER");
     ch.put(CompSym.STR, "STRING");
-//  ch.put(CompSym.TIME, "Time"); //pt.haslab.uminho: time scopes currently managed at the options
+    ch.put(CompSym.TIME, "Time"); // [HASLab]
     TreeSet<String> list = new TreeSet<String>();
     Pos p=Pos.UNKNOWN;
     if (x!=null && x.value instanceof Pos) p=(Pos)(x.value);
@@ -344,12 +344,12 @@ action code {:
     private void nod(List<ExprVar> names) throws Err {
         if (names!=null) for(ExprVar n:names) if (n!=null && n.label.indexOf('$')>=0) throw new ErrorSyntax(n.pos, "The name cannot contain the '$' symbol.");
     }
-    //pt.uminho.haslab: extended with time scopes
+    // [HASLab] extended with time scopes
     private void c(boolean follow, ExprVar o, ExprVar x, ExprVar n, Expr e, List<CommandScope> s, ExprConstant c) throws Err {
         if (n!=null) nod(n);
         int bitwidth=(-1), maxseq=(-1), overall=(-1), expects=(c==null ? -1 : c.num); 
-        int maxtime = (-1); //pt.uminho.haslab: time scope currently managed by the options
-        boolean exacttime = false; //pt.uminho.haslab: time scope currently managed by the options
+        int maxtime = (-1); // [HASLab]
+        boolean exacttime = false; // [HASLab]
         Pos p = o.pos.merge(n!=null ? n.span() : e.span());
         for(int i=s.size()-1; i>=0; i--) {
           Sig j=s.get(i).sig;  int k=s.get(i).startingScope;
@@ -357,12 +357,12 @@ action code {:
           if (j.label.equals("univ")) { overall=k; s.remove(i); continue; }
           if (j.label.equals("int"))  { if (bitwidth>=0) throw new ErrorSyntax(j.pos, "The bitwidth cannot be specified more than once."); bitwidth=k; s.remove(i); continue; }
           if (j.label.equals("seq"))  { if (maxseq>=0) throw new ErrorSyntax(j.pos, "The maximum sequence length cannot be specified more than once."); maxseq=k; s.remove(i); continue; }
-//        if (j.label.equals("Time")) { if (maxtime>=0) throw new ErrorSyntax(j.pos, "The time cannot be specified more than once."); maxtime=k; exacttime = s.get(i).isExact; s.remove(i); continue; } //pt.uminho.haslab: time scope currently managed by the options
+          if (j.label.equals("Time")) { if (maxtime>=0) throw new ErrorSyntax(j.pos, "The time cannot be specified more than once."); maxtime=k; exacttime = s.get(i).isExact; s.remove(i); continue; } // [HASLab]
         }
         if (n!=null)
-          parser.alloymodule.addCommand(follow, p, n.label, o.label.equals("c"), overall, bitwidth, maxseq, maxtime, exacttime, expects, s, x); //pt.uminho.haslab: time scope currently managed by the options
+          parser.alloymodule.addCommand(follow, p, n.label, o.label.equals("c"), overall, bitwidth, maxseq, maxtime, exacttime, expects, s, x); // [HASLab]
         else
-          parser.alloymodule.addCommand(follow, p, e,       o.label.equals("c"), overall, bitwidth, maxseq, maxtime, exacttime, expects, s, x); //pt.uminho.haslab: time scope currently managed by the options
+          parser.alloymodule.addCommand(follow, p, e,       o.label.equals("c"), overall, bitwidth, maxseq, maxtime, exacttime, expects, s, x); // [HASLab]
     }
     private Expr t(Pos pos, Pos oldClosing, Expr left, Expr right, Pos close) throws Err {
       if (right instanceof ExprVar) {
@@ -464,16 +464,16 @@ terminal Pos NOTLT;            //  !<     not<    // The filter allows whitespac
 terminal Pos NOTLTE;           //  !=<    not=<   // The filter allows whitespace/comment in between
 terminal Pos ONE2;             //  one            // The filter enables us to disambiguate
 terminal Pos ONE;              //  one            // The filter enables us to disambiguate
-terminal Pos VAR;              //  var   		  // pt.uminho.haslab: variable token  
-terminal Pos ALWAYS;           //  always   	  // pt.uminho.haslab: ltl tokens
-terminal Pos EVENTUALLY;       //  eventually  	  // pt.uminho.haslab: ltl tokens
-terminal Pos AFTER;       	   //  after  	  	  // pt.uminho.haslab: ltl tokens
-terminal Pos ONCE;             //  once   	 	  // pt.uminho.haslab: ltl tokens
-terminal Pos HISTORICALLY;     //  historically	  // pt.uminho.haslab: ltl tokens
-terminal Pos PREVIOUS;    	   //  previous		  // pt.uminho.haslab: ltl tokens
-terminal Pos RELEASE;    	   //  release		  // pt.uminho.haslab: ltl tokens
-terminal Pos UNTIL;    	       //  until		  // pt.uminho.haslab: ltl tokens
-terminal Pos SINCE;    	       //  since		  // pt.uminho.haslab: ltl tokens
+terminal Pos VAR;              //  var   		  // [HASLab] variable token  
+terminal Pos ALWAYS;           //  always   	  // [HASLab] ltl tokens
+terminal Pos EVENTUALLY;       //  eventually  	  // [HASLab] ltl tokens
+terminal Pos AFTER;       	   //  after  	  	  // [HASLab] ltl tokens
+terminal Pos ONCE;             //  once   	 	  // [HASLab] ltl tokens
+terminal Pos HISTORICALLY;     //  historically	  // [HASLab] ltl tokens
+terminal Pos PREVIOUS;    	   //  previous		  // [HASLab] ltl tokens
+terminal Pos RELEASE;    	   //  release		  // [HASLab] ltl tokens
+terminal Pos UNTIL;    	       //  until		  // [HASLab] ltl tokens
+terminal Pos SINCE;    	       //  since		  // [HASLab] ltl tokens
 terminal Pos OPEN;             //  open
 terminal Pos OR;               //  ||     or
 terminal Pos PART;             //  part   partition
@@ -501,10 +501,10 @@ terminal Pos STRING;           //  String
 terminal Pos SUM2;             //  sum       // The filter enables us to disambiguate
 terminal Pos SUM;              //  sum       // The filter enables us to disambiguate
 terminal Pos THIS;             //  this
-//terminal Pos TIME;         	   //  Time		  //pt.haslab.uminho: time scopes currently managed at the options
+terminal Pos TIME;         	   //  Time		 // [HASLab]
 terminal Pos TILDE;            //  ~
 terminal Pos UNIV;             //  univ
-terminal Pos PRIME; 	   // '		 // pt.uminho.haslab: ltl tokens
+terminal Pos PRIME; 	   	   // '		 // [HASLab] ltl tokens
 
 terminal ExprVar ID;
 
@@ -559,10 +559,10 @@ nonterminal List<ExprVar>              Names;
 nonterminal List<ExprVar>              Namex;
 nonterminal Expr                       NegExprA;
 nonterminal Expr                       NegExprB;
-nonterminal Expr                       TempUnaryA; // pt.uminho.haslab
-nonterminal Expr                       TempUnaryB; // pt.uminho.haslab
-nonterminal Expr                       TempBinaryA; // pt.uminho.haslab
-nonterminal Expr                       TempBinaryB; // pt.uminho.haslab
+nonterminal Expr                       TempUnaryA; // [HASLab]
+nonterminal Expr                       TempUnaryB; // [HASLab]
+nonterminal Expr                       TempBinaryA; // [HASLab]
+nonterminal Expr                       TempBinaryB; // [HASLab]
 nonterminal Expr                       NumUnopExprA;
 nonterminal Expr                       NumUnopExprB;
 nonterminal Expr                       OrExprA;
@@ -682,10 +682,12 @@ Typescope  ::= TypeNumber:e UNIV:f    {: if (1==1) throw new ErrorSyntax(e.pos.m
 
 Typescope  ::= TypeNumber:a STRING:b  {: RESULT = new CommandScope(a.pos.merge(b), new PrimSig("String", AttrType.WHERE.make(a.pos.merge(b))), a.isExact, a.startingScope, a.endingScope, a.increment); :};
 
-//Typescope  ::= TypeNumber:a TIME:b    {: // pt.uminho.haslab: time scope currently managed at the options
-//    Pos p = a.pos.merge(b);
-//	RESULT = new CommandScope(p, new PrimSig("Time", AttrType.WHERE.make(p)), a.isExact, a.startingScope, a.endingScope, a.increment); 
-//:};
+// [HASLab]
+Typescope  ::= TypeNumber:a TIME:b    {:
+    Pos p = a.pos.merge(b);
+    if (a.isExact) throw new ErrorSyntax(p, "The exactly keyword is redundant here since the trace length is always minimal.");
+	RESULT = new CommandScope(p, new PrimSig("Time", AttrType.WHERE.make(p)), a.isExact, a.startingScope, a.endingScope, a.increment); 
+:};
 
 
 //[AM] Typescope  ::= TypeNumber:e SIGINT:f  {: if (1==1) throw new ErrorSyntax(e.pos.merge(f), "You can no longer set a scope on Int; the number of Int atoms is always exactly equal to 2^(integer bitwidth).\n"); :};
@@ -743,15 +745,15 @@ Sig ::= SigQuals:a Names:b SigIn:c LBRACE Decls:d RBRACE:o SuperOpt:e
    }
  :};
 
-SigQual  ::= ABSTRACT:x               {: RESULT=new ArrayList<Pos>(6); RESULT.add(x);    RESULT.add(null); RESULT.add(null); RESULT.add(null); RESULT.add(null); RESULT.add(null); :}; //pt.uminho.haslab: variable sigs
-SigQual  ::= LONE:x                   {: RESULT=new ArrayList<Pos>(6); RESULT.add(null); RESULT.add(x);    RESULT.add(null); RESULT.add(null); RESULT.add(null); RESULT.add(null); :}; //pt.uminho.haslab: variable sigs
-SigQual  ::= ONE:x                    {: RESULT=new ArrayList<Pos>(6); RESULT.add(null); RESULT.add(null); RESULT.add(x);    RESULT.add(null); RESULT.add(null); RESULT.add(null); :}; //pt.uminho.haslab: variable sigs
-SigQual  ::= SOME:x                   {: RESULT=new ArrayList<Pos>(6); RESULT.add(null); RESULT.add(null); RESULT.add(null); RESULT.add(x);    RESULT.add(null); RESULT.add(null); :}; //pt.uminho.haslab: variable sigs
-SigQual  ::= PRIVATE:x                {: RESULT=new ArrayList<Pos>(6); RESULT.add(null); RESULT.add(null); RESULT.add(null); RESULT.add(null); RESULT.add(x);  	 RESULT.add(null); :}; //pt.uminho.haslab: variable sigs
-SigQual  ::= VAR:x            	      {: RESULT=new ArrayList<Pos>(6); RESULT.add(null); RESULT.add(null); RESULT.add(null); RESULT.add(null); RESULT.add(null); RESULT.add(x);    :}; //pt.uminho.haslab: variable sigs
+SigQual  ::= ABSTRACT:x               {: RESULT=new ArrayList<Pos>(6); RESULT.add(x);    RESULT.add(null); RESULT.add(null); RESULT.add(null); RESULT.add(null); RESULT.add(null); :}; // [HASLab] variable sigs
+SigQual  ::= LONE:x                   {: RESULT=new ArrayList<Pos>(6); RESULT.add(null); RESULT.add(x);    RESULT.add(null); RESULT.add(null); RESULT.add(null); RESULT.add(null); :}; // [HASLab] variable sigs
+SigQual  ::= ONE:x                    {: RESULT=new ArrayList<Pos>(6); RESULT.add(null); RESULT.add(null); RESULT.add(x);    RESULT.add(null); RESULT.add(null); RESULT.add(null); :}; // [HASLab] variable sigs
+SigQual  ::= SOME:x                   {: RESULT=new ArrayList<Pos>(6); RESULT.add(null); RESULT.add(null); RESULT.add(null); RESULT.add(x);    RESULT.add(null); RESULT.add(null); :}; // [HASLab] variable sigs
+SigQual  ::= PRIVATE:x                {: RESULT=new ArrayList<Pos>(6); RESULT.add(null); RESULT.add(null); RESULT.add(null); RESULT.add(null); RESULT.add(x);  	 RESULT.add(null); :}; // [HASLab] variable sigs
+SigQual  ::= VAR:x            	      {: RESULT=new ArrayList<Pos>(6); RESULT.add(null); RESULT.add(null); RESULT.add(null); RESULT.add(null); RESULT.add(null); RESULT.add(x);    :}; // [HASLab] variable sigs
 
-SigQuals ::= SIG                      {: RESULT=new ArrayList<Pos>(6); RESULT.add(null); RESULT.add(null); RESULT.add(null); RESULT.add(null); RESULT.add(null); RESULT.add(null); :}; //pt.uminho.haslab: variable sigs
-SigQuals ::= SigQual:a SigQuals:b     {: RESULT=a; for(int i=0;i<6;i++) if (a.get(i)==null) a.set(i,b.get(i)); else if (b.get(i)!=null) throw new ErrorSyntax(b.get(i), "The same qualifer cannot be specified more than once for the same sig."); :}; //pt.uminho.haslab: variable sigs
+SigQuals ::= SIG                      {: RESULT=new ArrayList<Pos>(6); RESULT.add(null); RESULT.add(null); RESULT.add(null); RESULT.add(null); RESULT.add(null); RESULT.add(null); :}; // [HASLab] variable sigs
+SigQuals ::= SigQual:a SigQuals:b     {: RESULT=a; for(int i=0;i<6;i++) if (a.get(i)==null) a.set(i,b.get(i)); else if (b.get(i)!=null) throw new ErrorSyntax(b.get(i), "The same qualifer cannot be specified more than once for the same sig."); :}; // [HASLab] variable sigs
 
 SigIn    ::= EXTENDS:a SigRef:x       {: RESULT=new ArrayList<ExprVar>(2); RESULT.add(x); RESULT.add(ExprVar.make(a, "extends")); :};
 SigIn    ::= IN:a SigRefu:x           {: RESULT=x;  x.add(ExprVar.make(a,"in"));                                                  :};
@@ -761,7 +763,7 @@ SigIn    ::=                          {: RESULT=null;                           
 SigRef   ::= Name:x                   {: RESULT=x;                                    :};
 SigRef   ::= UNIV:x                   {: RESULT=ExprVar.make(x, "univ");              :};
 SigRef   ::= STRING:x                 {: RESULT=ExprVar.make(x, "String");            :};
-//SigRef   ::= TIME:x                   {: RESULT=ExprVar.make(x, "Time");              :};  //pt.uminho.haslab: time scopes currently managed in the options
+SigRef   ::= TIME:x                   {: RESULT=ExprVar.make(x, "Time");              :};  // [HASLab]
 SigRef   ::= SIGINT:x                 {: RESULT=ExprVar.make(x, "Int");               :};
 SigRef   ::= SEQ:a SLASH SIGINT:b     {: RESULT=ExprVar.make(a.merge(b), "seq/Int");  :};
 SigRef   ::= NONE:x                   {: RESULT=ExprVar.make(x, "none");              :};
@@ -797,10 +799,10 @@ Decla ::= PRIVATE:p DISJ:k Names:a COLON                 Expr:b  {: RESULT=new D
 Decla ::= PRIVATE:p        Names:a COLON                 Expr:b  {: RESULT=new Decl(null, p,    null, null, a, mult(b)); :};
 Decla ::=                  Names:a COLON                 Expr:b  {: RESULT=new Decl(null, null, null, null, a, mult(b)); :};
 
-Decla ::= VAR:v 		  DISJ:k Names:a COLON                 Expr:b  {: RESULT=new Decl(v,    null, k,    null, a, mult(b)); :}; //pt.uminho.haslab: variable decls
-Decla ::= VAR:v PRIVATE:p DISJ:k Names:a COLON                 Expr:b  {: RESULT=new Decl(v,    p,    k,    null, a, mult(b)); :}; //pt.uminho.haslab: variable decls
-Decla ::= VAR:v PRIVATE:p        Names:a COLON                 Expr:b  {: RESULT=new Decl(v,    p,    null, null, a, mult(b)); :}; //pt.uminho.haslab: variable decls
-Decla ::= VAR:v                  Names:a COLON                 Expr:b  {: RESULT=new Decl(v,    null, null, null, a, mult(b)); :}; //pt.uminho.haslab: variable decls
+Decla ::= VAR:v 		  DISJ:k Names:a COLON                 Expr:b  {: RESULT=new Decl(v,    null, k,    null, a, mult(b)); :}; // [HASLab] variable decls
+Decla ::= VAR:v PRIVATE:p DISJ:k Names:a COLON                 Expr:b  {: RESULT=new Decl(v,    p,    k,    null, a, mult(b)); :}; // [HASLab] variable decls
+Decla ::= VAR:v PRIVATE:p        Names:a COLON                 Expr:b  {: RESULT=new Decl(v,    p,    null, null, a, mult(b)); :}; // [HASLab] variable decls
+Decla ::= VAR:v                  Names:a COLON                 Expr:b  {: RESULT=new Decl(v,    null, null, null, a, mult(b)); :}; // [HASLab] variable decls
 
 Decla ::=           PART:k Names   COLON DISJ            Expr    {: if (1==1) throw CompModule.hint(k, "part");        :};
 Decla ::=           EXH:k  Names   COLON DISJ            Expr    {: if (1==1) throw CompModule.hint(k, "exh");         :};
@@ -809,10 +811,10 @@ Decla ::= PRIVATE:p DISJ:k Names:a COLON DISJ:d          Expr:b  {: RESULT=new D
 Decla ::= PRIVATE:p        Names:a COLON DISJ:d          Expr:b  {: RESULT=new Decl(null, p,    null, d,    a, mult(b)); :};
 Decla ::=                  Names:a COLON DISJ:d          Expr:b  {: RESULT=new Decl(null, null, null, d,    a, mult(b)); :};
 
-Decla ::= VAR:v           DISJ:k Names:a COLON DISJ:d          Expr:b  {: RESULT=new Decl(v,    null, k,    d,    a, mult(b)); :}; //pt.uminho.haslab: variable decls
-Decla ::= VAR:v PRIVATE:p DISJ:k Names:a COLON DISJ:d          Expr:b  {: RESULT=new Decl(v,    p,    k,    d,    a, mult(b)); :}; //pt.uminho.haslab: variable decls
-Decla ::= VAR:v PRIVATE:p        Names:a COLON DISJ:d          Expr:b  {: RESULT=new Decl(v,    p,    null, d,    a, mult(b)); :}; //pt.uminho.haslab: variable decls
-Decla ::= VAR:v                  Names:a COLON DISJ:d          Expr:b  {: RESULT=new Decl(v,    null, null, d,    a, mult(b)); :}; //pt.uminho.haslab: variable decls
+Decla ::= VAR:v           DISJ:k Names:a COLON DISJ:d          Expr:b  {: RESULT=new Decl(v,    null, k,    d,    a, mult(b)); :}; // [HASLab] variable decls
+Decla ::= VAR:v PRIVATE:p DISJ:k Names:a COLON DISJ:d          Expr:b  {: RESULT=new Decl(v,    p,    k,    d,    a, mult(b)); :}; // [HASLab] variable decls
+Decla ::= VAR:v PRIVATE:p        Names:a COLON DISJ:d          Expr:b  {: RESULT=new Decl(v,    p,    null, d,    a, mult(b)); :}; // [HASLab] variable decls
+Decla ::= VAR:v                  Names:a COLON DISJ:d          Expr:b  {: RESULT=new Decl(v,    null, null, d,    a, mult(b)); :}; // [HASLab] variable decls
 
 
 Declb ::= Decla:x {: RESULT=x; :};
@@ -917,35 +919,35 @@ AndExprA ::= AndExprB:a AND:o Bind:b        {: RESULT=ExprBinary.Op.AND.make(o, 
 AndExprB ::=                  TempBinaryB:b {: RESULT=b;                                     :};
 AndExprB ::= AndExprB:a AND:o TempBinaryB:b {: RESULT=ExprBinary.Op.AND.make(o, null, a, b); :};
 
-TempBinaryA ::= 						TempUnaryA:a {: RESULT=a;                            				    :}; //pt.uminho.haslab: ltl ops
-TempBinaryA ::= TempBinaryB:a UNTIL:o 	Bind:b       {: RESULT = ExprBinary.Op.UNTIL	.make(o, null, a, b); 	:}; //pt.uminho.haslab: ltl ops
-TempBinaryA ::= TempBinaryB:a SINCE:o 	Bind:b       {: RESULT = ExprBinary.Op.SINCE	.make(o, null, a, b); 	:}; //pt.uminho.haslab: ltl ops
-TempBinaryA ::= TempBinaryB:a RELEASE:o Bind:b       {: RESULT = ExprBinary.Op.RELEASE  .make(o, null, a, b); 	:}; //pt.uminho.haslab: ltl ops
-TempBinaryB ::=                  		TempUnaryB:b {: RESULT=b;				                                :}; //pt.uminho.haslab: ltl ops
-TempBinaryB ::= TempBinaryB:a UNTIL:o 	TempUnaryB:b {: RESULT = ExprBinary.Op.UNTIL	.make(o, null, a, b); 	:}; //pt.uminho.haslab: ltl ops
-TempBinaryB ::= TempBinaryB:a SINCE:o 	TempUnaryB:b {: RESULT = ExprBinary.Op.SINCE	.make(o, null, a, b); 	:}; //pt.uminho.haslab: ltl ops
-TempBinaryB ::= TempBinaryB:a RELEASE:o TempUnaryB:b {: RESULT = ExprBinary.Op.RELEASE	.make(o, null, a, b); 	:}; //pt.uminho.haslab: ltl ops
+TempBinaryA ::= 						TempUnaryA:a {: RESULT=a;                            				    :}; // [HASLab] ltl ops
+TempBinaryA ::= TempBinaryB:a UNTIL:o 	Bind:b       {: RESULT = ExprBinary.Op.UNTIL	.make(o, null, a, b); 	:}; // [HASLab] ltl ops
+TempBinaryA ::= TempBinaryB:a SINCE:o 	Bind:b       {: RESULT = ExprBinary.Op.SINCE	.make(o, null, a, b); 	:}; // [HASLab] ltl ops
+TempBinaryA ::= TempBinaryB:a RELEASE:o Bind:b       {: RESULT = ExprBinary.Op.RELEASE  .make(o, null, a, b); 	:}; // [HASLab] ltl ops
+TempBinaryB ::=                  		TempUnaryB:b {: RESULT=b;				                                :}; // [HASLab] ltl ops
+TempBinaryB ::= TempBinaryB:a UNTIL:o 	TempUnaryB:b {: RESULT = ExprBinary.Op.UNTIL	.make(o, null, a, b); 	:}; // [HASLab] ltl ops
+TempBinaryB ::= TempBinaryB:a SINCE:o 	TempUnaryB:b {: RESULT = ExprBinary.Op.SINCE	.make(o, null, a, b); 	:}; // [HASLab] ltl ops
+TempBinaryB ::= TempBinaryB:a RELEASE:o TempUnaryB:b {: RESULT = ExprBinary.Op.RELEASE	.make(o, null, a, b); 	:}; // [HASLab] ltl ops
 
-TempUnaryA ::= 					NegExprA:a 		{: RESULT=a; 											:}; //pt.uminho.haslab: ltl ops
-TempUnaryA ::= ALWAYS:o 		Bind:a 			{: RESULT = ExprUnary.Op.ALWAYS	   		.make(o, a); 	:}; //pt.uminho.haslab: ltl ops
-TempUnaryA ::= EVENTUALLY:o 	Bind:a 			{: RESULT = ExprUnary.Op.EVENTUALLY  	.make(o, a); 	:}; //pt.uminho.haslab: ltl ops
-TempUnaryA ::= AFTER:o 			Bind:a 			{: RESULT = ExprUnary.Op.AFTER  		.make(o, a); 	:}; //pt.uminho.haslab: ltl ops
-TempUnaryA ::= HISTORICALLY:o 	Bind:a 			{: RESULT = ExprUnary.Op.HISTORICALLY  	.make(o, a); 	:}; //pt.uminho.haslab: ltl ops
-TempUnaryA ::= ONCE:o 			Bind:a 			{: RESULT = ExprUnary.Op.ONCE  			.make(o, a); 	:}; //pt.uminho.haslab: ltl ops
-TempUnaryA ::= PREVIOUS:o 		Bind:a 			{: RESULT = ExprUnary.Op.PREVIOUS  		.make(o, a); 	:}; //pt.uminho.haslab: ltl ops
-TempUnaryA ::= ALWAYS:o 		TempUnaryA:a 	{: RESULT = ExprUnary.Op.ALWAYS	   		.make(o, a); 	:}; //pt.uminho.haslab: ltl ops
-TempUnaryA ::= EVENTUALLY:o 	TempUnaryA:a 	{: RESULT = ExprUnary.Op.EVENTUALLY  	.make(o, a); 	:}; //pt.uminho.haslab: ltl ops
-TempUnaryA ::= AFTER:o 			TempUnaryA:a 	{: RESULT = ExprUnary.Op.AFTER  		.make(o, a); 	:}; //pt.uminho.haslab: ltl ops
-TempUnaryA ::= HISTORICALLY:o 	TempUnaryA:a 	{: RESULT = ExprUnary.Op.HISTORICALLY  	.make(o, a); 	:}; //pt.uminho.haslab: ltl ops
-TempUnaryA ::= ONCE:o 			TempUnaryA:a 	{: RESULT = ExprUnary.Op.ONCE  			.make(o, a); 	:}; //pt.uminho.haslab: ltl ops
-TempUnaryA ::= PREVIOUS:o 		TempUnaryA:a 	{: RESULT = ExprUnary.Op.PREVIOUS  		.make(o, a); 	:}; //pt.uminho.haslab: ltl ops
-TempUnaryB ::= 					NegExprB:a 		{: RESULT=a; 											:}; //pt.uminho.haslab: ltl ops
-TempUnaryB ::= ALWAYS:o 		TempUnaryB:a 	{: RESULT = ExprUnary.Op.ALWAYS	   		.make(o, a); 	:}; //pt.uminho.haslab: ltl ops
-TempUnaryB ::= EVENTUALLY:o 	TempUnaryB:a 	{: RESULT = ExprUnary.Op.EVENTUALLY  	.make(o, a); 	:}; //pt.uminho.haslab: ltl ops
-TempUnaryB ::= AFTER:o 			TempUnaryB:a 	{: RESULT = ExprUnary.Op.AFTER  		.make(o, a); 	:}; //pt.uminho.haslab: ltl ops
-TempUnaryB ::= HISTORICALLY:o 	TempUnaryB:a 	{: RESULT = ExprUnary.Op.HISTORICALLY  	.make(o, a); 	:}; //pt.uminho.haslab: ltl ops
-TempUnaryB ::= ONCE:o 			TempUnaryB:a 	{: RESULT = ExprUnary.Op.ONCE  			.make(o, a); 	:}; //pt.uminho.haslab: ltl ops
-TempUnaryB ::= PREVIOUS:o 		TempUnaryB:a 	{: RESULT = ExprUnary.Op.PREVIOUS  		.make(o, a); 	:}; //pt.uminho.haslab: ltl ops
+TempUnaryA ::= 					NegExprA:a 		{: RESULT=a; 											:}; // [HASLab] ltl ops
+TempUnaryA ::= ALWAYS:o 		Bind:a 			{: RESULT = ExprUnary.Op.ALWAYS	   		.make(o, a); 	:}; // [HASLab] ltl ops
+TempUnaryA ::= EVENTUALLY:o 	Bind:a 			{: RESULT = ExprUnary.Op.EVENTUALLY  	.make(o, a); 	:}; // [HASLab] ltl ops
+TempUnaryA ::= AFTER:o 			Bind:a 			{: RESULT = ExprUnary.Op.AFTER  		.make(o, a); 	:}; // [HASLab] ltl ops
+TempUnaryA ::= HISTORICALLY:o 	Bind:a 			{: RESULT = ExprUnary.Op.HISTORICALLY  	.make(o, a); 	:}; // [HASLab] ltl ops
+TempUnaryA ::= ONCE:o 			Bind:a 			{: RESULT = ExprUnary.Op.ONCE  			.make(o, a); 	:}; // [HASLab] ltl ops
+TempUnaryA ::= PREVIOUS:o 		Bind:a 			{: RESULT = ExprUnary.Op.PREVIOUS  		.make(o, a); 	:}; // [HASLab] ltl ops
+TempUnaryA ::= ALWAYS:o 		TempUnaryA:a 	{: RESULT = ExprUnary.Op.ALWAYS	   		.make(o, a); 	:}; // [HASLab] ltl ops
+TempUnaryA ::= EVENTUALLY:o 	TempUnaryA:a 	{: RESULT = ExprUnary.Op.EVENTUALLY  	.make(o, a); 	:}; // [HASLab] ltl ops
+TempUnaryA ::= AFTER:o 			TempUnaryA:a 	{: RESULT = ExprUnary.Op.AFTER  		.make(o, a); 	:}; // [HASLab] ltl ops
+TempUnaryA ::= HISTORICALLY:o 	TempUnaryA:a 	{: RESULT = ExprUnary.Op.HISTORICALLY  	.make(o, a); 	:}; // [HASLab] ltl ops
+TempUnaryA ::= ONCE:o 			TempUnaryA:a 	{: RESULT = ExprUnary.Op.ONCE  			.make(o, a); 	:}; // [HASLab] ltl ops
+TempUnaryA ::= PREVIOUS:o 		TempUnaryA:a 	{: RESULT = ExprUnary.Op.PREVIOUS  		.make(o, a); 	:}; // [HASLab] ltl ops
+TempUnaryB ::= 					NegExprB:a 		{: RESULT=a; 											:}; // [HASLab] ltl ops
+TempUnaryB ::= ALWAYS:o 		TempUnaryB:a 	{: RESULT = ExprUnary.Op.ALWAYS	   		.make(o, a); 	:}; // [HASLab] ltl ops
+TempUnaryB ::= EVENTUALLY:o 	TempUnaryB:a 	{: RESULT = ExprUnary.Op.EVENTUALLY  	.make(o, a); 	:}; // [HASLab] ltl ops
+TempUnaryB ::= AFTER:o 			TempUnaryB:a 	{: RESULT = ExprUnary.Op.AFTER  		.make(o, a); 	:}; // [HASLab] ltl ops
+TempUnaryB ::= HISTORICALLY:o 	TempUnaryB:a 	{: RESULT = ExprUnary.Op.HISTORICALLY  	.make(o, a); 	:}; // [HASLab] ltl ops
+TempUnaryB ::= ONCE:o 			TempUnaryB:a 	{: RESULT = ExprUnary.Op.ONCE  			.make(o, a); 	:}; // [HASLab] ltl ops
+TempUnaryB ::= PREVIOUS:o 		TempUnaryB:a 	{: RESULT = ExprUnary.Op.PREVIOUS  		.make(o, a); 	:}; // [HASLab] ltl ops
 
 NegExprA ::=         CompareExprA:b         {: RESULT=b;                           :};
 NegExprA ::= NOT:o   Bind:b                 {: RESULT=ExprUnary.Op.NOT.make(o, b); :};

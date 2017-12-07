@@ -35,7 +35,7 @@ import edu.mit.csail.sdg.alloy4compiler.ast.Attr.AttrType;
 
 /** Mutable; represents a signature. 
  * 
- * @modified: nmm, Eduardo Pessoa (pt.uminho.haslab): variables sigs and fields.
+ * @modified Eduardo Pessoa, Nuno Macedo // [HASLab] temporal model finding
  */
 
 public abstract class Sig extends Expr {
@@ -45,6 +45,10 @@ public abstract class Sig extends Expr {
 
 	/** The built-in "Int" signature. */
 	public static final PrimSig SIGINT = new PrimSig("Int", UNIV, false);
+
+	/** The built-in "Time" signature. */
+	// [HASLab]
+	public static final PrimSig SIGTIME = new PrimSig("Time", UNIV, false);
 
 	/** The built-in "seq/Int" signature. */
 	public static final PrimSig SEQIDX = new PrimSig("seq/Int", SIGINT, true);
@@ -141,8 +145,8 @@ public abstract class Sig extends Expr {
 	 */
 	public final Pos isMeta;
 
-	/** Nonnull if this sig is a Variable. 
-	 * pt.uminho.haslab. */
+	/** Nonnull if this sig is a Variable. */
+	// [HASLab]
 	public final Pos isVariable;
 
 	/** The label for this sig; this name does not need to be unique. */
@@ -159,8 +163,8 @@ public abstract class Sig extends Expr {
 		return (this!=NONE) && (this instanceof PrimSig) && (this==UNIV || ((PrimSig)this).parent==UNIV);
 	}
 
-	/** Constructs a new builtin PrimSig. 
-	 * pt.uminho.haslab: extended with variable sigs. */
+	/** Constructs a new builtin PrimSig. */
+	// [HASLab] extended with variable sigs.
 	private Sig(String label) {
 		super(Pos.UNKNOWN, null);
 		Expr oneof = ExprUnary.Op.ONEOF.make(null, this);
@@ -168,7 +172,7 @@ public abstract class Sig extends Expr {
 		this.decl = new Decl(null, null, null, null, Util.asList(v), oneof);
 		this.builtin = true;
 		this.isAbstract = null;
-		this.isVariable = null; //pt.uminho.haslab: variable sig
+		this.isVariable = null; // [HASLab]
 		this.isLone = null;
 		this.isOne = null;
 		this.isSome = null;
@@ -181,8 +185,8 @@ public abstract class Sig extends Expr {
 		this.attributes = ConstList.make();
 	}
 
-	/** Constructs a new PrimSig or SubsetSig. 
-	 * pt.uminho.haslab: extended with variable sigs. */
+	/** Constructs a new PrimSig or SubsetSig. */
+	// [HASLab] extended with variable sigs. 
 	private Sig(Type type, String label, Attr... attributes) throws Err {
 		super(AttrType.WHERE.find(attributes), type);
 		this.attributes = Util.asList(attributes);
@@ -192,7 +196,7 @@ public abstract class Sig extends Expr {
 		Pos isAbstract=null, isVariable=null, isLone=null, isOne=null, isSome=null, isSubsig=null, isSubset=null, isPrivate=null, isMeta=null, isEnum=null;
 		for(Attr a: attributes) if (a!=null) switch(a.type) {
 		case ABSTRACT: isAbstract = a.pos.merge(isAbstract); break;
-		case VARIABLE: isVariable = a.pos.merge(isVariable); break; //pt.uminho.haslab: variable sig
+		case VARIABLE: isVariable = a.pos.merge(isVariable); break; // [HASLab]
 		case ENUM:     isEnum     = a.pos.merge(isEnum);     break;
 		case LONE:     isLone     = a.pos.merge(isLone);     break;
 		case META:     isMeta     = a.pos.merge(isMeta);     break;
@@ -206,7 +210,7 @@ public abstract class Sig extends Expr {
 		this.isMeta     = isMeta;
 		this.isEnum     = isEnum;
 		this.isAbstract = isAbstract;
-		this.isVariable = isVariable; //pt.uminho.haslab: variable sig
+		this.isVariable = isVariable; // [HASLab]
 		this.isLone     = isLone;
 		this.isOne      = isOne;
 		this.isSome     = isSome;
@@ -317,7 +321,6 @@ public abstract class Sig extends Expr {
 		}
 
 		/** Constructs a non-builtin sig.
-		 * pt.uminho.haslab: extended with variable sigs.
 		 * 
 		 * @param label - the name of this sig (it does not need to be unique)
 		 * @param parent - the parent (must not be null, and must not be NONE)
@@ -326,13 +329,14 @@ public abstract class Sig extends Expr {
 		 * @throws ErrorSyntax if the signature has two or more multiplicities
 		 * @throws ErrorType if you attempt to extend the builtin sigs NONE, SIGINT, SEQIDX, or STRING
 		 */
+		// [HASLab] extended with variable sigs.
 		public PrimSig (String label, PrimSig parent, Attr... attributes) throws Err {
 			super(((parent!=null && parent.isEnum!=null) ? parent.type : null), label, Util.append(attributes, Attr.SUBSIG));
 			if (parent==SIGINT) throw new ErrorSyntax(pos, "sig "+label+" cannot extend the builtin \"Int\" signature");
 			if (parent==SEQIDX) throw new ErrorSyntax(pos, "sig "+label+" cannot extend the builtin \"seq/Int\" signature");
 			if (parent==STRING) throw new ErrorSyntax(pos, "sig "+label+" cannot extend the builtin \"String\" signature");
 			if (parent==NONE)   throw new ErrorSyntax(pos, "sig "+label+" cannot extend the builtin \"none\" signature");
-//			if (parent!=null && parent.isVariable!=null && !(isVariable!=null))  //pt.uminho.haslab: variable sig
+//			if (parent!=null && parent.isVariable!=null && !(isVariable!=null))  // [HASLab]
 //				throw new ErrorSyntax(isAbstract,  "Static signature cannot extend dynamic signature.");
 
 			if (parent==null) parent=UNIV; else if (parent!=UNIV) parent.children.add(this);
@@ -469,8 +473,8 @@ public abstract class Sig extends Expr {
 		/** Nonnull if this field is a meta field. */
 		public final Pos isMeta;
 
-		/** Nonnull if this field is variable. 
-		 * pt.uminho.haslab. */
+		/** Nonnull if this field is variable. */
+		// [HASLab]
 		public final Pos isVariable;
 
 		/** True if this is a defined field. */
@@ -482,8 +486,8 @@ public abstract class Sig extends Expr {
 		/** Return the declaration that this field came from. */
 		public Decl decl() { return decl; }
 
-		/** Constructs a new Field object. 
-		 * pt.uminho.haslab: extended with variable fields. */
+		/** Constructs a new Field object. */
+		// [HASLab] extended with variable fields.
 		private Field(Pos pos, Pos isPrivate, Pos isMeta, Pos isVar, Pos disjoint, Pos disjoint2, Sig sig, String label, Expr bound) throws Err {
 			super(pos, label, sig.type.product(bound.type));
 			this.defined = bound.mult() == ExprUnary.Op.EXACTLYOF;
@@ -493,7 +497,7 @@ public abstract class Sig extends Expr {
 			if (bound.type.arity()>0 && bound.type.hasNoTuple()) throw new ErrorType(pos, "Cannot bind field "+label+" to the empty set or empty relation.");
 			this.isPrivate = (isPrivate!=null ? isPrivate : sig.isPrivate);
 			this.isMeta = (isMeta!=null ? isMeta : sig.isMeta);
-			this.isVariable = (isVar!=null ? isVar : null); //pt.uminho.haslab: variable field
+			this.isVariable = (isVar!=null ? isVar : null); // [HASLab]
 			this.sig = sig;
 		}
 
@@ -570,7 +574,6 @@ public abstract class Sig extends Expr {
 
 	/** Add then return a new field, where "all x: ThisSig | x.F in bound"
 	 * <p> Note: the bound must be fully-typechecked and have exactly 0 free variable, or have "x" as its sole free variable.
-	 * pt.uminho.haslab: extended with variable fields.
 	 *
 	 * @param pos - the position in the original file where this field was defined (can be null if unknown)
 	 * @param isPrivate - if nonnull, that means the user intended this field to be "private"
@@ -582,13 +585,14 @@ public abstract class Sig extends Expr {
 	 * @throws ErrorSyntax  if the bound contains a predicate/function call
 	 * @throws ErrorType    if the bound is not fully typechecked or is not a set/relation
 	 */
+	// [HASLab] extended with variable fields.
 	public final Field[] addTrickyField (Pos pos, Pos isPrivate, Pos isDisjoint, Pos isDisjoint2, Pos isMeta, Pos isVar, String[] labels, Expr bound) throws Err {
 		bound = bound.typecheck_as_set();
 		if (bound.ambiguous) bound = bound.resolve_as_set(null);
 		if (bound.mult==0 && bound.type.arity()==1) bound = ExprUnary.Op.ONEOF.make(null, bound); // If unary, and no multiplicity symbol, we assume it's oneOf
 		final Field[] f = new Field[labels.length];
-		for(int i=0; i<f.length; i++) f[i] = new Field(pos, isPrivate, isMeta, isVar, isDisjoint, isDisjoint2, this, labels[i], bound); //pt.uminho.haslab: variable field
-		final Decl d = new Decl(isVar, isPrivate, isDisjoint, isDisjoint2, Arrays.asList(f), bound); //pt.uminho.haslab: variable field
+		for(int i=0; i<f.length; i++) f[i] = new Field(pos, isPrivate, isMeta, isVar, isDisjoint, isDisjoint2, this, labels[i], bound); // [HASLab]
+		final Decl d = new Decl(isVar, isPrivate, isDisjoint, isDisjoint2, Arrays.asList(f), bound); // [HASLab]
 		for(int i=0; i<f.length; i++) f[i].decl = d;
 		fields.add(d);
 		return f;

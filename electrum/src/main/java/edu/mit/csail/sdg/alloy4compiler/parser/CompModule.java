@@ -25,6 +25,7 @@ import static edu.mit.csail.sdg.alloy4compiler.ast.Attr.AttrType.WHERE;
 import static edu.mit.csail.sdg.alloy4compiler.ast.Sig.NONE;
 import static edu.mit.csail.sdg.alloy4compiler.ast.Sig.SEQIDX;
 import static edu.mit.csail.sdg.alloy4compiler.ast.Sig.SIGINT;
+import static edu.mit.csail.sdg.alloy4compiler.ast.Sig.SIGTIME;
 import static edu.mit.csail.sdg.alloy4compiler.ast.Sig.STRING;
 import static edu.mit.csail.sdg.alloy4compiler.ast.Sig.UNIV;
 
@@ -423,12 +424,12 @@ public final class CompModule extends Browsable implements Module {
 
 
 		/** {@inheritDoc} */
-		//pt.uminho.haslab: extended with post operator
+		// [HASLab] extended with post operator
 		@Override public Expr visit(ExprVar x) throws Err {
 			Expr obj = resolve(x.pos, x.label);
 			Expr res;
 			if (obj instanceof Macro) res = ((Macro)obj).instantiate(this, warns); else res = obj;
-			if (x.isPost) res = ExprUnary.Op.PRIME.make(x.pos, res); //pt.uminho.haslab: post operator
+			if (x.isPost) res = ExprUnary.Op.PRIME.make(x.pos, res); // [HASLab]
 			return res;
 		}
 
@@ -746,7 +747,7 @@ public final class CompModule extends Browsable implements Module {
 		if (name.equals("Int"))        return SIGINT;
 		if (name.equals("seq/Int"))    return SEQIDX;
 		if (name.equals("String"))     return STRING;
-//		if (name.equals("Time"))       return TIME; // pt.uminho.haslab: time scope currently managed in the options
+		if (name.equals("Time"))       return SIGTIME; // [HASLab]
 		if (name.equals("none"))       return NONE;
 		if (name.indexOf('/')<0) {
 			s=getRawNQS(this, 1, name);
@@ -1241,7 +1242,7 @@ public final class CompModule extends Browsable implements Module {
 	//============================================================================================================================//
 
 	/** Add a COMMAND declaration. */
-	// pt.uminho.haslab: extended time scopes, deprecated, currently managed in the options
+	// [HASLab] extended time scopes
 	void addCommand(boolean followUp, Pos p, String n, boolean c, int o, int b, int seq, int t, boolean et, int exp, List<CommandScope> s, ExprVar label) throws Err { 
 		if (followUp && !Version.experimental) throw new ErrorSyntax(p, "Syntax error encountering => symbol.");
 		if (label!=null) p=Pos.UNKNOWN.merge(p).merge(label.pos);
@@ -1255,7 +1256,7 @@ public final class CompModule extends Browsable implements Module {
 	}
 
 	/** Add a COMMAND declaration. */
-	// pt.uminho.haslab: extended time scopes, deprecated, currently managed in the options
+	// [HASLab] extended time scopes
 	void addCommand(boolean followUp, Pos p, Expr e, boolean c, int o, int b, int seq, int t, boolean et, int exp, List<CommandScope> s, ExprVar label) throws Err {
 		if (followUp && !Version.experimental) throw new ErrorSyntax(p, "Syntax error encountering => symbol.");
 		if (label!=null) p=Pos.UNKNOWN.merge(p).merge(label.pos);

@@ -229,10 +229,10 @@ public final class SimpleGUI implements ComponentListener, Listener {
     /** The unsat core granularity. */
     private static final IntPref CoreGranularity = new IntPref("CoreGranularity",0,0,3);
 
-    /** The temporal trace length.
-     * pt.uminho.haslab */
-    // [HASLab]
-    private static final IntPref MaxTraceLength = new IntPref("MaxTraceLength",1,20,100);
+//    /** The temporal trace length.
+//     * pt.uminho.haslab */
+//    // [HASLab]
+//    private static final IntPref MaxTraceLength = new IntPref("MaxTraceLength",1,20,100);
 
     // [HASLab]
     private static final BooleanPref Decomposed = new BooleanPref("Decomposed");
@@ -1022,7 +1022,7 @@ public final class SimpleGUI implements ComponentListener, Listener {
         opt.skolemDepth = SkolemDepth.get();
         opt.coreMinimization = CoreMinimization.get();
         opt.coreGranularity = CoreGranularity.get();
-        opt.maxTraceLength = MaxTraceLength.get(); // pt.uminho.haslab
+//        opt.maxTraceLength = MaxTraceLength.get(); // pt.uminho.haslab
         opt.decomposed = Decomposed.get(); // pt.uminho.haslab
         opt.originalFilename = Util.canon(text.get().getFilename());
         opt.solver = SatSolver.get();
@@ -1286,12 +1286,12 @@ public final class SimpleGUI implements ComponentListener, Listener {
             if (now!=SatSolver.MiniSatProverJNI) cgMenu.setEnabled(false);
             optmenu.add(cgMenu);
             // [HASLAb]: trace length
-            final int traceLength = MaxTraceLength.get();
-            final JMenu length = new JMenu("Max trace length: "+traceLength);
-            for(int n: new Integer[]{5,10,15,20,25,30,35,40}) {
-               menuItem(length, ""+n, doOptMaxTraceLength(n), n==traceLength?iconYes:iconNo);
-            }
-            optmenu.add(length);
+//            final int traceLength = MaxTraceLength.get();
+//            final JMenu length = new JMenu("Max trace length: "+traceLength);
+//            for(int n: new Integer[]{5,10,15,20,25,30,35,40}) {
+//               menuItem(length, ""+n, doOptMaxTraceLength(n), n==traceLength?iconYes:iconNo);
+//            }
+//            optmenu.add(length);
             if (Version.experimental) menuItem(optmenu, "Decomposed solving: "+(Decomposed.get()?"Yes":"No"), doOptDecomposed()); // [HASLab]
             //
             menuItem(optmenu, "Visualize Automatically: "+(AutoVisualize.get()?"Yes":"No"), doOptAutoVisualize());
@@ -1442,13 +1442,13 @@ public final class SimpleGUI implements ComponentListener, Listener {
         return wrapMe();
     }
     
-    /** This method changes the trace length of temporal rns. 
-     pt.uminho.haslab */
-    // [HASLab]
-    private Runner doOptMaxTraceLength(Integer length) {
-        if (!wrap) MaxTraceLength.set(length.intValue());
-        return wrapMe(length); // pt.uminho.haslab 
-    }
+//    /** This method changes the trace length of temporal rns. 
+//     pt.uminho.haslab */
+//    // [HASLab]
+//    private Runner doOptMaxTraceLength(Integer length) {
+//        if (!wrap) MaxTraceLength.set(length.intValue());
+//        return wrapMe(length); // pt.uminho.haslab 
+//    }
 
     //===============================================================================================================//
 

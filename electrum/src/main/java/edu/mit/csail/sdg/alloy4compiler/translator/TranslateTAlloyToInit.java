@@ -46,8 +46,8 @@ public final class TranslateTAlloyToInit extends VisitReturn<Expr> {
 //		rep.debug("ORIGINAL: "+command.formula);
 		expr = visitThis(command.formula);
 		rep.debug("\nNEWINITFACT: "+expr);
-		rep.debug("\nMaxTime: "+command.time);
-		Command cmd = new Command(command.check, command.overall, command.bitwidth, command.maxseq, command.time, command.timeexact, expr);
+//		rep.debug("\nMaxTime: "+command.time);
+		Command cmd = new Command(command.check, command.overall, command.bitwidth, command.maxseq, expr);
 		cmd = cmd.change(command.scope);
 		rep.debug("\nScope: "+cmd.scope);
 		return cmd;

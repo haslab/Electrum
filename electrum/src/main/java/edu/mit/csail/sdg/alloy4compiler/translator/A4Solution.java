@@ -58,7 +58,6 @@ import kodkod.engine.Evaluator;
 import kodkod.engine.PardinusSolver;
 import kodkod.engine.Proof;
 import kodkod.engine.Solution;
-import kodkod.engine.config.AbstractReporter;
 import kodkod.engine.config.ExtendedOptions;
 import kodkod.engine.config.Options;
 import kodkod.engine.config.Reporter;
@@ -240,7 +239,7 @@ public final class A4Solution {
 	 * @param expected - whether the user expected an instance or not (1 means yes, 0 means no, -1 means the user did not express an expectation)
 	 */ 
 	 // [HASLab] adapted to consider temporal problems, solutions and options.
-	public A4Solution(String originalCommand, int bitwidth, int maxseq, Set<String> stringAtoms, Collection<String> atoms, final A4Reporter rep, A4Options opt, int expected) throws Err {  // [HASLab] public
+	public A4Solution(String originalCommand, int bitwidth, int tracelength, int maxseq, Set<String> stringAtoms, Collection<String> atoms, final A4Reporter rep, A4Options opt, int expected) throws Err {  // [HASLab] public
 		opt = opt.dup();
 		this.canAddSkolems = true; // [HASLab] pessoa: in the first renaming the atoms are added
 		this.temporalAtoms = new GatherTemporalAtoms(); // [HASLab] pessoa: the object is initialized to gather all atoms in the renaming procedure
@@ -254,6 +253,7 @@ public final class A4Solution {
 		this.originalOptions = opt;
 		this.originalCommand = (originalCommand==null ? "" : originalCommand);
 		this.bitwidth = bitwidth;
+		this.traceLength = tracelength; // [HASLab]
 		this.maxseq = maxseq;
 		if (bitwidth < 0)   throw new ErrorSyntax("Cannot specify a bitwidth less than 0");
 		if (bitwidth > 30)  throw new ErrorSyntax("Cannot specify a bitwidth greater than 30");
@@ -303,7 +303,7 @@ public final class A4Solution {
 		varOptions.setRunTemporal(true); // [HASLab] extended options
 		varOptions.setRunDecomposed(true); // [HASLab]
 		varOptions.setNoOverflow(opt.noOverflow);
-		varOptions.setMaxTraceLength(opt.maxTraceLength); // [HASLab] propagate options
+		varOptions.setMaxTraceLength(tracelength); // [HASLab] propagate options
 		varOptions.setRunDecomposed(opt.decomposed); // [HASLab] propagate options
 //		solver.options().setFlatten(false); // added for now, since multiplication and division circuit takes forever to flatten // [HASLab] kodkod 2.0+
 		// [HASLab] pushed solver creation further below as solver choice is needed for initialization
@@ -822,12 +822,6 @@ public final class A4Solution {
 		this.backLoop = backloop;
 	}
 
-	/** Set the trace length of this instance.
-	 	pt.uminho.haslab */
-	void setTraceLength(int tracelength) {
-		this.traceLength = tracelength;
-	}
-	
 	//===================================================================================================//
 
 	/** Helper class that wraps an iterator up where it will pre-fetch the first element (note: it will not prefetch subsequent elements). */

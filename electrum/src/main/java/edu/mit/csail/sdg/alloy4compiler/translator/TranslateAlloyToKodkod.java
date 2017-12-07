@@ -404,24 +404,9 @@ public final class TranslateAlloyToKodkod extends VisitReturn<Object> {
         A4Solution sol = null;
         try {
        	 	if (cmd.parent!=null || !cmd.getGrowableSigs().isEmpty()) return execute_greedyCommand(rep, sigs, cmd, opt);
-       	 	if (cmd.timeexact || cmd.time < 1) {
-        		rep.debug("Iteration start: "+cmd.time);
-        		tr = new TranslateAlloyToKodkod(rep, opt, sigs, cmd);
-        		tr.makeFacts(cmd.formula);
-        		sol = tr.frame.solve(rep, cmd, new Simplifier(), true);
-       	 	}
-       	 	else {
-       	 		long start = System.currentTimeMillis();
-	        	for (int currenttime = 1; currenttime <= cmd.time && (sol == null || !sol.satisfiable()); currenttime++ ) {
-	       	 		long startit = System.currentTimeMillis();
-	       	 		Command current = cmd.change(currenttime);
-	        		tr = new TranslateAlloyToKodkod(rep, opt, sigs, current);
-	        		tr.makeFacts(current.formula);
-	        		sol = tr.frame.solve(rep, current, new Simplifier(), true); 
-	        		rep.debug("Iteration "+currenttime+": "+(System.currentTimeMillis() - startit));
-//	        		System.out.println("Iteration "+currenttime+": "+(System.currentTimeMillis() - startit));
-	        	}
-       	 	}
+    		tr = new TranslateAlloyToKodkod(rep, opt, sigs, cmd);
+    		tr.makeFacts(cmd.formula);
+    		sol = tr.frame.solve(rep, cmd, new Simplifier(), true);
         } catch(UnsatisfiedLinkError ex) {
             throw new ErrorFatal("The required JNI library cannot be found: "+ex.toString().trim(), ex);
         } catch(CapacityExceededException ex) {
