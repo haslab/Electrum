@@ -1207,7 +1207,7 @@ public final class A4Solution {
 		if (sol instanceof TemporalInstance) {
 			for (int i = 0; i <= ((TemporalInstance) sol).end; i++) { // [HASLab]
 				sb.append("------State " + i + "-------\n");
-				this.renameTemporal(i);
+//				this.renameTemporal(i);
 				try {
 					for (Sig s : sigs) {
 						sb.append(s.label).append("=").append(eval(s, i)).append("\n");
