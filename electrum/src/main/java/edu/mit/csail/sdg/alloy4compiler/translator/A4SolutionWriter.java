@@ -298,8 +298,8 @@ public final class A4SolutionWriter {
 	/**
 	 * If sol==null, write the list of Sigs as a Metamodel, else write the
 	 * solution as an XML file. 
-	 * pt.uminho.haslab: writes a specific time instant, temporal metadata.
 	 */
+	// pt.uminho.haslab: writes a specific time instant, temporal metadata.
 	private A4SolutionWriter(A4Reporter rep, A4Solution sol, Iterable<Sig> sigs, int bitwidth, int maxseq,
 			String originalCommand, String originalFileName, PrintWriter out, Iterable<Func> extraSkolems, int state)
 			throws Err {

@@ -48,7 +48,6 @@ import edu.mit.csail.sdg.alloy4.WorkerEngine.WorkerCallback;
 import edu.mit.csail.sdg.alloy4.WorkerEngine.WorkerTask;
 import edu.mit.csail.sdg.alloy4.XMLNode;
 import edu.mit.csail.sdg.alloy4compiler.ast.Command;
-import edu.mit.csail.sdg.alloy4compiler.ast.Func;
 import edu.mit.csail.sdg.alloy4compiler.ast.Module;
 import edu.mit.csail.sdg.alloy4compiler.ast.Sig;
 import edu.mit.csail.sdg.alloy4compiler.parser.CompModule;
@@ -566,7 +565,7 @@ final class SimpleReporter extends A4Reporter {
 	/** Helper method to write out a full XML file. */
 	private static void writeXML(A4Reporter rep, Module mod, String filename, A4Solution sol,
 			Map<String, String> sources, int state) throws Exception {
-		sol.writeXML(rep, filename, /* mod.getAllFunc() */new ArrayList<Func>(), sources, state); // [HASLab] ?? TODO
+		sol.writeXML(rep, filename, mod.getAllFunc(), sources, state); // [HASLab] 
 		if ("yes".equals(System.getProperty("debug"))) validate(filename);
 	}
 

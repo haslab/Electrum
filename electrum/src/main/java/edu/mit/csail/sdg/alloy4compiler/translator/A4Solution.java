@@ -1012,7 +1012,7 @@ public final class A4Solution {
 			for(Relation r: bounds.relations()) inst.add(r, bounds.lowerBound(r));
 			eval = new Evaluator(inst, solver.options());
 			// [HASLab] pessoa: since the atoms' name already are properly renamed, when we are reading a file, it isn't required
-			//rename(this, null, null, new UniqueNameGenerator());
+			rename(this, null, null, new UniqueNameGenerator());
 			solved();
 			return this;
 		}
@@ -1128,7 +1128,7 @@ public final class A4Solution {
 			while(it.hasNext()) this.universeList.add(it.next());
 			instance = inst;
 			eval = new Evaluator(inst, solver.options());
-//			temporalRename();
+			rename(this, null, null, new UniqueNameGenerator());
 		}
 		// report the result
 		solved();

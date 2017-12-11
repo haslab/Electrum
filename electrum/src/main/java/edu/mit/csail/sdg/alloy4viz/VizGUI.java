@@ -767,7 +767,7 @@ public final class VizGUI implements ComponentListener {
 	}
 
 	// [HASLab] create a list with n times with the purpose of adding it to the
-	// temporal Jpanel
+	// temporal JPanel
 	private String[] createTimeComboAtoms(int numberOfStates) {
 		String[] times = new String[numberOfStates];
 		for (int i = 0; i < numberOfStates; i++)
