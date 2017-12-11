@@ -764,7 +764,7 @@ public final class TranslateAlloyToKodkod extends VisitReturn<Object> {
         Expr a=x.left, b=x.right;
         Expression s, s2, eL, eR; IntExpression i; Formula f; Object objL, objR;
         switch(x.op) {
-            case IMPLIES: f=cform(a).not().or(cform(b)); return k2pos(f,x);
+            case IMPLIES: f=cform(a).implies(cform(b)); return k2pos(f,x); // [HASLab] changed from !a || b
             case IN:       return k2pos(isIn(cset(a), b), x);
             case NOT_IN:  return k2pos(isIn(cset(a),b).not(), x);
             case LT:  i=cint(a);  f=i.lt(cint(b));   return k2pos(f,x);
