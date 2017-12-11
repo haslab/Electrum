@@ -1,4 +1,5 @@
 /* Alloy Analyzer 4 -- Copyright (c) 2006-2009, Felix Chang
+ * Electrum -- Copyright (c) 2014-present, Nuno Macedo
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files
  * (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify,
@@ -60,16 +61,13 @@ import edu.mit.csail.sdg.alloy4compiler.translator.TranslateAlloyToKodkod;
 import edu.mit.csail.sdg.alloy4viz.StaticInstanceReader;
 import edu.mit.csail.sdg.alloy4viz.VizGUI;
 
-/** This helper method is used by SimpleGUI. */
+/** This helper method is used by SimpleGUI. 
+ * 
+ * @modified: Nuno Macedo, Eduardo Pessoa // [HASLab] temporal solving
+ * */
 
-public final class SimpleReporter extends A4Reporter { // pt.uminho.haslab:
-														// public
-
-	// pt.uminho.haslab
-	public final static void p(String s) {
-		System.out.println(s);
-	}
-
+final class SimpleReporter extends A4Reporter { 
+	
 	public static final class SimpleCallback1 implements WorkerCallback {
 		private final SimpleGUI gui;
 		private final VizGUI viz;
@@ -406,9 +404,8 @@ public final class SimpleReporter extends A4Reporter { // pt.uminho.haslab:
 		synchronized (SimpleReporter.class) {
 			try {
 				cb("R3", "   Writing the XML file...");
-				// if (latestModule!=null) writeXML(this, latestModule,
-				// filename, sol, latestKodkodSRC);
-				if (latestModule != null) { // pt.uminho.haslab
+				if (latestModule != null) { // [HASLab]
+					// writeXML(this, latestModule, filename, sol, latestKodkodSRC);
 					GenerateXmlsFiles generateXmlsFiles = new GenerateXmlsFiles(this, latestModule, latestKodkodSRC,
 							sol, tempfile);
 					generateXmlsFiles.run();
@@ -569,9 +566,8 @@ public final class SimpleReporter extends A4Reporter { // pt.uminho.haslab:
 	/** Helper method to write out a full XML file. */
 	private static void writeXML(A4Reporter rep, Module mod, String filename, A4Solution sol,
 			Map<String, String> sources, int state) throws Exception {
-		sol.writeXML(rep, filename, /* mod.getAllFunc() */new ArrayList<Func>(), sources, state); // pt.uminho.haslab
-//		if ("yes".equals(System.getProperty("debug"))) // [HASLab]
-//			validate(filename);
+		sol.writeXML(rep, filename, /* mod.getAllFunc() */new ArrayList<Func>(), sources, state); // [HASLab] ?? TODO
+		if ("yes".equals(System.getProperty("debug"))) validate(filename);
 	}
 
 	private int warn = 0;
@@ -597,13 +593,11 @@ public final class SimpleReporter extends A4Reporter { // pt.uminho.haslab:
 					return;
 				}
 				if (latestKodkodXML == null || !latestKodkodXML.equals(filename)) {
-					cb("pop", "You can only enumerate the solutions of the most-recently-solved command." + filename
-							+ "\n" + latestKodkodXML);
+					cb("pop", "You can only enumerate the solutions of the most-recently-solved command.");
 					return;
-				} // pt.uminho.haslab
+				}
 				if (latestKodkod == null || latestModule == null || latestKodkodSRC == null) {
-					cb("pop",
-							"Error: the SAT solver that generated the instance has exited,\nso we cannot enumerate unless you re-solve that command.\n");
+					cb("pop", "Error: the SAT solver that generated the instance has exited,\nso we cannot enumerate unless you re-solve that command.\n");
 					return;
 				}
 				sol = latestKodkod;
@@ -621,7 +615,6 @@ public final class SimpleReporter extends A4Reporter { // pt.uminho.haslab:
 			int tries = 0;
 			while (true) {
 				sol = sol.next();
-				cb("debug", sol.toString()); // [HASLab]
 				if (!sol.satisfiable()) {
 					cb("pop", "There are no more satisfying instances.\n\n"
 							+ "Note: due to symmetry breaking and other optimizations,\n"
@@ -641,7 +634,7 @@ public final class SimpleReporter extends A4Reporter { // pt.uminho.haslab:
 					// going
 					// writeXML(null, mod, filename, sol, latestKodkodSRC);
 					// latestKodkod=sol;
-					String[] tempFile = filename.split(Pattern.quote(".")); // pt.uminho.haslab
+					String[] tempFile = filename.split(Pattern.quote(".")); // [HASLab]
 					GenerateXmlsFiles generateXmlsFiles = new GenerateXmlsFiles(null, mod, latestKodkodSRC, sol,
 							tempFile[0] + "." + tempFile[1]);
 					generateXmlsFiles.run();
@@ -711,8 +704,8 @@ public final class SimpleReporter extends A4Reporter { // pt.uminho.haslab:
 							latestModule = world;
 							latestKodkodSRC = ConstMap.make(map);
 						}
-						final String tempXML = tempdir + File.separatorChar + i + ".cnf.xml";
-						final String tempCNF = tempdir + File.separatorChar + i + ".cnf";
+						final String tempXML = tempdir + File.separatorChar + i + ".cnf" + "Time" + 0 +".xml"; // [HASLab]
+						final String tempCNF = tempdir + File.separatorChar + i + ".cnf" + "Time" + 0; // [HASLab]
 						final Command cmd = cmds.get(i);
 						rep.tempfile = tempCNF;
 						cb(out, "bold", "Executing \"" + cmd + "\"\n");
@@ -727,8 +720,6 @@ public final class SimpleReporter extends A4Reporter { // pt.uminho.haslab:
 							result.add(tempCNF + ".core");
 						else
 							result.add("");
-						rep.cb("debug", ai.toString()); // [HASLab]
-
 					}
 			(new File(tempdir)).delete(); // In case it was UNSAT, or canceled...
 			if (result.size() > 1) {
@@ -780,8 +771,7 @@ public final class SimpleReporter extends A4Reporter { // pt.uminho.haslab:
 		}
 	}
 
-	// pt.uminho.haslab: this thread generates n xml files and a dynamic
-	// renaming as the time evolves.
+	// [HASLab] generates n xml files and a dynamic renaming as the time evolves.
 	private static class GenerateXmlsFiles implements Runnable {
 		private static ConstMap<String, String> kkSRC;
 		private final String filename;
@@ -800,11 +790,11 @@ public final class SimpleReporter extends A4Reporter { // pt.uminho.haslab:
 
 		@Override
 		public void run() {
-			try { // pt.uminho.haslab
+			try {
 //				a4Solution.type = A4Solution.WritingType.evalToAllStates;
 				for (int i = 0; i <= a4Solution.getLastTrace(); i++) {
 					a4Solution.renameTemporal(i);
-					writeXML(simpleReporter, latestModule, filename + "Time" + i + ".xml", a4Solution, kkSRC, i);
+					writeXML(simpleReporter, latestModule, filename + ".xml", a4Solution, kkSRC, i);
 					if (simpleReporter != null) simpleReporter.debug(i +": "+a4Solution);
 				}
 				a4Solution.type = A4Solution.WritingType.evalToSingleState;

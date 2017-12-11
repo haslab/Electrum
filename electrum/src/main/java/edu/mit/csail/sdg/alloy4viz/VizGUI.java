@@ -1,4 +1,5 @@
 /* Alloy Analyzer 4 -- Copyright (c) 2006-2009, Felix Chang
+ * Electrum -- Copyright (c) 2014-present, Nuno Macedo
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files
  * (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify,
@@ -39,7 +40,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.prefs.Preferences;
-import java.util.regex.Pattern;
 
 import javax.swing.Box;
 import javax.swing.Icon;
@@ -82,6 +82,8 @@ import edu.mit.csail.sdg.alloy4graph.GraphViewer;
  *
  * <p>
  * <b>Thread Safety:</b> Can be called only by the AWT event thread.
+ * 
+ * @modified: Nuno Macedo, Eduardo Pessoa // [HASLab] temporal solving
  */
 
 public final class VizGUI implements ComponentListener {
@@ -193,8 +195,7 @@ public final class VizGUI implements ComponentListener {
 	/** If nonnull, you can pass in an XML file to find the next solution. */
 	private final Computer enumerator;
 
-	// pt.uminho.haslab: control struture to keep a map batween a file's and the state of
-	// that file
+	// [HASLab] control structure to keep a map between a file and the state of that file
 	private final Map<String, Integer> cacheForXmlState = new HashMap<String, Integer>();
 
 	// ==============================================================================================//
@@ -605,7 +606,7 @@ public final class VizGUI implements ComponentListener {
 					"Save the current theme customization as a new theme file", "images/24_save.gif", doSaveThemeAs()));
 			toolbar.add(resetSettingsButton = OurUtil.button("Reset", "Reset the theme customization",
 					"images/24_settings_close2.gif", doResetTheme()));
-            addTemporalJPanel();//pt.uminho.haslab: the jpanel with temporal states is created
+            addTemporalJPanel(); // [HASLab] the JPanel with temporal states is created
 		} finally {
 			wrap = false;
 		}
@@ -657,14 +658,14 @@ public final class VizGUI implements ComponentListener {
 			doLoadInstance(xmlFileName);
 	}
 
-	// pt.uminho.haslab: control structures to make the JPanel with the times
-	private JComboBox atomComboTime;
+	// [HASLab] control structures to make the JPanel with the times
+	private JComboBox<Object> atomComboTime;
 	private JButton leftTime, rightTime;
 	private int backindex = -1;
 	private JLabel tempMsg;
 	
-	// [HASLab]
-	public final void addTemporalJPanel() {
+	// [HASLab] creates the temporal JPanel
+	private final void addTemporalJPanel() {
 
 		tempMsg = new JLabel();
 		leftTime = new JButton("<<");
@@ -732,20 +733,15 @@ public final class VizGUI implements ComponentListener {
 
 				xmlLoaded.remove(getXMLfilename());
 				if (loadXmlFile) {
-					String[] s = getXMLfilename().split(Pattern.quote("."));
-					String file = s[0] + ".cnf." + s[2];
 					if (atomComboTime.getSelectedIndex() >= 0)  {
-//						if (atomComboTime.getSelectedIndex() != 0)
-							loadXML(file, false, atomComboTime.getSelectedIndex());
-//						else
-//							loadXML(file, false);
+						loadXML(getXMLfilename(), false, atomComboTime.getSelectedIndex());
 						cacheForXmlState.put(getXMLfilename(), atomComboTime.getSelectedIndex());
 					}
 				}
 			}
 
 		});
-		atomComboTime.setMaximumSize( atomComboTime.getPreferredSize() );
+		atomComboTime.setMaximumSize(atomComboTime.getPreferredSize());
 		toolbar.add(Box.createHorizontalGlue());
 		toolbar.add(tempMsg);
 		toolbar.add(Box.createHorizontalStrut(15));
@@ -755,7 +751,7 @@ public final class VizGUI implements ComponentListener {
 		toolbar.setBorder(new EmptyBorder(0, 0, 0, 10));
 	}
 	
-	// pessoa: function that make the JPanel with the times
+	// [HASLab] sets the current state of the temporal JPanel
 	public final void setTemporalJPanel(int last) {
 
 		final String[] atomnames = this.createTimeComboAtoms(last+1);
@@ -770,7 +766,7 @@ public final class VizGUI implements ComponentListener {
 
 	}
 
-	// pessoa: create a list with n times with the purpose of adding it to the
+	// [HASLab] create a list with n times with the purpose of adding it to the
 	// temporal Jpanel
 	private String[] createTimeComboAtoms(int numberOfStates) {
 		String[] times = new String[numberOfStates];
@@ -779,21 +775,14 @@ public final class VizGUI implements ComponentListener {
 		return times;
 	}
 
-	// pessoa: boolean variable to control if the first xml file was loaded
+	// [HASLab] boolean variable to control if the first xml file was loaded
 	private boolean loadXmlFile = true;
 
-	// pessoa: change the solution to see given a particular state
-	public void refreshComboAtomTime(int state) {
+	// [HASLab] change the solution to see given a particular state
+	private void refreshComboAtomTime(int state) {
 		this.loadXmlFile = false;
 		atomComboTime.setSelectedIndex(state);
 		this.loadXmlFile = true;
-	}
-
-	// pessoa: aux function to get the path of the xml files given a particular
-	// state
-	private String splitTemporalFileName(int state, String path) {
-		String[] dots = path.split(Pattern.quote("."));
-		return dots[0] + "." + dots[1] + "Time" + state + "." + dots[2];
 	}
 
 	/** Invoked when the Visualizationwindow is resized. */
@@ -857,24 +846,17 @@ public final class VizGUI implements ComponentListener {
 	 * Helper method that refreshes the right-side visualization panel with the
 	 * latest settings.
 	 */
-	public void updateDisplay() { // pt.uminho.haslab: public
-		if (myState == null)
-			return;
+	private void updateDisplay() {
+		if (myState == null) return;
 		// First, update the toolbar
 		currentMode.set();
-		for (JButton button : solutionButtons)
-			button.setEnabled(settingsOpen != 1);
+		for (JButton button : solutionButtons) button.setEnabled(settingsOpen != 1);
 		switch (currentMode) {
-		case Tree:
-			treeButton.setEnabled(false);
-			break;
-		case TEXT:
-			txtButton.setEnabled(false);
-			break;
+		case Tree: treeButton.setEnabled(false); break;
+		case TEXT: txtButton.setEnabled(false); break;
 		// case XML: xmlButton.setEnabled(false); break;
 		// case DOT: dotButton.setEnabled(false); break;
-		default:
-			vizButton.setEnabled(false);
+		default: vizButton.setEnabled(false);
 		}
 		final boolean isMeta = myState.getOriginalInstance().isMetamodel;
 		vizButton.setVisible(frame != null);
@@ -949,10 +931,7 @@ public final class VizGUI implements ComponentListener {
 		instanceArea.add(instanceTopBox, BorderLayout.NORTH);
 		instanceArea.add(content, BorderLayout.CENTER);
 		instanceArea.setVisible(true);
-		if (!Util.onMac()) {
-			instanceTopBox.setBackground(background);
-			instanceArea.setBackground(background);
-		}
+		if (!Util.onMac()) { instanceTopBox.setBackground(background); instanceArea.setBackground(background); }
 		JComponent left = null;
 		if (settingsOpen == 1) {
 			if (myCustomPanel == null)
@@ -993,10 +972,7 @@ public final class VizGUI implements ComponentListener {
 		else
 			myEvaluatorPanel.requestFocusInWindow();
 		repopulateProjectionPopup();
-		if (frame != null)
-			frame.validate();
-		else
-			splitpane.validate();
+		if (frame!=null) frame.validate(); else splitpane.validate();
 	}
 
 	/**
@@ -1089,45 +1065,39 @@ public final class VizGUI implements ComponentListener {
 		return myGraphPanel.alloyGetViewer();
 	}
 
+	/** Load the XML instance. */
+	// [HASLab] considers initial state
 	public void loadXML(final String fileName, boolean forcefully) {
 		loadXML(fileName, forcefully, 0);
 	}
 	
 	/** Load the XML instance. */
+	// [HASLab] considers particular state
 	public void loadXML(final String fileName, boolean forcefully, int state) {
-		String dfileName = splitTemporalFileName(state, fileName);  // [HASLab]
-		final String xmlFileName = Util.canon(dfileName);
+		final String xmlFileName = Util.canon(fileName);
 		File f = new File(xmlFileName);
 		if (forcefully || !xmlFileName.equals(this.xmlFileName)) {
 			AlloyInstance myInstance;
 			try {
-				if (!f.exists())
-					throw new IOException("File " + xmlFileName + " does not exist.");
+	            if (!f.exists()) throw new IOException("File " + xmlFileName + " does not exist.");
 				myInstance = StaticInstanceReader.parseInstance(f);
 			} catch (Throwable e) {
-				xmlLoaded.remove(dfileName);
+				xmlLoaded.remove(fileName);
 				xmlLoaded.remove(xmlFileName);
-				StringBuilder sb = new StringBuilder();
-				for (StackTraceElement s : e.getStackTrace()) sb.append(s+"\n");
-				System.out.println(sb.toString());
-				OurDialog.alert("Cannot read or parse Alloy instance: " + xmlFileName + "\n\nError: " + e.getMessage()+"\n"+sb.toString());
+	            OurDialog.alert("Cannot read or parse Alloy instance: "+xmlFileName+"\n\nError: "+e.getMessage());
 				if (xmlLoaded.size() > 0) {
-					loadXML(xmlLoaded.get(xmlLoaded.size() - 1), false, state);
+					loadXML(xmlLoaded.get(xmlLoaded.size() - 1), false, state); // [HASLab]
 					return;
 				}
 				doCloseAll();
 				return;
 			}
-			if (myState == null)
-				myState = new VizState(myInstance);
-			else
-				myState.loadInstance(myInstance);
+			if (myState==null) myState=new VizState(myInstance); else myState.loadInstance(myInstance);
 			repopulateProjectionPopup();
 			xml2title.put(xmlFileName, makeVizTitle());
 			this.xmlFileName = xmlFileName;
 		}
-		if (!xmlLoaded.contains(xmlFileName))
-			xmlLoaded.add(xmlFileName);
+		if (!xmlLoaded.contains(xmlFileName)) xmlLoaded.add(xmlFileName);
 		toolbar.setEnabled(true);
 //		settingsOpen = 0; // [HASLab]
 		thememenu.setEnabled(true);
@@ -1230,21 +1200,16 @@ public final class VizGUI implements ComponentListener {
 	 * as invisible (if not in standalone mode), or it will terminate the entire
 	 * application (if in standalone mode).
 	 */
-	// pt.uminho.haslab: the close was extended do not keep open the previous temporal
-	// solutions when the viz is closed
+	// [HASLab] extended to not keep open the previous temporal solutions when the viz is closed
 	private Runner doClose() {
-		if (wrap)
-			return wrapMe();
+		if (wrap) return wrapMe();
 		xmlLoaded.remove(xmlFileName);
-		if (xmlLoaded.size() > 0) { // pt.uminho.haslab
+		if (xmlLoaded.size() > 0) {
 			doLoadInstance(xmlLoaded.get(xmlLoaded.size() - 1));
-			refreshComboAtomTime((Integer) cacheForXmlState.get(xmlLoaded.get(xmlLoaded.size() - 1)));
+			refreshComboAtomTime((Integer) cacheForXmlState.get(xmlLoaded.get(xmlLoaded.size() - 1))); // [HASLab]
 			return null;
 		}
-		if (standalone)
-			System.exit(0);
-		else if (frame != null)
-			frame.setVisible(false);
+		if (standalone) System.exit(0); else if (frame!=null) frame.setVisible(false);
 		return null;
 	}
 
@@ -1253,8 +1218,7 @@ public final class VizGUI implements ComponentListener {
 	 * then shutdown, otherwise it will just set the window invisible.
 	 */
 	private Runner doCloseAll() {
-		if (wrap)
-			return wrapMe();
+		if (wrap) return wrapMe();
 		xmlLoaded.clear();
 		xmlFileName = "";
 		if (standalone)
@@ -1490,18 +1454,9 @@ public final class VizGUI implements ComponentListener {
 		if (xmlFileName.length() == 0) {
 			OurDialog.alert("Cannot display the next solution since no instance is currently loaded.");
 		} else if (enumerator == null) {
-			OurDialog
-					.alert("Cannot display the next solution since the analysis engine is not loaded with the visualizer.");
-		} else { // pt.uminho.haslab: when the user wishes a next solution, the xml file's path is updated to the original path
-			try {
-				if (xmlFileName.contains("Time")) {
-					String[] s = xmlFileName.split(Pattern.quote("."));
-					xmlFileName = s[0] + ".cnf.xml";
-				}
-				enumerator.compute(xmlFileName);
-			} catch (Throwable ex) {
-				OurDialog.alert(ex.getMessage());
-			}
+			OurDialog.alert("Cannot display the next solution since the analysis engine is not loaded with the visualizer.");
+		} else {
+	         try { enumerator.compute(xmlFileName); } catch(Throwable ex) { OurDialog.alert(ex.getMessage()); }
 		}
 		return null;
 	}
@@ -1606,38 +1561,39 @@ public final class VizGUI implements ComponentListener {
 
 	// [HASLab]
 	private class TimePainter extends JLabel implements ListCellRenderer<Object> {
-	     public TimePainter() {
-	         setOpaque(true);
-	     }
 
-	     public Component getListCellRendererComponent(JList<?> list,
-	                                                   Object value,
-	                                                   int index,
-	                                                   boolean isSelected,
-	                                                   boolean cellHasFocus) {
+		private static final long serialVersionUID = -7905186538514458958L;
 
-	    	 if (value!=null)
-	    		 setText(value.toString());
+		private TimePainter() {
+			setOpaque(true);
+		}
 
-	         int bold;
-	         Color color;
+		public Component getListCellRendererComponent(JList<?> list,
+				Object value, int index, boolean isSelected,
+				boolean cellHasFocus) {
 
-	         if (index == list.getModel().getSize()-1) {
-	        	 bold = Font.BOLD;
-	        	 color = Color.BLUE;	        	 
-	         } else if (index == backindex) {
-        		 bold = Font.BOLD;
-        		 color = Color.GREEN;
-	         } else {
-	        	 bold = Font.PLAIN;
-	        	 color = Color.BLACK;
-	         };
+			if (value != null)
+				setText(value.toString());
 
-	         setFont(getFont().deriveFont(bold));
-	         setForeground(color);
-	         setBackground(Color.WHITE);
-	         
-	         return this;
-	     }
-	 }
+			int bold;
+			Color color;
+
+			if (index == list.getModel().getSize() - 1) {
+				bold = Font.BOLD;
+				color = Color.BLUE;
+			} else if (index == backindex) {
+				bold = Font.BOLD;
+				color = Color.GREEN;
+			} else {
+				bold = Font.PLAIN;
+				color = Color.BLACK;
+			}
+
+			setFont(getFont().deriveFont(bold));
+			setForeground(color);
+			setBackground(Color.WHITE);
+
+			return this;
+		}
+	}
 }
