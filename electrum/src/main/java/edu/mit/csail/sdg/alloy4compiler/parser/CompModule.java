@@ -693,7 +693,6 @@ public final class CompModule extends Browsable implements Module {
 		x.add(SIGINT);
 		x.add(SEQIDX);
 		x.add(STRING);
-//		x.add(TIME); // pt.uminho.haslab: time scope currently managed in the options
 		x.add(NONE);
 		for(CompModule m:getAllReachableModules()) x.addAll(m.sigs.values());
 		return x.makeConst();
@@ -1329,6 +1328,7 @@ public final class CompModule extends Browsable implements Module {
 		// * it is allowed to refer to earlier fields in the same SIG or in any visible ancestor sig
 		// * it is allowed to refer to visible sigs
 		// * it is NOT allowed to refer to any predicate or function
+		// * it is NOT allowed to refer to variable fields/sigs unless it is also variable  // [HASLab]
 		// For example, if A.als opens B.als, and B/SIGX extends A/SIGY,
 		// then B/SIGX's fields cannot refer to A/SIGY, nor any fields in A/SIGY)
 		final List<Decl> oldDecls = res.old2fields.get(res.new2old.get(s));
@@ -1347,6 +1347,13 @@ public final class CompModule extends Browsable implements Module {
 			cx.remove("this");
 			String[] names = new String[d.names.size()];  for(int i=0; i<names.length; i++) names[i] = d.names.get(i).label;
 			Field[] fields = s.addTrickyField(d.span(), d.isPrivate, d.disjoint, d.disjoint2, null, d.isVar, names, bound);
+		    final VisitQuery<Object> q = new VisitQuery<Object>() { // [HASLab]
+		      @Override public final Object visit(Sig x) { if (x.isVariable!=null) return x; else return null; }
+		    };
+		    Object qr = q.visitThis(bound);
+			if (d.isVar==null && qr!=null)  // [HASLab]
+				warns.add(new ErrorWarning(d.span(), "Static field types with variable bound.\n"
+						+ "Field "+d.names.get(0)+" is static but "+qr+" is variable."));
 			for(Field f: fields) {
 				rep.typecheck("Sig "+s+", Field "+f.label+": "+f.type()+"\n");
 			}
@@ -1443,7 +1450,6 @@ public final class CompModule extends Browsable implements Module {
 		// Resolves SigAST -> Sig, and topologically sort the sigs into the "sorted" array
 		root.new2old.put(UNIV,UNIV);
 		root.new2old.put(SIGINT,SIGINT);
-//		root.new2old.put(TIME,TIME); // pt.uminho.haslab: time scopes currently managed in the options
 		root.new2old.put(SEQIDX,SEQIDX);
 		root.new2old.put(STRING,STRING);
 		root.new2old.put(NONE,NONE);
@@ -1494,7 +1500,6 @@ public final class CompModule extends Browsable implements Module {
 		if (name.equals("Int"))        return ExprUnary.Op.NOOP.make(pos, SIGINT);
 		if (name.equals("seq/Int"))    return ExprUnary.Op.NOOP.make(pos, SEQIDX);
 		if (name.equals("String"))     return ExprUnary.Op.NOOP.make(pos, STRING);
-//		if (name.equals("Time"))       return ExprUnary.Op.NOOP.make(pos, TIME); // pt.uminho.haslab: time scope currently managed in the options
 		if (name.equals("none"))       return ExprUnary.Op.NOOP.make(pos, NONE);
 		if (name.equals("iden"))       return ExprConstant.Op.IDEN.make(pos, 0);
 		if (name.equals("sig$") || name.equals("field$")) if (world!=null) {

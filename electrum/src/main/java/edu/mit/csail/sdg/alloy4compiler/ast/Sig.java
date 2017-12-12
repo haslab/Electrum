@@ -329,15 +329,12 @@ public abstract class Sig extends Expr {
 		 * @throws ErrorSyntax if the signature has two or more multiplicities
 		 * @throws ErrorType if you attempt to extend the builtin sigs NONE, SIGINT, SEQIDX, or STRING
 		 */
-		// [HASLab] extended with variable sigs.
 		public PrimSig (String label, PrimSig parent, Attr... attributes) throws Err {
 			super(((parent!=null && parent.isEnum!=null) ? parent.type : null), label, Util.append(attributes, Attr.SUBSIG));
 			if (parent==SIGINT) throw new ErrorSyntax(pos, "sig "+label+" cannot extend the builtin \"Int\" signature");
 			if (parent==SEQIDX) throw new ErrorSyntax(pos, "sig "+label+" cannot extend the builtin \"seq/Int\" signature");
 			if (parent==STRING) throw new ErrorSyntax(pos, "sig "+label+" cannot extend the builtin \"String\" signature");
 			if (parent==NONE)   throw new ErrorSyntax(pos, "sig "+label+" cannot extend the builtin \"none\" signature");
-//			if (parent!=null && parent.isVariable!=null && !(isVariable!=null))  // [HASLab]
-//				throw new ErrorSyntax(isAbstract,  "Static signature cannot extend dynamic signature.");
 
 			if (parent==null) parent=UNIV; else if (parent!=UNIV) parent.children.add(this);
 
