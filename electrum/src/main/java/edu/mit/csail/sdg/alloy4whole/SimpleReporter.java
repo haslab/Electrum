@@ -793,11 +793,12 @@ final class SimpleReporter extends A4Reporter {
 //				a4Solution.type = A4Solution.WritingType.evalToAllStates;
 				for (int i = 0; i <= a4Solution.getLastTrace(); i++) {
 					a4Solution.renameTemporal(i);
-					writeXML(simpleReporter, latestModule, filename + ".xml", a4Solution, kkSRC, i);
+					String[] spl = filename.split(Pattern.quote("Time")); // [HASLab]
+					String dfilename = spl[0] + "Time" + i + ".xml"; // [HASLab]
+
+					writeXML(simpleReporter, latestModule, dfilename, a4Solution, kkSRC, i);
 					if (simpleReporter != null) simpleReporter.debug(i +": "+a4Solution);
 				}
-				a4Solution.type = A4Solution.WritingType.evalToSingleState;
-//				writeXML(simpleReporter, latestModule, filename + ".xml", a4Solution, kkSRC, 0); 
 				a4Solution.temporalAtoms.optimizeTemporalAtoms();
 				writeXML(simpleReporter, latestModule, filename + "Evaluator.xml", a4Solution, kkSRC, 0);
 			} catch (Exception e) {

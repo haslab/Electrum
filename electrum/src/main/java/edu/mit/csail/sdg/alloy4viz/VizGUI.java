@@ -40,6 +40,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.prefs.Preferences;
+import java.util.regex.Pattern;
 
 import javax.swing.Box;
 import javax.swing.Icon;
@@ -1074,7 +1075,9 @@ public final class VizGUI implements ComponentListener {
 	/** Load the XML instance. */
 	// [HASLab] considers particular state
 	public void loadXML(final String fileName, boolean forcefully, int state) {
-		final String xmlFileName = Util.canon(fileName);
+		String[] spl = fileName.split(Pattern.quote("Time")); // [HASLab]
+		String dfilename = spl[0] + "Time" + state + ".xml"; // [HASLab]
+		final String xmlFileName = Util.canon(dfilename);
 		File f = new File(xmlFileName);
 		if (forcefully || !xmlFileName.equals(this.xmlFileName)) {
 			AlloyInstance myInstance;

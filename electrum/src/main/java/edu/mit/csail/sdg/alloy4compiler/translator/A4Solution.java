@@ -222,11 +222,6 @@ public final class A4Solution {
 	// [HASLab]
 	private int backLoop;
 
-	// [HASLab] pessoa: enum that handles the context to write a xml file
-	// if the context is "evalToAllStates" the xml with all atoms is being write
-	public enum WritingType {evalToSingleState,evalToAllStates};
-	public WritingType type;
-
 	//===================================================================================================//
 	
 	/** Construct a blank A4Solution containing just UNIV, SIGINT, SEQIDX, STRING, and NONE as its only known sigs.
@@ -239,11 +234,10 @@ public final class A4Solution {
 	 * @param expected - whether the user expected an instance or not (1 means yes, 0 means no, -1 means the user did not express an expectation)
 	 */ 
 	 // [HASLab] adapted to consider temporal problems, solutions and options.
-	public A4Solution(String originalCommand, int bitwidth, int tracelength, int maxseq, Set<String> stringAtoms, Collection<String> atoms, final A4Reporter rep, A4Options opt, int expected) throws Err {  // [HASLab] public
+	A4Solution(String originalCommand, int bitwidth, int tracelength, int maxseq, Set<String> stringAtoms, Collection<String> atoms, final A4Reporter rep, A4Options opt, int expected) throws Err {
 		opt = opt.dup();
 		this.canAddSkolems = true; // [HASLab] pessoa: in the first renaming the atoms are added
 		this.temporalAtoms = new GatherTemporalAtoms(); // [HASLab] pessoa: the object is initialized to gather all atoms in the renaming procedure
-		this.type = WritingType.evalToSingleState; // [HASLab] pessoa: in this point we are writing a xml per time
 		this.unrolls = opt.unrolls;
 		this.sigs = new SafeList<Sig>(Arrays.asList(UNIV, SIGINT, SEQIDX, STRING, NONE));
 		this.a2k = Util.asMap(new Expr[]{UNIV, SIGINT, SEQIDX, STRING, NONE}, Relation.INTS.union(KK_STRING), Relation.INTS, KK_SEQIDX, KK_STRING, Relation.NONE);
@@ -379,8 +373,6 @@ public final class A4Solution {
 			traceLength = inst.end; // [HASLab] temporal meta-data
 			backLoop = inst.loop; // [HASLab] temporal meta-data
 			this.instance = inst; // [HASLab] pessoa: the original instance is kept to perform the renaming
-			Iterator<Object> it = bounds.universe().iterator();
-			while(it.hasNext()) this.universeList.add(it.next()); // [HASLab] pessoa: the universe is kept into a list to get the atoms' index
 			eval = new Evaluator(inst, old.solver.options());
 			a2k = new LinkedHashMap<Expr,Expression>();
 			for(Map.Entry<Expr,Expression> e: old.a2k.entrySet())
@@ -400,7 +392,6 @@ public final class A4Solution {
 		atom2sig = ConstMap.make(atom2sig);
 		solved = true;
 		temporalAtoms = new GatherTemporalAtoms(); // [HASLab] pessoa
-		type = WritingType.evalToSingleState; // [HASLab] pessoa
 		canAddSkolems = true; // [HASLab] pessoa
 	}
 
@@ -699,14 +690,14 @@ public final class A4Solution {
 		}
 	}
 	
-	/** If this solution is solved and satisfiable, evaluates the given expression at the given state and returns an A4TupleSet, a java Integer, or a java Boolean. 
-	 * pt.uminho.haslab: evals to 0. */
+	/** If this solution is solved and satisfiable, evaluates the given expression at the given state and returns an A4TupleSet, a java Integer, or a java Boolean.*/
+	// [HASLab] evals to 0.
 	public Object eval(Expr expr) throws Err {
 		return eval(expr,0); // [HASLab]
 	}
 	
-	/** If this solution is solved and satisfiable, evaluates the given expression at the given state and returns an A4TupleSet, a java Integer, or a java Boolean. 
-	 * pt.uminho.haslab: specific state. */
+	/** If this solution is solved and satisfiable, evaluates the given expression at the given state and returns an A4TupleSet, a java Integer, or a java Boolean.*/
+	// [HASLab] specific state. 
 	public Object eval(Expr expr, int state) throws Err {
 		try {
 			if (expr instanceof Sig) return eval((Sig)expr, state); // [HASLab]
@@ -816,8 +807,8 @@ public final class A4Solution {
 		if (expr!=null) k2pos(newFormula, expr);
 	}
 
-	/** Set the back loop instant of this instance.
- 		pt.uminho.haslab */
+	/** Set the back loop instant of this instance.*/
+	// [HASLab] 
 	void setBackLoop(int backloop) {
 		this.backLoop = backloop;
 	}
@@ -967,18 +958,21 @@ public final class A4Solution {
 			}
 			return;
 		}
-		for(PrimSig c: s.children()) rename(frame, c, nexts, un, state); // [HASLab]
+		if (s.isVariable!=null && s.parent!=UNIV) return; // [HASLab] do not rename variable sigs unless top
+		for(PrimSig c: s.children()) rename(frame, c, nexts, un, state); // [HASLab] particular state
 		String signame = un.make(s.label.startsWith("this/") ? s.label.substring(5) : s.label);
 		List<Tuple> list = new ArrayList<Tuple>();
-		for(Tuple t: frame.eval.evaluate(frame.a2k(s), state)) list.add(t); // [HASLab]
+		for(Tuple t: frame.eval.evaluate(frame.a2k(s), state)) list.add(t); // [HASLab] particular state
 
 		List<Tuple> order = nexts.get(s);
 		if (order!=null && order.size()==list.size() && order.containsAll(list)) { list=order; }
+        int i = 0;
 		for(Tuple t: list) {
 			if (frame.atom2sig.containsKey(t.atom(0))) continue; // This means one of the subsig has already claimed this atom.
-			// [HASLab] pessoa: the atom has the index from the universe
-			String x =  frame.getAtomIdFromUniverse(signame, (String) t.atom(0));
-			frame.atom2sig.put(t.atom(0), s);
+//			String x = signame + "$" + i;  // [HASLab] do not renumber from 0 due to different states
+			String x = t.atom(0)+""; // [HASLab]
+			i++;
+	        frame.atom2sig.put(t.atom(0), s);
 			frame.atom2name.put(t.atom(0), x);
 			ExprVar v = ExprVar.make(null, x, s.type());
 			TupleSet ts = t.universe().factory().range(t, t);
@@ -989,11 +983,6 @@ public final class A4Solution {
 			// [HASLab] pessoa: in this map we adding as the renaming evolves in time the map between a alloy expression and a kk expression
 			frame.temporaryA2k.put(v, r);
 		}
-	}
-
-	// [HASLab] pessoa: this function returns a atom with the index equals to the index position that such atom appears on the universe
-	private String getAtomIdFromUniverse(String atom,String s){
-		return atom+"$"+this.universeList.indexOf(s);
 	}
 
 	//===================================================================================================//
@@ -1124,8 +1113,8 @@ public final class A4Solution {
 			//the purpose of renaming and the universe' bounds is kept in a Arraylist
 			traceLength = inst.end;
 			backLoop = inst.loop;
-			Iterator<Object> it = bounds.universe().iterator();
-			while(it.hasNext()) this.universeList.add(it.next());
+//			Iterator<Object> it = bounds.universe().iterator();
+//			while(it.hasNext()) this.universeList.add(it.next());
 			instance = inst;
 			eval = new Evaluator(inst, solver.options());
 			rename(this, null, null, new UniqueNameGenerator());
@@ -1141,7 +1130,6 @@ public final class A4Solution {
 	private Instance instance ;
 	private Map<Expr,Expression> originalA2k;
 	private Map<Expr,Expression> temporaryA2k =  new HashMap<>();
-	private List<Object> universeList = new ArrayList<Object>();
 
 	// [HASLab] pessoa: boolean var to allow or not add the skolem into the original list from the second renaming
 	private boolean canAddSkolems;
@@ -1151,6 +1139,7 @@ public final class A4Solution {
 
 	// [HASLab] pessoa: this function performs the renaming of a solution given a particular state.
 	// To do that, the control structures are initialised as well as the evaluator with the original instance.
+	@Deprecated
 	public A4Solution renameTemporal(int state){
 		try {
 			originalA2k = new HashMap<>();
@@ -1207,7 +1196,7 @@ public final class A4Solution {
 		if (sol instanceof TemporalInstance) {
 			for (int i = 0; i <= ((TemporalInstance) sol).end; i++) { // [HASLab]
 				sb.append("------State " + i + "-------\n");
-//				this.renameTemporal(i);
+				this.renameTemporal(i);
 				try {
 					for (Sig s : sigs) {
 						sb.append(s.label).append("=").append(eval(s, i)).append("\n");
@@ -1241,7 +1230,7 @@ public final class A4Solution {
 	//===================================================================================================//
 
 	/** If nonnull, it caches the result of calling "next()". */
-	public A4Solution nextCache = null; // [HASLab] public
+	private A4Solution nextCache = null;
 
 	/** If this solution is UNSAT, return itself; else return the next solution (which could be SAT or UNSAT).
 	 * @throws ErrorAPI if the solver was not an incremental solver
@@ -1310,8 +1299,8 @@ public final class A4Solution {
 		writeXML(filename, null, null);
 	}
 
-	/** Helper method to write out a full XML file. 
-	 * pt.uminho.haslab: evals to specific state. */
+	/** Helper method to write out a full XML file. */
+	// [HASLab] evals to specific state.
 	public void writeXML(String filename, int state) throws Err {
 		writeXML(filename, null, null, state);
 	}
@@ -1321,14 +1310,14 @@ public final class A4Solution {
 		writeXML(filename, macros, null);
 	}
 	
-	/** Helper method to write out a full XML file. 
-	 * pt.uminho.haslab: evals to 0. */
+	/** Helper method to write out a full XML file.*/
+	// [HASLab] evals to 0. 
 	public void writeXML(String filename, Iterable<Func> macros, Map<String,String> sourceFiles) throws Err {
 		writeXML(filename, macros, sourceFiles, 0);
 	}
 
-	/** Helper method to write out a full XML file. 
-	 * pt.uminho.haslab: evals to specific state. */
+	/** Helper method to write out a full XML file.*/
+	// [HASLab] evals to specific state.
 	public void writeXML(String filename, Iterable<Func> macros, Map<String,String> sourceFiles, int state) throws Err {
 		PrintWriter out=null;
 		try {
@@ -1341,8 +1330,8 @@ public final class A4Solution {
 		}
 	}
 
-	/** Helper method to write out a full XML file. 
- 	 * pt.uminho.haslab: evals to specific state. */
+	/** Helper method to write out a full XML file. */
+	// [HASLab] evals to specific state.
 	public void writeXML(A4Reporter rep, String filename, Iterable<Func> macros, Map<String,String> sourceFiles, int state) throws Err {
 		PrintWriter out=null;
 		try {
@@ -1355,21 +1344,21 @@ public final class A4Solution {
 		}
 	}
 
-	/** Helper method to write out a full XML file. 
-	 * pt.uminho.haslab: evals to 0. */
+	/** Helper method to write out a full XML file. */
+	// [HASLab] evals to 0. 
 	public void writeXML(PrintWriter writer, Iterable<Func> macros, Map<String,String> sourceFiles) throws Err {
 		writeXML(writer, macros, sourceFiles, 0);
 	}
 	
-	/** Helper method to write out a full XML file. 
-	 * pt.uminho.haslab: evals to specific state. */
+	/** Helper method to write out a full XML file. */
+	// [HASLab] evals to specific state. 
 	public void writeXML(PrintWriter writer, Iterable<Func> macros, Map<String,String> sourceFiles, int state) throws Err {
 		A4SolutionWriter.writeInstance(null, this, writer, macros, sourceFiles, state);
 		if (writer.checkError()) throw new ErrorFatal("Error writing the solution XML file.");
 	}
 
-	/** Helper method to write out a full XML file. 
-	 * pt.uminho.haslab: evals to specific state. */
+	/** Helper method to write out a full XML file. */
+	// [HASLab] evals to specific state.
 	public void writeXML(A4Reporter rep, PrintWriter writer, Iterable<Func> macros, Map<String,String> sourceFiles, int state) throws Err {
 		A4SolutionWriter.writeInstance(rep, this, writer, macros, sourceFiles, state);
 		if (writer.checkError()) throw new ErrorFatal("Error writing the solution XML file.");

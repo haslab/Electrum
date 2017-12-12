@@ -53,7 +53,7 @@ import edu.mit.csail.sdg.alloy4compiler.ast.Sig.SubsetSig;
  * This helper class contains helper routines for reading an A4Solution object
  * from an XML file.
  * 
- * @modified: nmm, Eduardo Pessoa (pt.uminho.haslab): temporal meta-data.
+ * @modified: Nuno Macedo, Eduardo Pessoa // [HASLab] temporal model finding
  * */
 
 public final class A4SolutionReader {
@@ -164,6 +164,7 @@ public final class A4SolutionReader {
 		Attr isMeta = yes(node, "meta") ? Attr.META : null;
 		Attr isEnum = yes(node, "enum") ? Attr.ENUM : null;
 		Attr isExact = yes(node, "exact") ? Attr.EXACT : null;
+		Attr isVar = yes(node, "var") ? Attr.VARIABLE : null; // [HASLab]
 		if (yes(node, "builtin")) {
 			if (label.equals(UNIV.label)) {
 				id2sig.put(id, UNIV);
@@ -212,7 +213,13 @@ public final class A4SolutionReader {
 					break;
 				}
 			if (ans == null) {
-				ans = new PrimSig(label, (PrimSig) parent, isAbstract, isLone, isOne, isSome, isPrivate, isMeta, isEnum);
+				if (isVar != null && parent != UNIV) { // [HASLab] variable sigs are better presented as subsigs if not top
+					List<Sig> parents0 = new ArrayList<Sig>();
+					parents0.add(parent);
+					ans = new SubsetSig(label, parents0, isAbstract, isLone, isOne, isSome, isPrivate, isMeta, isEnum, isVar); // [HASLab]
+				}
+				else
+					ans = new PrimSig(label, (PrimSig) parent, isAbstract, isLone, isOne, isSome, isPrivate, isMeta, isEnum);
 				allsigs.add(ans);
 			}
 		} else {
@@ -224,15 +231,27 @@ public final class A4SolutionReader {
 					break;
 				}
 			if (ans == null) {
-				ans = new SubsetSig(label, parents, isExact, isLone, isOne, isSome, isPrivate, isMeta);
+				ans = new SubsetSig(label, parents, isExact, isLone, isOne, isSome, isPrivate, isMeta, isVar); // [HASLab]
 				allsigs.add(ans);
 			}
 		}
 		id2sig.put(id, ans);
 		expr2ts.put(ans, ts);
-		if (ans instanceof PrimSig) {
+		if (ans instanceof PrimSig)
 			// Add the atoms in this SIG into all parent sigs
 			for (PrimSig ans2 = ((PrimSig) ans).parent; ans2 != null && !ans2.builtin; ans2 = ans2.parent) {
+				TupleSet ts2 = expr2ts.get(ans2);
+				if (ts2 == null)
+					ts2 = ts.clone();
+				else {
+					ts2 = ts2.clone();
+					ts2.addAll(ts);
+				}
+				expr2ts.put(ans2, ts2);
+			}
+		if (ans.isVariable != null && parents == null) { // [HASLab] identify variable primsigs converted into subsigs
+			// Add the atoms in this SIG into all parent sigs
+			for (Sig ans2 = ((SubsetSig) ans).parents.get(0); ans2 != null && !ans2.builtin; ans2 = (ans2 instanceof PrimSig) ? ((PrimSig)ans2).parent:((SubsetSig)ans2).parents.get(0)) {
 				TupleSet ts2 = expr2ts.get(ans2);
 				if (ts2 == null)
 					ts2 = ts.clone();
@@ -354,8 +373,8 @@ public final class A4SolutionReader {
 		// set up the basic values of the A4Solution object
 		final int bitwidth = Integer.parseInt(inst.getAttribute("bitwidth"));
 		final int maxseq = Integer.parseInt(inst.getAttribute("maxseq"));
-		final int tracelength = Integer.parseInt(inst.getAttribute("tracelength"));  // pt.uminho.haslab: the trace length of the instance
-		final int backloop = Integer.parseInt(inst.getAttribute("backloop"));  // pt.uminho.haslab: the back loop of the instance
+		final int tracelength = Integer.parseInt(inst.getAttribute("tracelength"));  // [HASLab] the trace length of the instance
+		final int backloop = Integer.parseInt(inst.getAttribute("backloop"));  // [HASLab] the back loop of the instance
 		final int max = Util.max(bitwidth), min = Util.min(bitwidth);
 		if (bitwidth >= 1 && bitwidth <= 30)
 			for (int i = min; i <= max; i++) {
@@ -381,9 +400,9 @@ public final class A4SolutionReader {
 		// create the A4Solution object
 		A4Options opt = new A4Options();
 		opt.originalFilename = inst.getAttribute("filename");
-		sol = new A4Solution(inst.getAttribute("command"), bitwidth, tracelength, maxseq, strings, atoms, null, opt, 1); // pt.uminho.haslab
+		sol = new A4Solution(inst.getAttribute("command"), bitwidth, tracelength, maxseq, strings, atoms, null, opt, 1); // [HASLab]
 		factory = sol.getFactory();
-		sol.setBackLoop(backloop); // pt.uminho.haslab
+		sol.setBackLoop(backloop); // [HASLab]
 		// parse all the sigs, fields, and skolems
 		for (Map.Entry<String, XMLNode> e : nmap.entrySet())
 			if (e.getValue().is("sig"))
