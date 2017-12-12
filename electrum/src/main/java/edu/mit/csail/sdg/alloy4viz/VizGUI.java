@@ -1459,7 +1459,10 @@ public final class VizGUI implements ComponentListener {
 		} else if (enumerator == null) {
 			OurDialog.alert("Cannot display the next solution since the analysis engine is not loaded with the visualizer.");
 		} else {
-	         try { enumerator.compute(xmlFileName); } catch(Throwable ex) { OurDialog.alert(ex.getMessage()); }
+			String[] spl = xmlFileName.split(Pattern.quote("Time")); // [HASLab]
+			String dfilename = spl[0] + "Time" + 0 + ".xml"; // [HASLab]
+			final String xmlFileName = Util.canon(dfilename); // [HASLab]
+			try { enumerator.compute(xmlFileName); } catch(Throwable ex) { OurDialog.alert(ex.getMessage()); }
 		}
 		return null;
 	}
