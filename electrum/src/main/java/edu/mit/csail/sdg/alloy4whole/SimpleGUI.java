@@ -1075,7 +1075,7 @@ public final class SimpleGUI implements ComponentListener, Listener {
            latestAutoInstance="";
            if (subrunningTask==2){
                viz.loadXML(f, true);
-               // pt.uminho.haslab: the jpanel with temporal states is created
+               // [HASLab] the JPanel with temporal states is created
                viz.setTemporalJPanel(viz.getVizState().getOriginalInstance().originalA4.getLastTrace());
            } else if (AutoVisualize.get() || subrunningTask==1) doVisualize("XML: "+f);
         }

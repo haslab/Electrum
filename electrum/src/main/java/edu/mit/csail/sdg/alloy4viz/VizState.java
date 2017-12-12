@@ -1,4 +1,5 @@
 /* Alloy Analyzer 4 -- Copyright (c) 2006-2009, Felix Chang
+ * Electrum -- Copyright (c) 2015-present, Nuno Macedo
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files
  * (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify,
@@ -38,6 +39,8 @@ import edu.mit.csail.sdg.alloy4graph.DotStyle;
 /** Mutable; this stores an unprojected model as well as the current theme customization.
  *
  * <p><b>Thread Safety:</b> Can be called only by the AWT event thread.
+ * 
+ * @modified: Nuno Macedo // [HASLab] temporal model finding
  */
 
 public final class VizState {
@@ -125,6 +128,10 @@ public final class VizState {
       shape.put(set,DotShape.ELLIPSE); nodeColor.put(set,DotColor.BLUE); label.put(set,"");
       edgeColor.put(ext,DotColor.BLACK); weight.put(ext,100); layoutBack.put(ext,true);
       edgeColor.put(in,DotColor.BLACK); weight.put(in,100); layoutBack.put(in,true);
+      for (AlloyType r : currentModel.getTypes()) // [HASLab]
+    	  if (r.isVar) nodeStyle.put(r, DotStyle.DASHED);
+      for (AlloyRelation r : currentModel.getRelations()) // [HASLab]
+    	  if (r.isVar) edgeStyle.put(r, DotStyle.DASHED);
       // Done
       cache.clear();
       changedSinceLastSave=false;
