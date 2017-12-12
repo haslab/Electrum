@@ -683,7 +683,7 @@ final class SimpleReporter extends A4Reporter {
 				return;
 			List<String> result = new ArrayList<String>(cmds.size());
 			if (bundleIndex == -2) {
-				final String outf = tempdir + File.separatorChar + "m.xml";
+				final String outf = tempdir + File.separatorChar + "m"+"Time"+0+".xml"; // [HASLab]
 				cb(out, "S2", "Generating the metamodel...\n");
 				PrintWriter of = new PrintWriter(outf, "UTF-8");
 				Util.encodeXMLs(of, "\n<alloy builddate=\"", Version.buildDate(), "\">\n\n");

@@ -300,7 +300,7 @@ public final class A4SolutionWriter {
 	 * solution as an XML file. 
 	 */
 	// pt.uminho.haslab: writes a specific time instant, temporal metadata.
-	private A4SolutionWriter(A4Reporter rep, A4Solution sol, Iterable<Sig> sigs, int bitwidth, int maxseq,
+	private A4SolutionWriter(A4Reporter rep, A4Solution sol, Iterable<Sig> sigs, int bitwidth, int maxseq, int tracelength, int backloop,
 			String originalCommand, String originalFileName, PrintWriter out, Iterable<Func> extraSkolems, int state)
 			throws Err {
 		this.rep = rep;
@@ -313,12 +313,10 @@ public final class A4SolutionWriter {
 		out.print("\" maxseq=\""); out.print(maxseq);
 		out.print("\" command=\""); Util.encodeXML(out, originalCommand);
 		out.print("\" filename=\""); Util.encodeXML(out, originalFileName);
+		out.print("\" tracelength=\""); out.print(tracelength); // [HASLab] the trace length of the instance
+		out.print("\" backloop=\""); out.print(backloop); // [HASLab] the back loop of the instance
 		if (sol == null)
 			out.print("\" metamodel=\"yes");
-		else {
-			out.print("\" tracelength=\""); out.print(sol.getLastTrace()); // pt.uminho.haslab: the trace length of the instance
-			out.print("\" backloop=\""); out.print(sol.getBackLoop()); // pt.uminho.haslab: the back loop of the instance
-		}
 		out.print("\">\n");
 
 		// pt.uminho.haslab: write specific instant.
@@ -361,8 +359,9 @@ public final class A4SolutionWriter {
 			throw new ErrorAPI("This solution is unsatisfiable.");
 		try {
 			Util.encodeXMLs(out, "<alloy builddate=\"", Version.buildDate(), "\">\n\n");
-			// pt.uminho.haslab: write specific instant.
+			// [HASLab] write specific instant and trace info.
 			new A4SolutionWriter(rep, sol, sol.getAllReachableSigs(), sol.getBitwidth(), sol.getMaxSeq(),
+					sol.getLastTrace(), sol.getBackLoop(),
 					sol.getOriginalCommand(), sol.getOriginalFilename(), out, extraSkolems, state);  
 			if (sources != null)
 				for (Map.Entry<String, String> e : sources.entrySet()) {
@@ -386,8 +385,8 @@ public final class A4SolutionWriter {
 	public static void writeMetamodel(ConstList<Sig> sigs, String originalFilename, PrintWriter out)
 			throws Err {
 		try {
-			// pt.uminho.haslab: write at instant 0.
-			new A4SolutionWriter(null, null, sigs, 4, 4, "show metamodel", originalFilename, out, null, 0); 
+			// [HASLab] write at instant 0.
+			new A4SolutionWriter(null, null, sigs, 4, 4, 10, 0, "show metamodel", originalFilename, out, null, 0); 
 		} catch (Throwable ex) {
 			if (ex instanceof Err)
 				throw (Err) ex;
