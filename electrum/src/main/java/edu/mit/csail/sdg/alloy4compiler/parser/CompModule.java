@@ -1347,13 +1347,16 @@ public final class CompModule extends Browsable implements Module {
 			cx.remove("this");
 			String[] names = new String[d.names.size()];  for(int i=0; i<names.length; i++) names[i] = d.names.get(i).label;
 			Field[] fields = s.addTrickyField(d.span(), d.isPrivate, d.disjoint, d.disjoint2, null, d.isVar, names, bound);
-		    final VisitQuery<Object> q = new VisitQuery<Object>() { // [HASLab]
-		      @Override public final Object visit(Sig x) { if (x.isVariable!=null) return x; else return null; }
+		    final VisitQuery<Sig> q = new VisitQuery<Sig>() { // [HASLab]
+		      @Override public final Sig visit(Sig x) { if (x.isVariable!=null) return x; else return null; }
 		    };
-		    Object qr = q.visitThis(bound);
+		    Sig qr = q.visitThis(bound);
 			if (d.isVar==null && qr!=null)  // [HASLab]
 				warns.add(new ErrorWarning(d.span(), "Static field types with variable bound.\n"
-						+ "Field "+d.names.get(0)+" is static but "+qr+" is variable."));
+						+ "Field "+d.names.get(0)+" is static but "+qr.label+" is variable."));
+			if (d.isVar==null && s.isVariable!=null)  // [HASLab]
+				warns.add(new ErrorWarning(d.span(), "Static field inside variable sig.\n"
+						+ "Field "+d.names.get(0)+" is static but "+s.label+" is variable."));
 			for(Field f: fields) {
 				rep.typecheck("Sig "+s+", Field "+f.label+": "+f.type()+"\n");
 			}
