@@ -990,7 +990,8 @@ public final class CompModule extends Browsable implements Module {
 	}
 
 	/** The given Sig will now point to a nonnull Sig. */
-	private static Sig resolveSig(CompModule res, Set<Object> topo, Sig oldS) throws Err {
+	// [HASLab] warnings
+	private static Sig resolveSig(CompModule res, Set<Object> topo, Sig oldS, final List<ErrorWarning> warns) throws Err {
 		if (res.new2old.containsKey(oldS)) return oldS;
 		Sig realSig;
 		final Pos pos = oldS.pos;
@@ -1003,18 +1004,21 @@ public final class CompModule extends Browsable implements Module {
 			for(Sig n: ((SubsetSig)oldS).parents) {
 				Sig parentAST = u.getRawSIG(n.pos, n.label);
 				if (parentAST==null) throw new ErrorSyntax(n.pos, "The sig \""+n.label+"\" cannot be found.");
-				parents.add(resolveSig(res, topo, parentAST));
+				parents.add(resolveSig(res, topo, parentAST, warns)); // [HASLab]
 			}
 			realSig = new SubsetSig(fullname, parents, oldS.attributes.toArray(new Attr[0]));
 		} else {
 			Sig sup = ((PrimSig)oldS).parent;
 			Sig parentAST = u.getRawSIG(sup.pos, sup.label);
 			if (parentAST==null) throw new ErrorSyntax(sup.pos, "The sig \""+sup.label+"\" cannot be found.");
-			Sig parent = resolveSig(res, topo, parentAST);
+			Sig parent = resolveSig(res, topo, parentAST, warns); // [HASLab]
 			if (!(parent instanceof PrimSig)) throw new ErrorSyntax(sup.pos, "Cannot extend the subset signature \"" + parent
 					+ "\".\n" + "A signature can only extend a toplevel signature or a subsignature.");
 			PrimSig p = (PrimSig)parent;
 			realSig = new PrimSig(fullname, p, oldS.attributes.toArray(new Attr[0]));
+			if (parent.isVariable!=null && realSig.isVariable==null) // [HASLab]
+				warns.add(new ErrorWarning(realSig.pos, "Static sig extends variable sig.\n"
+						+ "Sig "+realSig.label+" is static but "+parent.label+" is variable."));
 		}
 		res.new2old.put(realSig, oldS);
 		res.sig2module.put(realSig, u);
@@ -1328,7 +1332,8 @@ public final class CompModule extends Browsable implements Module {
 		// * it is allowed to refer to earlier fields in the same SIG or in any visible ancestor sig
 		// * it is allowed to refer to visible sigs
 		// * it is NOT allowed to refer to any predicate or function
-		// * it is NOT allowed to refer to variable fields/sigs unless it is also variable  // [HASLab]
+		// * it is NOT allowed to refer to variable fields/sigs unless it is also variable // [HASLab]
+		// * a static field is NOT allowed inside a variable sig // [HASLab]
 		// For example, if A.als opens B.als, and B/SIGX extends A/SIGY,
 		// then B/SIGX's fields cannot refer to A/SIGY, nor any fields in A/SIGY)
 		final List<Decl> oldDecls = res.old2fields.get(res.new2old.get(s));
@@ -1457,7 +1462,7 @@ public final class CompModule extends Browsable implements Module {
 		root.new2old.put(STRING,STRING);
 		root.new2old.put(NONE,NONE);
 		HashSet<Object> topo = new HashSet<Object>();
-		for(CompModule m: root.allModules) for(Sig s: m.sigs.values()) resolveSig(root, topo, s);
+		for(CompModule m: root.allModules) for(Sig s: m.sigs.values()) resolveSig(root, topo, s, warns); // [HASLab]
 		// Add the non-defined fields to the sigs in topologically sorted order (since fields in subsigs are allowed to refer to parent's fields)
 		for(Sig oldS: root.new2old.keySet()) resolveFieldDecl(root, rep, oldS, warns, false);
 		// Typecheck the function declarations
