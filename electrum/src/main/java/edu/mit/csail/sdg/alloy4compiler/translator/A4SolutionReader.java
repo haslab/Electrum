@@ -249,7 +249,7 @@ public final class A4SolutionReader {
 				}
 				expr2ts.put(ans2, ts2);
 			}
-		if (ans.isVariable != null && parents == null) { // [HASLab] identify variable primsigs converted into subsigs
+		if (ans instanceof SubsetSig && ans.isVariable != null && parents == null) { // [HASLab] identify variable primsigs converted into subsigs
 			// Add the atoms in this SIG into all parent sigs
 			for (Sig ans2 = ((SubsetSig) ans).parents.get(0); ans2 != null && !ans2.builtin; ans2 = (ans2 instanceof PrimSig) ? ((PrimSig)ans2).parent:((SubsetSig)ans2).parents.get(0)) {
 				TupleSet ts2 = expr2ts.get(ans2);

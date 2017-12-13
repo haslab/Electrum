@@ -1708,7 +1708,7 @@ public final class SimpleGUI implements ComponentListener, Listener {
             try {
                 Map<String,String> fc = new LinkedHashMap<String,String>();
                 String[] tempFile =  filename.split(Pattern.quote("."));
-                XMLNode x = new XMLNode(new File(tempFile[0]+".cnfEvaluator.xml"));// pt.uminho.haslab: read the xml with all instance
+                XMLNode x = new XMLNode(new File(tempFile[0]+"."+tempFile[1]+".xml"));// pt.uminho.haslab: read the xml with all instances
                 if (!x.is("alloy")) throw new Exception();
                 String mainname=null;
                 for(XMLNode sub: x) if (sub.is("instance")) {
