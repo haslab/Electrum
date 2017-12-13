@@ -1075,9 +1075,7 @@ public final class VizGUI implements ComponentListener {
 	/** Load the XML instance. */
 	// [HASLab] considers particular state
 	public void loadXML(final String fileName, boolean forcefully, int state) {
-		String[] spl = fileName.split(Pattern.quote("Time")); // [HASLab]
-		String dfilename = spl[0] + "Time" + state + ".xml"; // [HASLab]
-		final String xmlFileName = Util.canon(dfilename);
+		final String xmlFileName = Util.canon(temporize(fileName,state) + ".xml"); // [HASLab]
 		File f = new File(xmlFileName);
 		if (forcefully || !xmlFileName.equals(this.xmlFileName)) {
 			AlloyInstance myInstance;
@@ -1459,12 +1457,17 @@ public final class VizGUI implements ComponentListener {
 		} else if (enumerator == null) {
 			OurDialog.alert("Cannot display the next solution since the analysis engine is not loaded with the visualizer.");
 		} else {
-			String[] spl = xmlFileName.split(Pattern.quote("Time")); // [HASLab]
-			String dfilename = spl[0] + "Time" + 0 + ".xml"; // [HASLab]
-			final String xmlFileName = Util.canon(dfilename); // [HASLab]
+			final String xmlFileName = Util.canon(temporize(this.xmlFileName,0) + ".xml"); // [HASLab]
 			try { enumerator.compute(xmlFileName); } catch(Throwable ex) { OurDialog.alert(ex.getMessage()); }
 		}
 		return null;
+	}
+	
+	// [HASLab]
+	public static String temporize(String file, int state) {
+		String[] spl = file.split(Pattern.quote("_")); // [HASLab]
+		String dfilename = spl[0] + "_" + state; // [HASLab]
+		return dfilename;
 	}
 
 	/** This method updates the graph with the current theme customization. */

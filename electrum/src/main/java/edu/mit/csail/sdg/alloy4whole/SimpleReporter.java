@@ -683,7 +683,7 @@ final class SimpleReporter extends A4Reporter {
 				return;
 			List<String> result = new ArrayList<String>(cmds.size());
 			if (bundleIndex == -2) {
-				final String outf = tempdir + File.separatorChar + "m"+"Time"+0+".xml"; // [HASLab]
+				final String outf = VizGUI.temporize(tempdir + File.separatorChar + "m",0) + ".xml"; // [HASLab]
 				cb(out, "S2", "Generating the metamodel...\n");
 				PrintWriter of = new PrintWriter(outf, "UTF-8");
 				Util.encodeXMLs(of, "\n<alloy builddate=\"", Version.buildDate(), "\">\n\n");
@@ -703,8 +703,8 @@ final class SimpleReporter extends A4Reporter {
 							latestModule = world;
 							latestKodkodSRC = ConstMap.make(map);
 						}
-						final String tempXML = tempdir + File.separatorChar + i + ".cnf" + "Time" + 0 +".xml"; // [HASLab]
-						final String tempCNF = tempdir + File.separatorChar + i + ".cnf" + "Time" + 0; // [HASLab]
+						final String tempXML = VizGUI.temporize(tempdir + File.separatorChar + i + ".cnf",0) + ".xml"; // [HASLab]
+						final String tempCNF = VizGUI.temporize(tempdir + File.separatorChar + i + ".cnf",0); // [HASLab]
 						final Command cmd = cmds.get(i);
 						rep.tempfile = tempCNF;
 						cb(out, "bold", "Executing \"" + cmd + "\"\n");
@@ -793,10 +793,7 @@ final class SimpleReporter extends A4Reporter {
 //				a4Solution.type = A4Solution.WritingType.evalToAllStates;
 				for (int i = 0; i <= a4Solution.getLastTrace(); i++) {
 					a4Solution.renameTemporal(i);
-					String[] spl = filename.split(Pattern.quote("Time")); // [HASLab]
-					String dfilename = spl[0] + "Time" + i + ".xml"; // [HASLab]
-
-					writeXML(simpleReporter, latestModule, dfilename, a4Solution, kkSRC, i);
+					writeXML(simpleReporter, latestModule, VizGUI.temporize(filename,i) + ".xml", a4Solution, kkSRC, i); // [HASLab]
 					if (simpleReporter != null) simpleReporter.debug(i +": "+a4Solution);
 				}
 				a4Solution.temporalAtoms.optimizeTemporalAtoms();
