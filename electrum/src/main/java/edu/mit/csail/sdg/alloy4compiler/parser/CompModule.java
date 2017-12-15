@@ -1077,97 +1077,15 @@ public final class CompModule extends Browsable implements Module {
 		list.add(ans);
 	}
 
-	private Map<Sig,List<Decl>> acts_args = new HashMap<Sig, List<Decl>>();
-	private Map<String, List<Sig>> acts_mods = new HashMap<String, List<Sig>>();
+	// [HASLab]
+	private Action2Alloy action2alloy = new Action2Alloy();
 	
 	/** Add an ACTION declaration. */
 	// [HASLab] 
 	void addAction(Pos p, Pos isPrivate, String n, List<Decl> decls, Expr v, List<ExprVar> mods) throws Err {
-
-		// before, create sig Action
-		// before, create dummy argument sig Dummy
-		// create sig n extending sig Action
-		List<ExprVar> ps = new ArrayList<ExprVar>();
-		ps.add(ExprVar.make(null, "Action"));
-		Sig s = addSig("_"+n, ExprVar.make(null, "extends"), ps, null, null, Attr.ONE);
-		
-		// store types of arguments (needed for sig Arg, sig E, and pred fired, to be created after)
-		System.out.println("Decls: "+decls);
-		if (decls == null) decls = new ArrayList<Decl>();
-		acts_args.put(s, decls);
-
-		// create preds pre#n[..] and post#n[..] from v
-		List<Expr> v1 = new ArrayList<Expr>(), v2 = new ArrayList<Expr>();
-        v = (new ConvToConjunction()).visitThis(v);
-        recursiveSplit(v, v1, v2);
-			
-		addFunc(p, isPrivate, n+"_pre", null, decls, null, ExprList.make(null, null, ExprList.Op.AND, v1));
-		addFunc(p, isPrivate, n+"_post", null, decls, null, ExprList.make(null, null, ExprList.Op.AND, v2));
-
-		// store modifies relations/fields
-		System.out.println("Modifies: "+mods);
-		if (mods == null) mods = new ArrayList<ExprVar>();
-		for (ExprVar xx : mods) {
-			List<Sig> ss = acts_mods.get(xx.label);
-			if (ss == null) ss = new ArrayList<Sig>();
-			ss.add(s);
-			acts_mods.put(xx.label, ss);
-		}
-		
-		// after, create sig Arg from types of arguments + Dummy
-		// after, create sig E map of actions to to arguments
-		// after, create fired predicate from max number of arguments
-		// after, create trace fact from fired, sig n, types of args, preds pre and post
-		// after, create frame condition fact from modifies, args number and type, pred fired
-		
+		action2alloy.expandAction(this,p, isPrivate, n, decls, v, mods);
 	}
 	
-	// [HASLab]
-	private void recursiveSplit(Expr v, List<Expr> v1, List<Expr> v2) {
-        if (v instanceof ExprList && ((ExprList)v).op==ExprList.Op.AND) {
-            for(Expr e: ((ExprList)v).args) recursiveSplit(e,v1,v2);
-        } else if (v instanceof ExprBinary && ((ExprBinary)v).op==ExprBinary.Op.AND) {
-        	recursiveSplit(((ExprBinary) v).left,v1,v2);
-        	recursiveSplit(((ExprBinary) v).right,v1,v2);
-        }
-        else {
-			final VisitQuery<Object> q = new VisitQuery<Object>() { // [HASLab]
-				@Override
-				public final Object visit(ExprUnary x) throws Err {
-					if (((ExprUnary) x).op == ExprUnary.Op.PRIME
-							|| ((ExprUnary) x).op == ExprUnary.Op.AFTER
-							|| ((ExprUnary) x).op == ExprUnary.Op.PREVIOUS
-							|| ((ExprUnary) x).op == ExprUnary.Op.ALWAYS
-							|| ((ExprUnary) x).op == ExprUnary.Op.HISTORICALLY
-							|| ((ExprUnary) x).op == ExprUnary.Op.EVENTUALLY
-							|| ((ExprUnary) x).op == ExprUnary.Op.ONCE)
-						return x;
-					else return super.visit(x);
-				}
-				@Override
-				public final Object visit(ExprBinary x) throws Err {
-					if (((ExprBinary) x).op == ExprBinary.Op.UNTIL
-							|| ((ExprBinary) x).op == ExprBinary.Op.SINCE
-							|| ((ExprBinary) x).op == ExprBinary.Op.RELEASE)
-						return x;
-					else return super.visit(x);
-				}
-			};
-			try {
-				Object qr = q.visitThis(v);
-				if (qr==null) {
-					System.out.println("Pre-condition: "+v);
-					v1.add(v);
-				}
-				else {
-					v2.add(v);
-					System.out.println("Post-condition: "+v);
-				}
-			} catch (Err e) {
-				e.printStackTrace();
-			}
-        }
-	}
 
 	/** Each FunAST will now point to a bodyless Func object. */
 	private JoinableList<Err> resolveFuncDecls(A4Reporter rep, JoinableList<Err> errors, List<ErrorWarning> warns) throws Err {
@@ -1544,130 +1462,9 @@ public final class CompModule extends Browsable implements Module {
 
 	/** This method resolves the entire world; NOTE: if it throws an exception, it may leave the world in an inconsistent state! */
 	static CompModule resolveAll(final A4Reporter rep, final CompModule root) throws Err {
-		root.addSig("Action", null, null, null, null, Attr.ABSTRACT);
-		root.addSig("Dummy", null, null, null, null, Attr.ONE);
-		
-		// [HASLab] expand action predicates
-		List<ExprVar> args = new ArrayList<ExprVar>();
-		args.add(ExprVar.make(null, "Dummy"));
-		int max_args = 0;
-		for (List<Decl> ds : root.acts_args.values()) {
-			if (ds.size() > max_args) max_args = ds.size();
-			for (Decl d : ds) 
-				if (d.expr instanceof ExprVar) args.add((ExprVar) d.expr);
-				else throw new ErrorSyntax("Bad action arg.");
-		}
-		Sig arg = root.addSig("Arg", ExprVar.make(null,"="), args, null, null);
-		System.out.println("Arg def: "+ arg + " = " + ((SubsetSig) arg).parents);	
-		
-		List<ExprHasName> ev_names = new ArrayList<ExprHasName>();
-		ev_names.add(ExprVar.make(null, "event"));
-		Expr ev_expr_aux = NONE;
-		for (int i = 0; i < max_args; i++)
-			ev_expr_aux = ev_expr_aux.product(NONE);
-		for (Sig ac : root.acts_args.keySet()) {
-			Expr expr_aux = ExprVar.make(null, ac.label.substring(5));
-			for (int i = 0; i < max_args; i++) {
-				Expr expr_cur = i>=(root.acts_args.get(ac).size())?ExprVar.make(null, "Dummy"):ExprVar.make(null,"this/"+((ExprVar) root.acts_args.get(ac).get(i).expr).label);
-				expr_aux = expr_aux.product(expr_cur);
-			}
-			ev_expr_aux = ev_expr_aux.plus(expr_aux);
-		}
-		
-		Expr ev_expr = ExprVar.make(null, "Dummy").any_arrow_one(ev_expr_aux);
-		Decl ev = new Decl(Pos.UNKNOWN, null, null, null, ev_names, ev_expr);
-		List<Decl> fields = new ArrayList<Decl>();
-		fields.add(ev);
-		root.addSig("E", null, null, fields, null, Attr.ONE);
-		System.out.println("event def: "+ ev_expr);	
 
-		List<Decl> fired_args = new ArrayList<Decl>();
-		List<ExprHasName> names2 = new ArrayList<ExprHasName>();
-		if (max_args>0) {
-			for (int i = 0; i < max_args; i++)
-				names2.add(ExprVar.make(null,"x"+i));
-			fired_args.add(new Decl(null, null, null, null, names2, ExprVar.make(null,"this/Arg")));
-		}
-		List<ExprHasName> names = new ArrayList<ExprHasName>();
-		names.add(ExprVar.make(null,"_a"));
-		fired_args.add(new Decl(null, null, null, null, names, ExprVar.make(null, "Action")));
-
-		Expr fired_expr = ExprVar.make(null, "Dummy").product(ExprVar.make(null, "_a"));
-		for (int i = 0; i < max_args; i++)
-			fired_expr = fired_expr.product(names2.get(i));
-		fired_expr = fired_expr.in(ExprVar.make(null, "E").join(ExprVar.make(null, "event")));
-		
-		root.addFunc(null, null, "fired", null, fired_args, null, fired_expr);
-		System.out.println("fired def: "+ fired_args + " = "+ fired_expr);	
-		
-		Expr fire_expr = ExprConstant.TRUE;
-		for (Sig ac : root.acts_args.keySet()) {
-			List<Expr> fire_args = new ArrayList<Expr>();
-			Decl[] fire_decls = new Decl[root.acts_args.get(ac).size()];
-			for (int i = 0; i < root.acts_args.get(ac).size(); i++) {
-				Decl dcl = root.acts_args.get(ac).get(i);
-				fire_decls[i] = dcl;
-				fire_args.add(ExprVar.make(null, dcl.get().label));
-			}
-			Expr pre = ExprVar.make(null, ac.label.substring(6)+"_pre");
-			for (Expr e : fire_args)
-				pre = ExprBadJoin.make(null, null, e, pre);
-
-			Expr post = ExprVar.make(null, ac.label.substring(6)+"_post");
-			for (Expr e : fire_args)
-				post = ExprBadJoin.make(null, null, e, post);
-
-			for (int i = root.acts_args.get(ac).size(); i < max_args; i++) 
-				fire_args.add(ExprVar.make(null,"Dummy"));
-			fire_args.add(ExprVar.make(null,ac.label));
-			
-			Expr fir = ExprVar.make(null, "fired");
-			for (Expr e : fire_args)
-				fir = ExprBadJoin.make(null, null, e, fir);
-			
-			fir = fir.implies(pre.and(post));
-			
-			if (max_args>0)
-				fire_expr = fire_expr.and(fir.forAll(fire_decls[0], Arrays.copyOfRange(fire_decls, 1, fire_decls.length)));
-			else 
-				fire_expr = fire_expr.and(fir);
-			System.out.println("fact "+ac+" def: "+ fire_expr);	
-
-		}
-		fire_expr = fire_expr.always();
-		
-		root.addFact(null, "fire", fire_expr);
-		System.out.println("fact def: "+ fire_expr);	
-
-		for (Sig s : root.acts_args.keySet()) {
-			List<Decl> decls = new ArrayList<Decl>(root.acts_args.get(s));
-			Expr v0 = ExprVar.make(null, "fired");
-			for (int i = 0; i < max_args; i ++) {
-				ExprVar yy = i>=decls.size()?ExprVar.make(null, "Dummy"):ExprVar.make(null, decls.get(i).get().label);
-				v0 = yy.join(v0);
-			}
-			v0 = ExprVar.make(null, s.label).join(v0);
-			if (decls.size()>0) {
-				root.addFunc(null, null, s.label.substring(6), null, null, null, v0.forSome(decls.remove(0),decls.toArray(new Decl[decls.size()])));
-			} else {
-				root.addFunc(null, null, s.label.substring(6), null, null, null, v0);
-			}
-			System.out.println("Fires: "+v0);
-			
-		}
-		
-		Expr fc = ExprConstant.TRUE;
-		for (String evv : root.acts_mods.keySet()) {
-			Expr sss = ExprConstant.FALSE;
-			for (Sig s : root.acts_mods.get(evv))
-				sss = sss.or(ExprVar.make(null, s.label.substring(6)));
-			fc = fc.and((ExprVar.make(null,evv).equal(ExprUnary.Op.PRIME.make(null, ExprVar.make(null,evv))).not()).implies(sss));
-		}
-		
-		root.addFact(null, "fc", fc);
-		System.out.println("FC: "+fc);
-		
-		
+		// [HASLab] expand the action idiom constructs into regular Alloy prior to resolution
+		root.action2alloy.expand(rep, root);
 		
 		final List<ErrorWarning> warns = new ArrayList<ErrorWarning>();
 		for(CompModule m: root.getAllReachableModules()) root.allModules.add(m);
