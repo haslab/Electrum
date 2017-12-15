@@ -178,6 +178,7 @@ import java_cup.runtime.*;
 "exh"                 { return alloy_sym(yytext(), CompSym.EXH         );}
 "expect"              { return alloy_sym(yytext(), CompSym.EXPECT      );}
 "extends"             { return alloy_sym(yytext(), CompSym.EXTENDS     );}
+"modifies"            { return alloy_sym(yytext(), CompSym.MODIFIES    );} // [HASLab] action tokes
 "fact"                { return alloy_sym(yytext(), CompSym.FACT        );}
 "for"                 { return alloy_sym(yytext(), CompSym.FOR         );}
 "fun"                 { return alloy_sym(yytext(), CompSym.FUN         );}
@@ -194,7 +195,8 @@ import java_cup.runtime.*;
 "not"                 { return alloy_sym(yytext(), CompSym.NOT         );}
 "no"                  { return alloy_sym(yytext(), CompSym.NO          );}
 "one"                 { return alloy_sym(yytext(), CompSym.ONE         );}
-"var"                 { return alloy_sym(yytext(), CompSym.VAR         );} //[HASLab] variable tokens
+"var"                 { return alloy_sym(yytext(), CompSym.VAR         );} // [HASLab] variable tokens
+"act"                 { return alloy_sym(yytext(), CompSym.ACT         );} // [HASLab] action tokens
 "open"                { return alloy_sym(yytext(), CompSym.OPEN        );}
 "or"                  { return alloy_sym(yytext(), CompSym.OR          );}
 "partition"           { return alloy_sym(yytext(), CompSym.PART        );}

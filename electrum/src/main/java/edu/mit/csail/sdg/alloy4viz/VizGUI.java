@@ -1463,10 +1463,11 @@ public final class VizGUI implements ComponentListener {
 		return null;
 	}
 	
+	/** Generates the name for a XML instance file for a particular state. */
 	// [HASLab]
 	public static String temporize(String file, int state) {
-		String[] spl = file.split(Pattern.quote("_")); // [HASLab]
-		String dfilename = spl[0] + "_" + state; // [HASLab]
+		String[] spl = file.split(Pattern.quote("_"));
+		String dfilename = spl[0] + "_" + state; 
 		return dfilename;
 	}
 

@@ -24,7 +24,8 @@ import edu.mit.csail.sdg.alloy4compiler.ast.Sig.Field;
  * (in order to get better precision unsat core results)
  */
 
-final class ConvToConjunction extends VisitReturn<Expr> {
+// [HASLab] public
+public final class ConvToConjunction extends VisitReturn<Expr> {
 
     /** {@inheritDoc} */
     @Override public Expr visit(ExprBinary x) throws Err {
