@@ -49,6 +49,8 @@ public class Action2Alloy {
 	private Map<String, List<Sig>> acts_mods = new HashMap<String, List<Sig>>();
 
 	public void expand(final A4Reporter rep, final CompModule root) throws Err {
+		if (acts_args.isEmpty()) return;
+		
 		// create the parent Action signature
 		Sig action_sig = root.addSig("_Action", null, null, null, null, Attr.ABSTRACT, Attr.PRIVATE);
 		System.out.println("Created sig "+action_sig.label+" with "+action_sig.attributes+".");
