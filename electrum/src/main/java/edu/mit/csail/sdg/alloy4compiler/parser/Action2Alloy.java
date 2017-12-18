@@ -211,6 +211,7 @@ public class Action2Alloy {
 			fc_body = fc_body.and((ExprVar.make(null,evv).equal(ExprUnary.Op.PRIME.make(null, ExprVar.make(null,evv))).not()).implies(sss));
 		}
 		final String fc_name = "_fc";
+		fc_body = fc_body.always();
 		root.addFact(null, fc_name, fc_body);
 		System.out.println("FC fact "+fc_name+" defined: "+fc_body);
 	}
