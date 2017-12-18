@@ -291,7 +291,7 @@ final class BoundsComputer {
               }
               
               // [HASLab] avoid collapse of var one sigs
-              Type t = isOne&&isVar ? Sig.UNIV.type().join(f.type()) : f.type();
+              Type t = isOne&&!isVar ? Sig.UNIV.type().join(f.type()) : f.type();
 
               TupleSet ub = factory.noneOf(t.arity());
               for(List<PrimSig> p:t.fold()) {
@@ -305,7 +305,7 @@ final class BoundsComputer {
                Relation r = sol.addRel(s.label+"."+f.label, null, ub,f);
 
                // [HASLab] avoid collapse of var one sigs
-               sol.addField(f, isOne&&isVar ? sol.a2k(s).product(r) : r);
+               sol.addField(f, isOne&&!isVar ? sol.a2k(s).product(r) : r);
 
            }
         }
