@@ -175,7 +175,7 @@ public class Action2Alloy {
 		}
 		// create the fired condition fact
 
-		// create the fired predicate for each action
+		// create the fired predicates (free or fixed args) for each action
 		for (String act_name : acts_args.keySet()) {
 			List<Decl> decls = new ArrayList<Decl>(acts_args.get(act_name));
 			System.out.print((decls.size()>0?"With":"Without")+" arguments ");
@@ -188,11 +188,14 @@ public class Action2Alloy {
 			}
 			v0 = ExprVar.make(null, actSigName(act_name)).join(v0);
 			if (decls.size()>0) {
+				root.addFunc(null, null, curPredName(act_name), null, decls, null, v0);
 				root.addFunc(null, null, act_name, null, null, null, v0.forSome(decls.remove(0),decls.toArray(new Decl[decls.size()])));
 			} else {
+				root.addFunc(null, null, curPredName(act_name), null, null, null, v0);
 				root.addFunc(null, null, act_name, null, null, null, v0);
 			}
 			System.out.println("defined predicate "+act_name+" with "+v0);
+			System.out.println("defined predicate "+curPredName(act_name)+" with "+v0);
 			
 		}
 		
@@ -281,7 +284,11 @@ public class Action2Alloy {
 	static private String postPredName(String n) {
 		return "post_"+n;
 	}
-	
+
+	static private String curPredName(String n) {
+		return "cur_"+n;
+	}
+
 	/**
 	 * Splits the conjuncts of an expression depending on whether it contains
 	 * temporal operators.
@@ -342,5 +349,11 @@ public class Action2Alloy {
 				e.printStackTrace();
 			}
         }
+	}
+
+	public String isAct(String l) {
+		if (acts_args.get(l) != null)
+			return curPredName(l);
+		else return null;
 	}
 }

@@ -41,6 +41,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.management.RuntimeErrorException;
+
 import edu.mit.csail.sdg.alloy4.A4Reporter;
 import edu.mit.csail.sdg.alloy4.ConstList;
 import edu.mit.csail.sdg.alloy4.ConstList.TempList;
@@ -319,6 +321,13 @@ public final class CompModule extends Browsable implements Module {
 		@Override public Expr visit(ExprBadJoin x) throws Err {
 			Expr left = visitThis(x.left);
 			Expr right = visitThis(x.right);
+				
+			if (x.right instanceof ExprVar) { // [HASLab] hack to allow overloading
+				String poss = rootmodule.action2alloy.isAct(((ExprVar) x.right).label);
+				if (poss!=null)
+					right = visitThis(ExprVar.make(x.right.pos, poss));
+			}				
+			
 			// If it's a macro invocation, instantiate it
 			if (right instanceof Macro) return ((Macro)right).addArg(left).instantiate(this, warns);
 			// check to see if it is the special builtin function "Int[]"
