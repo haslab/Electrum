@@ -142,7 +142,6 @@ public class Action2Alloy {
 		final ExprVar fired_var = ExprVar.make(null, fired_name);
 
 		// for each action, create the fired condition		
-		Expr fire_expr = ExprConstant.TRUE;
 		for (String act_name : acts_args.keySet()) {
 			List<Expr> fire_args = new ArrayList<Expr>();
 			Expr pre = ExprVar.make(null, prePredName(act_name));
@@ -164,18 +163,17 @@ public class Action2Alloy {
 			fir = ExprBadJoin.make(null, null, ExprVar.make(null,actSigName(act_name)), fir);
 
 			fir = fir.implies(pre.and(post));
-			System.out.println(act_name+" firing condition: "+ fir);	
 			
 			if (acts_args.get(act_name).size()>0)
-				fire_expr = fire_expr.and(fir.forAll(fire_decls[0], Arrays.copyOfRange(fire_decls, 1, fire_decls.length)));
-			else 
-				fire_expr = fire_expr.and(fir);
+				fir = fir.forAll(fire_decls[0], Arrays.copyOfRange(fire_decls, 1, fire_decls.length));
+
+			fir = fir.always();
+			final String fire_fact_name = "_fire_"+act_name;
+			root.addFact(null, fire_fact_name, fir);
+
+			System.out.println(act_name+" firing condition: "+ fir);	
 		}
 		// create the fired condition fact
-		fire_expr = fire_expr.always();
-		final String fire_fact_name = "_fire";
-		root.addFact(null, fire_fact_name, fire_expr);
-		System.out.println("Firing condition fact "+fire_fact_name +" defined: "+ fire_expr);	
 
 		// create the fired predicate for each action
 		for (String act_name : acts_args.keySet()) {
