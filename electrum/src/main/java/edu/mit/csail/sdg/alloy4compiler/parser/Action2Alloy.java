@@ -15,6 +15,8 @@ import edu.mit.csail.sdg.alloy4.Pos;
 import edu.mit.csail.sdg.alloy4compiler.ast.Attr;
 import edu.mit.csail.sdg.alloy4compiler.ast.Decl;
 import edu.mit.csail.sdg.alloy4compiler.ast.Expr;
+import edu.mit.csail.sdg.alloy4compiler.ast.ExprBad;
+import edu.mit.csail.sdg.alloy4compiler.ast.ExprBadCall;
 import edu.mit.csail.sdg.alloy4compiler.ast.ExprBadJoin;
 import edu.mit.csail.sdg.alloy4compiler.ast.ExprBinary;
 import edu.mit.csail.sdg.alloy4compiler.ast.ExprConstant;
@@ -318,6 +320,17 @@ public class Action2Alloy {
 							|| ((ExprBinary) x).op == ExprBinary.Op.RELEASE)
 						return x;
 					else return super.visit(x);
+				}
+				@Override
+			    public final Object visit(ExprBadCall x) throws Err { 
+			        for(Expr y:x.args) { Object ans=y.accept(this); if (ans!=null) return ans; }
+			        return null;
+				}
+				@Override
+			    public final Object visit(ExprBadJoin x) throws Err { 
+			        Object ans=x.left.accept(this);
+			        if (ans==null) ans=x.right.accept(this);
+			        return ans;
 				}
 			};
 			try {
