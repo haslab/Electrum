@@ -12,6 +12,7 @@ import edu.mit.csail.sdg.alloy4.A4Reporter;
 import edu.mit.csail.sdg.alloy4.Err;
 import edu.mit.csail.sdg.alloy4.ErrorSyntax;
 import edu.mit.csail.sdg.alloy4.Pos;
+import edu.mit.csail.sdg.alloy4.Util;
 import edu.mit.csail.sdg.alloy4compiler.ast.Attr;
 import edu.mit.csail.sdg.alloy4compiler.ast.Decl;
 import edu.mit.csail.sdg.alloy4compiler.ast.Expr;
@@ -66,7 +67,6 @@ public class Action2Alloy {
 			if (ds.size() > max_args) max_args = ds.size();
 			for (Decl d : ds) {
 				if (!(d.expr instanceof ExprVar)) throw new ErrorSyntax("Bad action arg.");
-				// TODO: manage multiple named declarations
 				if (d.names.size()>1) throw new ErrorSyntax("Bad action arg.");
 				args.add((ExprVar) d.expr);
 			}
@@ -235,14 +235,17 @@ public class Action2Alloy {
 	 */
 	public void expandAction(CompModule root, Pos p, Pos isPrivate, String n, List<Decl> decls, Expr body, List<ExprVar> mods) throws Err {
 		// creates a singleton sig representing th action, extending Action
-		List<ExprVar> sig_action = new ArrayList<ExprVar>();
-		sig_action.add(ExprVar.make(null, "_Action"));
+		List<ExprVar> sig_action = Util.asList(ExprVar.make(null, "_Action"));
 		Sig sig_this = root.addSig(actSigName(n), ExprVar.make(null, "extends"), sig_action, null, null, Attr.ONE, Attr.PRIVATE);
 		System.out.println("Created sig "+sig_this.label+" with "+sig_this.attributes+".");
 
 		// stores the arguments of this action (needed generating the succeeding constraints depending on total arguments)
 		if (decls == null) decls = new ArrayList<Decl>();
-		acts_args.put(n, decls);
+		List<Decl> decls_exp = new ArrayList<Decl>();
+		for (Decl d : decls)
+			for (ExprHasName nm : d.names)
+				decls_exp.add(new Decl(d.isVar, d.isPrivate, d.disjoint, d.disjoint2, Util.asList(nm), d.expr));
+		acts_args.put(n, decls_exp);
 
 		// create the pre- and post-condition predicates pre#n[..] and post#n[..] for the splitting of body
 		// the arguments are the same as the action
