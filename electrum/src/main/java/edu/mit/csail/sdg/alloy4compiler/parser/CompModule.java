@@ -65,6 +65,7 @@ import edu.mit.csail.sdg.alloy4compiler.ast.Sig.SubsetSig;
 /** Mutable; this class represents an Alloy module; equals() uses object identity. 
  * 
  * @modified: Nuno Macedo // [HASLab] temporal solving
+ * @modified: Nuno Macedo // [HASLab] action idiom
  */
 
 public final class CompModule extends Browsable implements Module {

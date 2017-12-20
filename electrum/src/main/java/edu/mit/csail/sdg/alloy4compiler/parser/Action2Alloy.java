@@ -16,7 +16,6 @@ import edu.mit.csail.sdg.alloy4.Util;
 import edu.mit.csail.sdg.alloy4compiler.ast.Attr;
 import edu.mit.csail.sdg.alloy4compiler.ast.Decl;
 import edu.mit.csail.sdg.alloy4compiler.ast.Expr;
-import edu.mit.csail.sdg.alloy4compiler.ast.ExprBad;
 import edu.mit.csail.sdg.alloy4compiler.ast.ExprBadCall;
 import edu.mit.csail.sdg.alloy4compiler.ast.ExprBadJoin;
 import edu.mit.csail.sdg.alloy4compiler.ast.ExprBinary;
@@ -30,17 +29,24 @@ import edu.mit.csail.sdg.alloy4compiler.ast.VisitQuery;
 import edu.mit.csail.sdg.alloy4compiler.ast.Sig.SubsetSig;
 import edu.mit.csail.sdg.alloy4compiler.translator.ConvToConjunction;
 
-// before, create sig Action
-// before, create dummy argument sig Dummy
-// create sig n extending sig Action
-// create preds pre#n[..] and post#n[..] from v
-// after, create sig Arg from types of arguments + Dummy
-// after, create sig E map of actions to to arguments
-// after, create fired predicate from max number of arguments
-// after, create trace fact from fired, sig n, types of args, preds pre and post
-// after, create frame condition fact from modifies, args number and type, pred fired
+// - create an abstract sig Action
+// - for each action, create sig extending sig Action
+// - for each action, create pre- and post-condition predicates (args = action args)
+// - collect the types of the arguments of every action
+// - create a singleton argument Dummy
+// - create abstract sig Arg to equal all argument types plus Dummy
+// - create field event from every action to padded arguments (considering maximum num of args)
+// - create singleton sig E with field event
+// - create fired predicate with args action plus max number of arguments based on field event
+// - for each action, create firing condition, relating predicate with pre-/post-conditions
+// - for each action, create the firing predicate calling the fired predicate
+// - for each modified elem, create FC relating modification to fired predicate
 
-
+/**
+ * Expands expression in the action idiom into regular Alloy.
+ * 
+ * @author Nuno Macedo
+ */
 public class Action2Alloy {
 
 	/** the arguments of each defined action */
@@ -175,7 +181,6 @@ public class Action2Alloy {
 
 			System.out.println(act_name+" firing condition: "+ fir);	
 		}
-		// create the fired condition fact
 
 		// create the fired predicates (free or fixed args) for each action
 		for (String act_name : acts_args.keySet()) {
