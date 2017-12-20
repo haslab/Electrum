@@ -1,4 +1,5 @@
 /* Alloy Analyzer 4 -- Copyright (c) 2006-2009, Felix Chang
+ * Electrum -- Copyright (c) 2014-present, Nuno Macedo
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files
  * (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify,
@@ -61,7 +62,10 @@ import edu.mit.csail.sdg.alloy4compiler.ast.Sig.Field;
 import edu.mit.csail.sdg.alloy4compiler.ast.Sig.PrimSig;
 import edu.mit.csail.sdg.alloy4compiler.ast.Sig.SubsetSig;
 
-/** Mutable; this class represents an Alloy module; equals() uses object identity. */
+/** Mutable; this class represents an Alloy module; equals() uses object identity. 
+ * 
+ * @modified: Nuno Macedo // [HASLab] temporal solving
+ */
 
 public final class CompModule extends Browsable implements Module {
 

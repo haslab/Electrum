@@ -23,7 +23,6 @@ import java.util.*;
 
 import edu.mit.csail.sdg.alloy4compiler.ast.*;
 import edu.mit.csail.sdg.alloy4compiler.ast.Decl;
-import edu.mit.csail.sdg.alloy4compiler.ast.Sig.PrimSig;
 import kodkod.ast.*;
 import kodkod.ast.operator.ExprOperator;
 import kodkod.engine.CapacityExceededException;
@@ -42,14 +41,13 @@ import edu.mit.csail.sdg.alloy4.ErrorSyntax;
 import edu.mit.csail.sdg.alloy4.ErrorType;
 import edu.mit.csail.sdg.alloy4.Pair;
 import edu.mit.csail.sdg.alloy4.Pos;
-import edu.mit.csail.sdg.alloy4.SafeList;
 import edu.mit.csail.sdg.alloy4.Util;
 import edu.mit.csail.sdg.alloy4compiler.ast.Sig.Field;
 
 /** Translate an Alloy AST into Kodkod AST then attempt to solve it using Kodkod. 
  * 
- * @modified: nmm, Eduardo Pessoa (pt.uminho.haslab)
- * */
+ * @modified: Nuno Macedo, Eduardo Pessoa // [HASLab] temporal solving
+ */
 
 public final class TranslateAlloyToKodkod extends VisitReturn<Object> {
 
@@ -161,40 +159,36 @@ public final class TranslateAlloyToKodkod extends VisitReturn<Object> {
         facts = (Expr) (new ConvToConjunction()).visitThis(facts);
         // add the field facts and appended facts
 		for (Sig s : frame.getAllReachableSigs()) {
-			for (Decl d : s.getFieldDecls()) {
-				k2pos_enabled = false;
-				for (ExprHasName n : d.names) {
-					Field f = (Field) n;
-					MultiplicityAndTyping multiplicity = new MultiplicityAndTyping(this, f, s, d.expr); // pt.uminho.haslab
-					if (multiplicity.finalFormula != null) {
-						frame.addFormula(multiplicity.finalFormula, f);
-					}
-					// Given the above, we can be sure that every column is
-					// well-bounded (except possibly the first column).
-					// Thus, we need to add a bound that the first column is a
-					// subset of s.
-					/*
-					 * if (s.isOne==null) { Expression sr = a2k(s), fr = a2k(f);
-					 * for(int i=f.type().arity(); i>1; i--)
-					 * fr=fr.join(Relation.UNIV);
-					 * frame.addFormula(fr.in(sr).always(), f); }
-					 */
-				}
+	         for(Decl d: s.getFieldDecls()) {
+	             k2pos_enabled = false;
+	             for(ExprHasName n: d.names) {
+	                Field f = (Field)n;
+	                Expr form = s.decl.get().join(f).in(d.expr);
+	                form = s.isOne==null ? form.forAll(s.decl) : ExprLet.make(null, (ExprVar)(s.decl.get()), s, form);
+	                frame.addFormula(cform(form.always()), f); // [HASLab] always
+	                // Given the above, we can be sure that every column is well-bounded (except possibly the first column).
+	                // Thus, we need to add a bound that the first column is a subset of s.
+	                if (s.isOne==null) {
+	                    Expression sr = a2k(s), fr = a2k(f);
+	                    for(int i=f.type().arity(); i>1; i--) fr=fr.join(Relation.UNIV);
+	                    frame.addFormula(fr.in(sr).always(), f); // [HASLab] always
+	                }
+	             }
 				if (s.isOne == null && d.disjoint2 != null)
 					for (ExprHasName f : d.names) {
 						Decl that = s.oneOf("that");
 						Expr formula = s.decl.get().equal(that.get()).not()
 								.implies(s.decl.get().join(f).intersect(that.get().join(f)).no());
-						frame.addFormula(cform(formula.forAll(that).forAll(s.decl)).always(), d.disjoint2); // pt.uminho.haslab
+						frame.addFormula(cform(formula.forAll(that).forAll(s.decl)).always(), d.disjoint2); // [HASLab] always
 					}
 				if (d.names.size() > 1 && d.disjoint != null) {
-					frame.addFormula(cform(ExprList.makeDISJOINT(d.disjoint, null, d.names)).always(), d.disjoint); // pt.uminho.haslab
+					frame.addFormula(cform(ExprList.makeDISJOINT(d.disjoint, null, d.names)).always(), d.disjoint); // [HASLab] always
 				}
 			}
 			k2pos_enabled = true;
 			for (Expr f : s.getFacts()) {
 				Expr form = s.isOne == null ? f.forAll(s.decl) : ExprLet.make(null, (ExprVar) (s.decl.get()), s, f);
-				frame.addFormula(cform(form).always(), f); // pt.uminho.haslab
+				frame.addFormula(cform(form).always(), f); // [HASLab] always
 			}
 		}
 		k2pos_enabled = true;
@@ -397,7 +391,6 @@ public final class TranslateAlloyToKodkod extends VisitReturn<Object> {
      * <p> If the return value X is satisfiable, you can call X.next() to get the next satisfying solution X2;
      * and you can call X2.next() to get the next satisfying solution X3... until you get an unsatisfying solution.
      */
-    // pt.uminho.haslab: extended for timed iterations, deprecated, will be handled by Kodkod
     public static A4Solution execute_commandFromBook (A4Reporter rep, Iterable<Sig> sigs, Command cmd, A4Options opt) throws Err {
         if (rep==null) rep = A4Reporter.NOP;
         TranslateAlloyToKodkod tr = null;
@@ -1046,226 +1039,3 @@ public final class TranslateAlloyToKodkod extends VisitReturn<Object> {
     }
 
 }
-
-
-class MultiplicityAndTyping extends VisitQuery<Formula> {
-    private Field ff;
-    private Expr range;
-    private final TranslateAlloyToKodkod frame;
-    private Expression field;
-    private Expression domain;
-    Sig s;
-
-    private Expr multiplicityExpression;
-    public Formula finalFormula;
-
-
-    public MultiplicityAndTyping(TranslateAlloyToKodkod alloyToKodkod, Field f, Sig domain, Expr range) throws Err {
-        this.range = range;
-        this.frame = alloyToKodkod;
-        this.ff = f;
-        this.s = domain;
-
-        this.field = frame.cset(f);
-        this.domain = frame.cset(domain);
-
-        this.multiplicityExpression = domain.decl.get().join(f).in(range);
-        this.finalFormula = this.convert();
-    }
-
-    public Formula convert() throws Err {
-        kodkod.ast.Decl decl = null;
-       // if (this.s.isOne == null) decl = this.addQuantification(s); //add quantification to variable this.
-        //else frame.env.put((ExprVar)s.decl.get(), frame.visitThis(s.decl.expr)); // is one sig A{x : B} , so : this = A
-
-        decl = this.addQuantification(s);
-
-        Formula multiplicityFormula = this.multiplicityExpression.accept(this);
-        frame.env.remove((ExprVar)s.decl.get()); //remove the environment variable
-        Formula typingFormula = this.typing(range,s,ff);
-           if (multiplicityFormula != null) {
-               Formula finalF = null;
-              // if (decl == null) finalF = typingFormula.always().and(multiplicityFormula.always()); //if is "one sig A.."
-              // else finalF = typingFormula.always().and(multiplicityFormula.forAll(decl).always()); //if is not one
-               finalF = typingFormula.always().and(multiplicityFormula.forAll(decl).always());  // pt.uminho.haslab
-               return finalF;
-           }
-           else {return typingFormula.always();}  // pt.uminho.haslab
-    }
-
-    @Override
-    public Formula visit(ExprUnary x) throws Err {
-        Formula formula = isIn(frame.cset(s).join(field), range);
-        if (formula != null) return frame.k2pos(formula, x);
-        return null;
-    }
-
-    @Override
-    public Formula visit(ExprBinary x) throws Err {
-        Formula formula = isIn(frame.cset(x.left), x.right);
-        if (formula != null) return frame.k2pos(formula, x);
-        return null;
-    }
-
-    /**
-     * Helper method that translates a signature declaration into a Kodkod formula.
-     */
-    private Formula isIn(Expression a, Expr right) throws Err {
-        Expression b;
-        if (right instanceof ExprBinary && right.mult != 0 && ((ExprBinary) right).op.isArrow) {
-            // Handles possible "binary" or higher-arity multiplicity
-            return isBinaryTest(a, (ExprBinary) right);
-        }
-        switch (right.mult()) {
-            case EXACTLYOF:
-                b = frame.cset(right);
-                return a.eq(b);
-            case ONEOF:
-                return a.one();
-            case LONEOF:
-                return a.lone();
-            case SOMEOF:
-                return a.some();
-            default: return null;
-        }
-    }
-
-    private Formula isBinaryTest(Expression r, ExprBinary ab) throws Err {
-        final Expression a=frame.cset(ab.left), b=frame.cset(ab.right);
-        Decls d=null, d2=null;
-        Formula ans1 = null, ans2 = null;
-
-
-        // "R in A ->op B" means for each tuple a in A, there are "op" tuples in r that begins with a.
-        Expression atuple=null, ar=r;
-        for(int i=a.arity(); i>0; i--) {
-            Variable v=Variable.unary("v" + Integer.toString(frame.cnt++));
-            d = frame.am(a, d, i, v);
-            ar=v.join(ar);
-            if (atuple==null) atuple=v; else atuple=atuple.product(v);
-        }
-
-        Formula f1 = isIn(ar, ab.right);
-        if (f1 != null) ans1 =  f1; ans1 = this.createFormulaWithRightMultiplicity(ar, ans1, ab, d);
-
-
-
-
-
-       // "R in A op-> B" means for each tuple b in B, there are "op" tuples in r that end with b.
-        Expression btuple=null, rb=r;
-        for(int i=b.arity(); i>0; i--) {
-            Variable v=Variable.unary("v" + Integer.toString(frame.cnt++));
-            d2 = frame.am(b, d2, i, v);
-            rb=rb.join(v);
-            if (btuple==null) btuple=v; else btuple=v.product(btuple);
-        }
-
-        Formula f2 =  isIn(rb, ab.left);
-        if (f2 != null) ans2 =  f2; ans2 = this.createFormulaWithLeftMultiplicity(rb, ans2, ab, d2);
-
-        // Now, put everything together
-        Formula ans;
-        if (ans2 != null && ans1 != null){ans=ans1.and(ans2);}
-        else {
-            if (ans1 != null) {ans=ans1;}
-            else {ans = ans2;}
-        }
-        return ans;
-    }
-
-
-    /*
-    * given 'mult -> expression' and a declaration this function returns a kk formula with 'Declaration | mult expresion' if
-    * the formula 'temp' is not null.
-    *
-    * */
-    private Formula createFormulaWithLeftMultiplicity(Expression expression,Formula formula,ExprBinary ab,Decls d2){
-        switch(ab.op) {
-            case LONE_ARROW_ANY: case LONE_ARROW_SOME: case LONE_ARROW_ONE: case LONE_ARROW_LONE:
-                if (formula == null) {formula=expression.lone();break;}
-                else{formula=expression.lone().and(formula); break;}
-            case ONE_ARROW_ANY:  case ONE_ARROW_SOME:  case ONE_ARROW_ONE:  case ONE_ARROW_LONE:
-                if (formula == null) {formula=expression.one();break;}
-                else{formula=expression.one().and(formula); break;}
-            case SOME_ARROW_ANY: case SOME_ARROW_SOME: case SOME_ARROW_ONE: case SOME_ARROW_LONE:
-                if (formula == null) {formula=expression.some();break;}
-                else{formula=expression.some().and(formula); break;}
-        }
-        if (formula != null) formula=formula.forAll(d2);
-        return formula;
-    }
-
-    /*
-    * given ' -> mult expression' and a declaration this function returns a kk formula with 'Declaration | mult expresion' if
-    * the formula 'temp' is not null.
-    *
-    * */
-    private Formula createFormulaWithRightMultiplicity(Expression expression,Formula formula,ExprBinary ab,Decls d2){
-        switch(ab.op) {
-            case ISSEQ_ARROW_LONE:
-            case ANY_ARROW_LONE: case SOME_ARROW_LONE: case ONE_ARROW_LONE: case LONE_ARROW_LONE:
-                if (formula == null) {formula=expression.lone();break;}
-                else{formula=expression.lone().and(formula); break;}
-            case ANY_ARROW_ONE:  case SOME_ARROW_ONE:  case ONE_ARROW_ONE:  case LONE_ARROW_ONE:
-                if (formula == null) {formula=expression.one();break;}
-                else{formula=expression.one().and(formula); break;}
-            case ANY_ARROW_SOME: case SOME_ARROW_SOME: case ONE_ARROW_SOME: case LONE_ARROW_SOME:
-                if (formula == null) {formula=expression.some();break;}
-                else{formula=expression.some().and(formula); break;}
-        }
-        if (formula != null) formula=formula.forAll(d2);
-        return formula;
-    }
-
-
-    /*
-    * function responsible for constraint a relation's typing
-    *
-    * sig A {r : D} :toKK: always(r in A -> D)
-    *
-    * In this function is replaced in the environment structure the variable 'this' by the signature expression.
-    * More precisely,
-    *
-    * Given a sig A {
-    *                  x : B,
-    *                 y : x
-    *               }
-    * Without replace the enenvironment variable the result of typing the relation 'y' would be : y in (A -> this.x).
-    * This happens because  the kodkod expression associated to 'x' is 'this.x'. So, to avoid quantifications of 'this',
-    * 'this' is replaced by the signature expression. In this case is : (y in A -> A.x)
-    *
-    * */
-    private Formula typing(Expr type, Sig s, Field f) throws Err {
-        frame.env.put((ExprVar)s.decl.get(), frame.visitThis(s.decl.expr));//add variable in the environment
-        Expression relTokk = frame.cset(f);
-        Formula fTyping = relTokk.in(frame.cset(s).product(frame.cset(type)));
-        frame.env.remove((ExprVar)s.decl.get()); //remove the environment variable
-        return fTyping;
-    }
-
-
-
-    /*
-    * This function returns a kodkod declaration to quantify a formula.
-    * Besides that, the variable created is added to env (maps the current local variables (LET, QUANT, Function Param) to the actual Kodkod Expression/IntExpression/Formula)
-    * */
-    private kodkod.ast.Decl addQuantification(Sig s) throws Err {
-        final Expr dexexpr = frame.addOne(s.decl.expr);
-        final Expression dv = frame.cset(dexexpr);
-        final Variable v = Variable.nary(frame.skolem(s.decl.names.get(0).label), s.decl.names.get(0).type().arity());//p("arity: " + s.decl.names.get(0).type().arity()+"\t\tV: "+v.toString());
-        frame.env.put((ExprVar) s.decl.names.get(0), v);
-        return  v.oneOf(dv);
-    }
-
-    public static void p(String s) {
-        System.out.println(s);
-    }
-
-
-}
-
-
-//  sig A in B ::= G (A in b) (adicionei na parte de preencher a estrutura de dados)
-// one sig A (segui o alloy analyzer -- this = A)
-// mantive o sig.getFacts()
