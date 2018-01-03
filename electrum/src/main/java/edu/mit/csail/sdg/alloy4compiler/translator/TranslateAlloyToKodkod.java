@@ -24,6 +24,7 @@ import java.util.*;
 import edu.mit.csail.sdg.alloy4compiler.ast.*;
 import edu.mit.csail.sdg.alloy4compiler.ast.Decl;
 import kodkod.ast.*;
+import kodkod.ast.RelationPredicate.TotalOrdering;
 import kodkod.ast.operator.ExprOperator;
 import kodkod.engine.CapacityExceededException;
 import kodkod.engine.fol2sat.HigherOrderDeclException;
@@ -188,7 +189,9 @@ public final class TranslateAlloyToKodkod extends VisitReturn<Object> {
 			k2pos_enabled = true;
 			for (Expr f : s.getFacts()) {
 				Expr form = s.isOne == null ? f.forAll(s.decl) : ExprLet.make(null, (ExprVar) (s.decl.get()), s, f);
-				frame.addFormula(cform(form).always(), f); // [HASLab] always
+				Formula kdorm = cform(form);
+				if (!(kdorm instanceof TotalOrdering)) kdorm = kdorm.always(); // [HASLab] always, avoids over total order predicate
+				frame.addFormula(kdorm, f);
 			}
 		}
 		k2pos_enabled = true;

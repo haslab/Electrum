@@ -295,7 +295,6 @@ public final class A4Solution {
 
 		ExtendedOptions varOptions = new ExtendedOptions(); // [HASLab] extended options
 		varOptions.setRunTemporal(true); // [HASLab] extended options
-		varOptions.setRunDecomposed(true); // [HASLab]
 		varOptions.setNoOverflow(opt.noOverflow);
 		varOptions.setMaxTraceLength(tracelength); // [HASLab] propagate options
 		varOptions.setRunDecomposed(opt.decomposed); // [HASLab] propagate options
