@@ -654,8 +654,7 @@ public final class A4Solution {
 			if (ans!=null) return ans;
 			TupleSet ts = null;
 			if (sig.isVariable != null) ts = eval.evaluate((Expression) TranslateAlloyToKodkod.alloy2kodkod(this, sig), state); // [HASLab] 
-			else 
-				ts = eval.evaluate((Expression) TranslateAlloyToKodkod.alloy2kodkod(this, sig));
+			else ts = eval.evaluate((Expression) TranslateAlloyToKodkod.alloy2kodkod(this, sig));
 			ans = new A4TupleSet(ts, this);
 			evalCache.get(state).put(sig, ans);  // [HASLab]
 			return ans;
@@ -706,9 +705,9 @@ public final class A4Solution {
 			if (expr.ambiguous && !expr.errors.isEmpty()) expr = expr.resolve(expr.type(), null);
 			if (!expr.errors.isEmpty()) throw expr.errors.pick();
 			Object result = TranslateAlloyToKodkod.alloy2kodkod(this, expr);
-			if (result instanceof IntExpression) return eval.evaluate((IntExpression)result) + (eval.wasOverflow() ? " (OF)" : "");
+			if (result instanceof IntExpression) return eval.evaluate((IntExpression)result, state) + (eval.wasOverflow() ? " (OF)" : ""); // [HASLab]
 			if (result instanceof Formula) return eval.evaluate((Formula)result);
-			if (result instanceof Expression) return new A4TupleSet(eval.evaluate((Expression)result), this);
+			if (result instanceof Expression) return new A4TupleSet(eval.evaluate((Expression)result, state), this); // [HASLab]
 			throw new ErrorFatal("Unknown internal error encountered in the evaluator.");
 		} catch(CapacityExceededException ex) {
 			throw TranslateAlloyToKodkod.rethrow(ex);
@@ -1081,7 +1080,7 @@ public final class A4Solution {
 		final TemporalInstance inst = (TemporalInstance) sol.instance(); // [HASLab]
 		// To ensure no more output during SolutionEnumeration
 		solver.options().setReporter(oldReporter);
-		// If unsatisfiable, then retreive the unsat core if desired
+		// If unsatisfiable, then retrieve the unsat core if desired
 		if (inst==null && solver.options().solver()==SATFactory.MiniSatProver) {
 			try {
 				lCore = new LinkedHashSet<Node>();
