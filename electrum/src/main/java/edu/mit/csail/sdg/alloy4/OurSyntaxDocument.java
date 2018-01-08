@@ -101,7 +101,7 @@ class OurSyntaxDocument extends DefaultStyledDocument {
 
 	/** Returns true if array[start .. start+len-1] matches one of the reserved keyword. */
 	private static final boolean do_keyword(String array, int start, int len) {
-		if (len >= 2 && len <= 10) for(int i = keywords.length - 1; i >= 0; i--) {
+		if (len >= 2 && len <= 12) for(int i = keywords.length - 1; i >= 0; i--) { // [HASLab] historically is larger
 			String str = keywords[i];
 			if (str.length()==len) for(int j=0; ;j++) if (j==len) return true; else if (str.charAt(j) != array.charAt(start+j)) break;
 		}
