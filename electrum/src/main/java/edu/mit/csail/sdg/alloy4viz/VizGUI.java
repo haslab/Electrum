@@ -737,6 +737,7 @@ public final class VizGUI implements ComponentListener {
 					if (atomComboTime.getSelectedIndex() >= 0)  {
 						loadXML(getXMLfilename(), false, atomComboTime.getSelectedIndex());
 						cacheForXmlState.put(getXMLfilename(), atomComboTime.getSelectedIndex());
+						if (thmFileName != "") loadThemeFile(thmFileName);
 					}
 				}
 			}
