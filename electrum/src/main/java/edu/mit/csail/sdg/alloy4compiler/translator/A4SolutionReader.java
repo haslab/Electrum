@@ -401,7 +401,7 @@ public final class A4SolutionReader {
 		// create the A4Solution object
 		A4Options opt = new A4Options();
 		opt.originalFilename = inst.getAttribute("filename");
-		sol = new A4Solution(inst.getAttribute("command"), bitwidth, tracelength, maxseq, strings, atoms, null, opt, 1); // [HASLab]
+		sol = new A4Solution(inst.getAttribute("command"), bitwidth, tracelength, tracelength, maxseq, strings, atoms, null, opt, 1); // [HASLab]
 		factory = sol.getFactory();
 		sol.setBackLoop(backloop); // [HASLab]
 		// parse all the sigs, fields, and skolems

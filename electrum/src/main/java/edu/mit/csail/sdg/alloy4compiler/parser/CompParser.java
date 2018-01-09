@@ -2854,8 +2854,7 @@ class CUP$CompParser$actions {
     private void c(boolean follow, ExprVar o, ExprVar x, ExprVar n, Expr e, List<CommandScope> s, ExprConstant c) throws Err {
         if (n!=null) nod(n);
         int bitwidth=(-1), maxseq=(-1), overall=(-1), expects=(c==null ? -1 : c.num); 
-        int maxtime = (-1); // [HASLab]
-        boolean exacttime = false; // [HASLab]
+        int maxtime = (-1), mintime = (-1); // [HASLab]
         Pos p = o.pos.merge(n!=null ? n.span() : e.span());
         for(int i=s.size()-1; i>=0; i--) {
           Sig j=s.get(i).sig;  int k=s.get(i).startingScope;
@@ -2863,12 +2862,19 @@ class CUP$CompParser$actions {
           if (j.label.equals("univ")) { overall=k; s.remove(i); continue; }
           if (j.label.equals("int"))  { if (bitwidth>=0) throw new ErrorSyntax(j.pos, "The bitwidth cannot be specified more than once."); bitwidth=k; s.remove(i); continue; }
           if (j.label.equals("seq"))  { if (maxseq>=0) throw new ErrorSyntax(j.pos, "The maximum sequence length cannot be specified more than once."); maxseq=k; s.remove(i); continue; }
-          if (j.label.equals("Time")) { if (maxtime>=0) throw new ErrorSyntax(j.pos, "The time cannot be specified more than once."); maxtime=k; exacttime = s.get(i).isExact; s.remove(i); continue; } // [HASLab]
+          if (j.label.equals("Time")) { // [HASLab]
+        	  	if (maxtime>=0) throw new ErrorSyntax(j.pos, "The time cannot be specified more than once."); 
+        	  	maxtime=k; 
+        	  	if (s.get(i).isExact) mintime = k; 
+        	  	else if (s.get(i).endingScope == s.get(i).startingScope) mintime = 1;
+        	  	else { maxtime = s.get(i).endingScope; mintime = s.get(i).startingScope; }
+        	  	s.remove(i); continue; 
+        	  }
         }
         if (n!=null)
-          parser.alloymodule.addCommand(follow, p, n.label, o.label.equals("c"), overall, bitwidth, maxseq, maxtime, exacttime, expects, s, x); // [HASLab]
+          parser.alloymodule.addCommand(follow, p, n.label, o.label.equals("c"), overall, bitwidth, maxseq, mintime, maxtime, expects, s, x); // [HASLab]
         else
-          parser.alloymodule.addCommand(follow, p, e,       o.label.equals("c"), overall, bitwidth, maxseq, maxtime, exacttime, expects, s, x); // [HASLab]
+          parser.alloymodule.addCommand(follow, p, e,       o.label.equals("c"), overall, bitwidth, maxseq, mintime, maxtime, expects, s, x); // [HASLab]
     }
     private Expr t(Pos pos, Pos oldClosing, Expr left, Expr right, Pos close) throws Err {
       if (right instanceof ExprVar) {
@@ -8311,7 +8317,6 @@ class CUP$CompParser$actions {
 		Pos b = (Pos)((java_cup.runtime.Symbol) CUP$CompParser$stack.peek()).value;
 		
     Pos p = a.pos.merge(b);
-    if (a.isExact) throw new ErrorSyntax(p, "The exactly keyword is redundant here since the trace length is always minimal.");
 	RESULT = new CommandScope(p, new PrimSig("Time", AttrType.WHERE.make(p)), a.isExact, a.startingScope, a.endingScope, a.increment); 
 
               CUP$CompParser$result = parser.getSymbolFactory().newSymbol("Typescope",75, ((java_cup.runtime.Symbol)CUP$CompParser$stack.elementAt(CUP$CompParser$top-1)), ((java_cup.runtime.Symbol)CUP$CompParser$stack.peek()), RESULT);
