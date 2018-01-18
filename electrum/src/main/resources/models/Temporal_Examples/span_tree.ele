@@ -77,9 +77,9 @@ assert GoodSafety {
 }
 
 // Span (1) scenario
-check BadLiveness for 3
+check BadLiveness for 4
 // Span (2) scenario
-check GoodLiveness for 3
+check GoodLiveness for 4
 // Span (3) scenario
-check GoodSafety for 3
+check GoodSafety for 4
 

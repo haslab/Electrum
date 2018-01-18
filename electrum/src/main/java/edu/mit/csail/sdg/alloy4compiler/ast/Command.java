@@ -64,12 +64,11 @@ public final class Command extends Browsable {
 
 	/** The maximum trace length (1 or higher) (Or -1 if it was not specified). */
 	// [HASLab]
-	public final int time;
+	public final int maxtime;
 	
-	/** Whether the trace length was set to be exact. */
+	/** The minimus trace length (1 or higher) (Or -1 if it was not specified). */
 	// [HASLab]
-	@Deprecated
-	public final boolean timeexact;
+	public final int mintime;
 
 	/** The number of String atoms to allocate (0 or higher) (Or -1 if it was not specified). */
 	public final int maxstring;
@@ -91,15 +90,15 @@ public final class Command extends Browsable {
 		if (parent!=null) { Command p=parent; while(p.parent!=null) p=p.parent; return p.toString(); }
 		boolean first=true;
 		StringBuilder sb=new StringBuilder(check?"Check ":"Run ").append(label);
-		if (overall>=0 && (bitwidth>=0 || maxseq>=0 || scope.size()>0 || time>=0)) // [HASLab]
+		if (overall>=0 && (bitwidth>=0 || maxseq>=0 || scope.size()>0 || maxtime>=0)) // [HASLab]
 			sb.append(" for ").append(overall).append(" but");
 		else if (overall>=0)
 			sb.append(" for ").append(overall);
-		else if (bitwidth>=0 || maxseq>=0 || scope.size()>0 || time>=0) // [HASLab]
+		else if (bitwidth>=0 || maxseq>=0 || scope.size()>0 || maxtime>=0) // [HASLab]
 			sb.append(" for");
 		if (bitwidth>=0) { sb.append(" ").append(bitwidth).append(" int"); first=false; }
 		if (maxseq>=0) { sb.append(first?" ":", ").append(maxseq).append(" seq"); first=false; }
-		if (time>=0) { sb.append(" ").append(time).append(" Time"); first=false; } // [HASLab]
+		if (maxtime>=0) { sb.append(" ").append(mintime).append("..").append(maxtime).append(" Time"); first=false; } // [HASLab]
 		for(CommandScope e:scope) {
 			sb.append(first?" ":", ").append(e);
 			first=false;
@@ -117,13 +116,13 @@ public final class Command extends Browsable {
 	 * @param formula - the formula that must be satisfied by this command
 	 */
 	// [HASLab] extended with time scopes
-	public Command(boolean check, int overall, int bitwidth, int maxseq, int maxtime, boolean et, Expr formula) throws ErrorSyntax { 
-		this(null, "", check, overall, bitwidth, maxseq, maxtime, et, -1, null, null, formula, null);
+	public Command(boolean check, int overall, int bitwidth, int maxseq, int maxtime, int mintime, Expr formula) throws ErrorSyntax { 
+		this(null, "", check, overall, bitwidth, maxseq, mintime, maxtime, -1, null, null, formula, null);
 	}
 
 	// [HASLab] extended with time scopes
 	public Command(boolean check, int overall, int bitwidth, int maxseq, Expr formula) throws ErrorSyntax {
-		this(null, "", check, overall, bitwidth, maxseq, -1, false, -1, null, null, formula, null);
+		this(null, "", check, overall, bitwidth, maxseq, -1, -1, -1, null, null, formula, null);
 	}
 
 	/** Constructs a new Command object.
@@ -141,7 +140,7 @@ public final class Command extends Browsable {
 	 * @param formula - the formula that must be satisfied by this command
 	 */
 	// [HASLab] extended with time scopes
-	public Command(Pos pos, String label, boolean check, int overall, int bitwidth, int maxseq, int maxtime, boolean et, int expects, Iterable<CommandScope> scope, Iterable<Sig> additionalExactSig, Expr formula, Command parent) {  
+	public Command(Pos pos, String label, boolean check, int overall, int bitwidth, int maxseq, int mintime, int maxtime, int expects, Iterable<CommandScope> scope, Iterable<Sig> additionalExactSig, Expr formula, Command parent) {  
 		if (pos==null) pos = Pos.UNKNOWN;
 		this.formula = formula;
 		this.pos = pos;
@@ -150,8 +149,8 @@ public final class Command extends Browsable {
 		this.overall = (overall<0 ? -1 : overall);
 		this.bitwidth = (bitwidth<0 ? -1 : bitwidth);
 		this.maxseq = (maxseq<0 ? -1 : maxseq);
-		this.time = (maxtime<1 ? -1 : maxtime);  // [HASLab]
-		this.timeexact = et;  // [HASLab]
+		this.maxtime = (maxtime<1 ? -1 : maxtime);  // [HASLab]
+		this.mintime = (mintime<1 ? -1 : mintime);  // [HASLab]
 		this.maxstring = (-1);
 		this.expects = (expects<0 ? -1 : (expects>0 ? 1 : 0));
 		this.scope = ConstList.make(scope);
@@ -162,24 +161,19 @@ public final class Command extends Browsable {
 	/** Constructs a new Command object where it is the same as the current object, except with a different formula. */
 	// [HASLab] extended with time scopes
 	public Command change(Expr newFormula) {
-		return new Command(pos, label, check, overall, bitwidth, maxseq, time, timeexact, expects, scope, additionalExactScopes, newFormula, parent);
-	}
-
-	// [HASLab] extended with time scopes
-	public Command change(int newTime) {
-		return new Command(pos, label, check, overall, bitwidth, maxseq, newTime, timeexact, expects, scope, additionalExactScopes, formula, parent);
+		return new Command(pos, label, check, overall, bitwidth, maxseq, mintime, maxtime, expects, scope, additionalExactScopes, newFormula, parent);
 	}
 
 	/** Constructs a new Command object where it is the same as the current object, except with a different scope. */
 	// [HASLab] extended with time scopes
 	public Command change(ConstList<CommandScope> scope) {
-		return new Command(pos, label, check, overall, bitwidth, maxseq, time, timeexact, expects, scope, additionalExactScopes, formula, parent);
+		return new Command(pos, label, check, overall, bitwidth, maxseq, mintime, maxtime, expects, scope, additionalExactScopes, formula, parent);
 	}
 
 	/** Constructs a new Command object where it is the same as the current object, except with a different list of "additional exact sigs". */
 	// [HASLab] extended with time scopes
 	public Command change(Sig... additionalExactScopes) {
-		return new Command(pos, label, check, overall, bitwidth, maxseq, time, timeexact, expects, scope, Util.asList(additionalExactScopes), formula, parent);
+		return new Command(pos, label, check, overall, bitwidth, maxseq, mintime, maxtime, expects, scope, Util.asList(additionalExactScopes), formula, parent);
 	}
 
 	/** Constructs a new Command object where it is the same as the current object, except with a different scope for the given sig. */

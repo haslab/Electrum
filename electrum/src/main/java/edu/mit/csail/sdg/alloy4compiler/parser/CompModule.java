@@ -65,7 +65,10 @@ import edu.mit.csail.sdg.alloy4compiler.ast.Sig.SubsetSig;
 /** Mutable; this class represents an Alloy module; equals() uses object identity. 
  * 
  * @modified: Nuno Macedo // [HASLab] temporal solving
+<<<<<<< HEAD
  * @modified: Nuno Macedo // [HASLab] action idiom
+=======
+>>>>>>> master
  */
 
 public final class CompModule extends Browsable implements Module {
@@ -1268,7 +1271,7 @@ public final class CompModule extends Browsable implements Module {
 
 	/** Add a COMMAND declaration. */
 	// [HASLab] extended time scopes
-	void addCommand(boolean followUp, Pos p, String n, boolean c, int o, int b, int seq, int t, boolean et, int exp, List<CommandScope> s, ExprVar label) throws Err { 
+	void addCommand(boolean followUp, Pos p, String n, boolean c, int o, int b, int seq, int tmn, int tmx, int exp, List<CommandScope> s, ExprVar label) throws Err { 
 		if (followUp && !Version.experimental) throw new ErrorSyntax(p, "Syntax error encountering => symbol.");
 		if (label!=null) p=Pos.UNKNOWN.merge(p).merge(label.pos);
 		status=3;
@@ -1276,13 +1279,13 @@ public final class CompModule extends Browsable implements Module {
 		if (n.indexOf('@')>=0) throw new ErrorSyntax(p, "Predicate/assertion name cannot contain \'@\'");
 		String labelName = (label==null || label.label.length()==0) ? n : label.label;
 		Command parent = followUp ? commands.get(commands.size()-1) : null;
-		Command newcommand = new Command(p, labelName, c, o, b, seq, t, et, exp, s, null, ExprVar.make(null, n), parent);
+		Command newcommand = new Command(p, labelName, c, o, b, seq, tmn, tmx, exp, s, null, ExprVar.make(null, n), parent); // [HASLab]
 		if (parent!=null) commands.set(commands.size()-1, newcommand); else commands.add(newcommand);
 	}
 
 	/** Add a COMMAND declaration. */
 	// [HASLab] extended time scopes
-	void addCommand(boolean followUp, Pos p, Expr e, boolean c, int o, int b, int seq, int t, boolean et, int exp, List<CommandScope> s, ExprVar label) throws Err {
+	void addCommand(boolean followUp, Pos p, Expr e, boolean c, int o, int b, int seq, int tmn, int tmx, int exp, List<CommandScope> s, ExprVar label) throws Err {
 		if (followUp && !Version.experimental) throw new ErrorSyntax(p, "Syntax error encountering => symbol.");
 		if (label!=null) p=Pos.UNKNOWN.merge(p).merge(label.pos);
 		status=3;
@@ -1291,7 +1294,7 @@ public final class CompModule extends Browsable implements Module {
 		else addFunc(e.span().merge(p), Pos.UNKNOWN, n="run$"+(1+commands.size()), null, new ArrayList<Decl>(), null, e);
 		String labelName = (label==null || label.label.length()==0) ? n : label.label;
 		Command parent = followUp ? commands.get(commands.size()-1) : null;
-		Command newcommand = new Command(e.span().merge(p), labelName, c, o, b, seq, t, et, exp, s, null, ExprVar.make(null, n), parent);
+		Command newcommand = new Command(e.span().merge(p), labelName, c, o, b, seq, tmn, tmx, exp, s, null, ExprVar.make(null, n), parent); // [HASLab]
 		if (parent!=null) commands.set(commands.size()-1, newcommand); else commands.add(newcommand);
 	}
 
@@ -1324,7 +1327,7 @@ public final class CompModule extends Browsable implements Module {
 	        if (et.isExact && s.isVariable!=null) throw new ErrorSyntax(cmd.pos, "Sig "+et.sig+" is variable thus scope cannot be exact."); // [HASLab]
 			sc.add(new CommandScope(null, s, et.isExact, et.startingScope, et.endingScope, et.increment));
 		}
-		return new Command(cmd.pos, cmd.label, cmd.check, cmd.overall, cmd.bitwidth, cmd.maxseq, cmd.time, cmd.timeexact, cmd.expects, sc.makeConst(), exactSigs, globalFacts.and(e), parent);
+		return new Command(cmd.pos, cmd.label, cmd.check, cmd.overall, cmd.bitwidth, cmd.maxseq, cmd.mintime, cmd.maxtime, cmd.expects, sc.makeConst(), exactSigs, globalFacts.and(e), parent); // [HASLab]
 	}
 
 	/** Each command now points to a typechecked Expr. */

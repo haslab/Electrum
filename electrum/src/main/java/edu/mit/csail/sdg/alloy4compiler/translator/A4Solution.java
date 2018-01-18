@@ -214,10 +214,10 @@ public final class A4Solution {
 	/** The map from each Kodkod Variable to an Alloy Type and Alloy Pos. */
 	private Map<Variable,Pair<Type,Pos>> decl2type;
 
-	/** The trace length of this solution. */
+	/** The maximum trace length of this solution. */
 	// [HASLab]
 	private int traceLength;
-
+	
 	/** The back loop instant of this solution, if any (-1 otherwise). */
 	// [HASLab]
 	private int backLoop;
@@ -234,7 +234,7 @@ public final class A4Solution {
 	 * @param expected - whether the user expected an instance or not (1 means yes, 0 means no, -1 means the user did not express an expectation)
 	 */ 
 	 // [HASLab] adapted to consider temporal problems, solutions and options.
-	A4Solution(String originalCommand, int bitwidth, int tracelength, int maxseq, Set<String> stringAtoms, Collection<String> atoms, final A4Reporter rep, A4Options opt, int expected) throws Err {
+	A4Solution(String originalCommand, int bitwidth, int minTracelength, int maxTracelength, int maxseq, Set<String> stringAtoms, Collection<String> atoms, final A4Reporter rep, A4Options opt, int expected) throws Err {
 		opt = opt.dup();
 		this.canAddSkolems = true; // [HASLab] pessoa: in the first renaming the atoms are added
 		this.temporalAtoms = new GatherTemporalAtoms(); // [HASLab] pessoa: the object is initialized to gather all atoms in the renaming procedure
@@ -247,7 +247,7 @@ public final class A4Solution {
 		this.originalOptions = opt;
 		this.originalCommand = (originalCommand==null ? "" : originalCommand);
 		this.bitwidth = bitwidth;
-		this.traceLength = tracelength; // [HASLab]
+		this.traceLength = maxTracelength; // [HASLab]
 		this.maxseq = maxseq;
 		if (bitwidth < 0)   throw new ErrorSyntax("Cannot specify a bitwidth less than 0");
 		if (bitwidth > 30)  throw new ErrorSyntax("Cannot specify a bitwidth greater than 30");
@@ -295,9 +295,9 @@ public final class A4Solution {
 
 		ExtendedOptions varOptions = new ExtendedOptions(); // [HASLab] extended options
 		varOptions.setRunTemporal(true); // [HASLab] extended options
-		varOptions.setRunDecomposed(true); // [HASLab]
 		varOptions.setNoOverflow(opt.noOverflow);
-		varOptions.setMaxTraceLength(tracelength); // [HASLab] propagate options
+		varOptions.setMaxTraceLength(maxTracelength); // [HASLab] propagate options
+		varOptions.setMinTraceLength(minTracelength); // [HASLab] propagate options
 		varOptions.setRunDecomposed(opt.decomposed); // [HASLab] propagate options
 //		solver.options().setFlatten(false); // added for now, since multiplication and division circuit takes forever to flatten // [HASLab] kodkod 2.0+
 		// [HASLab] pushed solver creation further below as solver choice is needed for initialization
@@ -655,8 +655,7 @@ public final class A4Solution {
 			if (ans!=null) return ans;
 			TupleSet ts = null;
 			if (sig.isVariable != null) ts = eval.evaluate((Expression) TranslateAlloyToKodkod.alloy2kodkod(this, sig), state); // [HASLab] 
-			else 
-				ts = eval.evaluate((Expression) TranslateAlloyToKodkod.alloy2kodkod(this, sig));
+			else ts = eval.evaluate((Expression) TranslateAlloyToKodkod.alloy2kodkod(this, sig));
 			ans = new A4TupleSet(ts, this);
 			evalCache.get(state).put(sig, ans);  // [HASLab]
 			return ans;
@@ -707,9 +706,9 @@ public final class A4Solution {
 			if (expr.ambiguous && !expr.errors.isEmpty()) expr = expr.resolve(expr.type(), null);
 			if (!expr.errors.isEmpty()) throw expr.errors.pick();
 			Object result = TranslateAlloyToKodkod.alloy2kodkod(this, expr);
-			if (result instanceof IntExpression) return eval.evaluate((IntExpression)result) + (eval.wasOverflow() ? " (OF)" : "");
+			if (result instanceof IntExpression) return eval.evaluate((IntExpression)result, state) + (eval.wasOverflow() ? " (OF)" : ""); // [HASLab]
 			if (result instanceof Formula) return eval.evaluate((Formula)result);
-			if (result instanceof Expression) return new A4TupleSet(eval.evaluate((Expression)result), this);
+			if (result instanceof Expression) return new A4TupleSet(eval.evaluate((Expression)result, state), this); // [HASLab]
 			throw new ErrorFatal("Unknown internal error encountered in the evaluator.");
 		} catch(CapacityExceededException ex) {
 			throw TranslateAlloyToKodkod.rethrow(ex);
@@ -1082,7 +1081,7 @@ public final class A4Solution {
 		final TemporalInstance inst = (TemporalInstance) sol.instance(); // [HASLab]
 		// To ensure no more output during SolutionEnumeration
 		solver.options().setReporter(oldReporter);
-		// If unsatisfiable, then retreive the unsat core if desired
+		// If unsatisfiable, then retrieve the unsat core if desired
 		if (inst==null && solver.options().solver()==SATFactory.MiniSatProver) {
 			try {
 				lCore = new LinkedHashSet<Node>();

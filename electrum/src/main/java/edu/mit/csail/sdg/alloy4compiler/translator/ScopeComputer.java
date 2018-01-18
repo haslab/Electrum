@@ -96,7 +96,11 @@ final class ScopeComputer {
     
     /** Maximum trace length to be handled by bounded temporal solvers. */
     // [HASLab]
-    private int tracelength = 10;
+    private int maxtrace = 10;
+
+    /** Minimum trace length to be handled by bounded temporal solvers. */
+    // [HASLab]
+    private int mintrace = 1;
 
     /** The scope for each sig. */
     private final IdentityHashMap<PrimSig,Integer> sig2scope = new IdentityHashMap<PrimSig,Integer>();
@@ -115,7 +119,7 @@ final class ScopeComputer {
         if (sig==SIGINT) return 1<<bitwidth;
         if (sig==SEQIDX) return maxseq;
         if (sig==STRING) return maxstring;
-        if (sig==SIGTIME) return tracelength;  // [HASLab]
+        if (sig==SIGTIME) return maxtrace;  // [HASLab]
         Integer y = sig2scope.get(sig);
         return (y==null) ? (-1) : y;
     }
@@ -153,10 +157,16 @@ final class ScopeComputer {
         sig2scope.put(SEQIDX, 0);
     }
 
-    /** Modifies the integer bitwidth of this solution's model (and sets the max sequence length to 0) */
-    private void setTraceLength(Pos pos, int newTracelength) throws ErrorAPI, ErrorSyntax {
+    /** Modifies the maximum trace length of this solution's model */
+    private void setMaxTraceLength(Pos pos, int newTracelength) throws ErrorAPI, ErrorSyntax {
         if (newTracelength<0)  throw new ErrorSyntax(pos, "Cannot specify a trace less than 0");
-        tracelength = newTracelength;
+        maxtrace = newTracelength;
+    }
+    
+    /** Modifies the minimum trace length of this solution's model */
+    private void setMinTraceLength(Pos pos, int newTracelength) throws ErrorAPI, ErrorSyntax {
+        if (newTracelength<0)  throw new ErrorSyntax(pos, "Cannot specify a trace less than 0");
+        mintrace = newTracelength;
     }
 
     /** Modifies the maximum sequence length. */
@@ -344,10 +354,13 @@ final class ScopeComputer {
         int max = max(), min = min();
         if (max >= min) for(int i=min; i<=max; i++) atoms.add(""+i);
         // [HASLab] handle trace lengths
-        int tracelength = cmd.time;
+        int tracelength = cmd.maxtime;
         if (tracelength<1) { tracelength = 10; } 
-        setTraceLength(cmd.pos, tracelength);
-        tracelength = cmd.time;
+        setMaxTraceLength(cmd.pos, tracelength);
+        tracelength = cmd.mintime;
+        if (tracelength>cmd.maxtime) { tracelength = cmd.maxtime; } 
+        else if (tracelength<1) { tracelength = 1; } 
+        setMinTraceLength(cmd.pos, tracelength);
     }
 
     /** Whether or not Int appears in the relation types found in these sigs */
@@ -421,7 +434,7 @@ final class ScopeComputer {
         if (sc.maxstring>=0 && set.size()>sc.maxstring) rep.scope("Sig String expanded to contain all "+set.size()+" String constant(s) referenced by this command.\n");
         for(int i=0; set.size()<sc.maxstring; i++) set.add("\"String" + i + "\"");
         sc.atoms.addAll(set);
-        A4Solution sol = new A4Solution(cmd.toString(), sc.bitwidth, sc.tracelength, sc.maxseq, set, sc.atoms, rep, opt, cmd.expects); // [HASLab]
+        A4Solution sol = new A4Solution(cmd.toString(), sc.bitwidth, sc.mintrace, sc.maxtrace, sc.maxseq, set, sc.atoms, rep, opt, cmd.expects); // [HASLab]
         return new Pair<A4Solution,ScopeComputer>(sol, sc);
     }
 }

@@ -217,7 +217,16 @@ public final strictfp class Graph {
          bins.get(grBIN[x.pos()]).remove(x);
          for(GraphNode n:grIN.get(x.pos()))  grOUT.get(n.pos()).remove(x);
          for(GraphNode n:grOUT.get(x.pos())) grIN.get(n.pos()).remove(x);
-         for(GraphNode n:Util.fastJoin(grIN.get(x.pos()), grOUT.get(x.pos()))) {
+         List<GraphNode> aux = new ArrayList<>(grIN.get(x.pos())); // [HASLab]
+         aux.addAll(grOUT.get(x.pos())); // [HASLab]
+         aux.sort(new Comparator<GraphNode>() { // [HASLab]
+			@Override
+			public int compare(GraphNode o1, GraphNode o2) {
+				return -	o1.uuid.toString().compareTo(o2.uuid.toString());
+			}
+    		 });
+//         Iterable<GraphNode> aux = Util.fastJoin(grIN.get(x.pos()), ); // [HASLab]
+         for(GraphNode n:aux) { // [HASLab]
             int ni=n.pos(), out=grOUT.get(ni).size(), in=grIN.get(ni).size();
             int b=(out==0)?0:(in==0?(2*num):(out-in+num));
             if (grBIN[ni]!=b) { bins.get(grBIN[ni]).remove(n); grBIN[ni]=b; bins.get(b).add(n); }
