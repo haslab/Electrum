@@ -61,6 +61,7 @@ import edu.mit.csail.sdg.alloy4compiler.ast.*;
 import edu.mit.csail.sdg.alloy4compiler.ast.Sig.Field;
 import edu.mit.csail.sdg.alloy4compiler.ast.Sig.PrimSig;
 import edu.mit.csail.sdg.alloy4compiler.ast.Sig.SubsetSig;
+import edu.mit.csail.sdg.alloy4compiler.ast.Module;
 
 /** Mutable; this class represents an Alloy module; equals() uses object identity. 
  * 

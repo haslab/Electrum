@@ -23,6 +23,8 @@ import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.swing.text.DefaultHighlighter.DefaultHighlightPainter;
+
 import edu.mit.csail.sdg.alloy4.A4Reporter;
 import edu.mit.csail.sdg.alloy4.ErrorWarning;
 import edu.mit.csail.sdg.alloy4.Pair;
@@ -44,6 +46,7 @@ import edu.mit.csail.sdg.alloy4compiler.translator.A4SolutionReader;
 import edu.mit.csail.sdg.alloy4compiler.translator.A4SolutionWriter;
 import edu.mit.csail.sdg.alloy4compiler.translator.TranslateAlloyToKodkod;
 import edu.mit.csail.sdg.alloy4viz.StaticInstanceReader;
+
 
 /** This class is used by the Alloy developers to drive the regression test suite.
  * For a more detailed guide on how to use Alloy API, please see "ExampleUsingTheCompiler.java"
@@ -141,7 +144,7 @@ public final class SimpleCLI {
     }
 
     public static void main(String[] args) throws Exception {
-        final boolean sat4j = "yes".equals(System.getProperty("sat4j"));
+    	final boolean sat4j = "yes".equals(System.getProperty("sat4j"));
         final boolean minisat = "yes".equals(System.getProperty("minisat"));
         SatSolver solver = A4Options.SatSolver.make("mem", "mem", "/zweb/sat/mem");
         final SimpleReporter rep = new SimpleReporter();
