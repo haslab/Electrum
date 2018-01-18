@@ -52,6 +52,8 @@ import edu.mit.csail.sdg.alloy4compiler.translator.A4SolutionReader;
 import edu.mit.csail.sdg.alloy4compiler.translator.A4SolutionWriter;
 import edu.mit.csail.sdg.alloy4compiler.translator.TranslateAlloyToKodkod;
 import edu.mit.csail.sdg.alloy4viz.StaticInstanceReader;
+import kodkod.engine.config.Reporter;
+import kodkod.engine.config.SLF4JReporter;
 
 /** This class is used by the Alloy developers to drive the regression test suite.
  * For a more detailed guide on how to use Alloy API, please see "ExampleUsingTheCompiler.java"
@@ -59,77 +61,6 @@ import edu.mit.csail.sdg.alloy4viz.StaticInstanceReader;
 
 public final class SimpleCLI {
 
-    private static final class SimpleReporter extends A4Reporter {
-
-        private final StringBuilder sb = new StringBuilder();
-
-        private final List<ErrorWarning> warnings = new ArrayList<ErrorWarning>();
-
-        private final RandomAccessFile os;
-
-        public SimpleReporter() throws IOException {
-            os = new RandomAccessFile(".alloy.tmp","rw");
-            os.setLength(0);
-        }
-
-        public void flush() throws IOException {
-            if (sb.length()>65536) {
-                os.write(sb.toString().getBytes("UTF-8"));
-                sb.delete(0, sb.length());
-            }
-        }
-
-        public void close() throws IOException {
-            if (sb.length()>0) {
-                os.write(sb.toString().getBytes("UTF-8"));
-                sb.delete(0, sb.length());
-            }
-            os.close();
-        }
-
-        @Override public void debug(String msg) { sb.append(msg); }
-
-        @Override public void parse(String msg) { sb.append(msg); }
-
-        @Override public void typecheck(String msg) { sb.append(msg); }
-
-        @Override public void warning(ErrorWarning msg) { warnings.add(msg); }
-
-        @Override public void scope(String msg) { sb.append("   "); sb.append(msg); }
-
-        @Override public void bound(String msg) { sb.append("   "); sb.append(msg); }
-
-        @Override public void translate(String solver, int bitwidth, int maxseq, int skolemDepth, int symmetry) {
-            sb.append("   Solver="+solver+" Bitwidth="+bitwidth+" MaxSeq="+maxseq+" Symmetry="+(symmetry>0 ? (""+symmetry) : "OFF")+"\n");
-        }
-
-        @Override public void solve(int primaryVars, int totalVars, int clauses) {
-            if (db) db("   "+totalVars+" vars. "+primaryVars+" primary vars. "+clauses+" clauses.\n");
-            sb.append("   "+totalVars+" vars. "+primaryVars+" primary vars. "+clauses+" clauses. 12345ms.\n");
-        }
-
-        @Override public void resultCNF(String filename) {}
-
-        @Override public void resultSAT(Object command, long solvingTime, Object solution) {
-            if (db) db("   SAT!\n");
-            if (!(command instanceof Command)) return;
-            Command cmd = (Command)command;
-            sb.append(cmd.check ? "   Counterexample found. " : "   Instance found. ");
-            if (cmd.check) sb.append("Assertion is invalid"); else sb.append("Predicate is consistent");
-            if (cmd.expects==0) sb.append(", contrary to expectation"); else if (cmd.expects==1) sb.append(", as expected");
-            sb.append(". "+solvingTime+"ms.\n\n");
-        }
-
-        @Override public void resultUNSAT(Object command, long solvingTime, Object solution) {
-            if (db) db("   UNSAT!\n");
-            if (!(command instanceof Command)) return;
-            Command cmd = (Command)command;
-            sb.append(cmd.check ? "   No counterexample found." : "   No instance found.");
-            if (cmd.check) sb.append(" Assertion may be valid"); else sb.append(" Predicate may be inconsistent");
-            if (cmd.expects==1) sb.append(", contrary to expectation"); else if (cmd.expects==0) sb.append(", as expected");
-            sb.append(". "+solvingTime+"ms.\n\n");
-        }
-    }
 
     private static boolean db=true;
 
@@ -189,7 +120,9 @@ public final class SimpleCLI {
     	        return;
     	    }
     	
-        final SimpleReporter rep = new SimpleReporter();
+    		if (cmd.hasOption("v")) System.setProperty("debug","yes");
+    		
+        final Reporter rep = new SLF4JReporter();
         final StringBuilder sb = rep.sb;
         String filename = args[args.length-1];
             try {
@@ -267,11 +200,8 @@ public final class SimpleCLI {
                         db("Executing "+cc+"...\n");
                     }
                     rep.sb.append("Executing \""+c+"\"\n");
-                    options.skolemDepth=0;
-                    A4Solution s = TranslateAlloyToKodkod.execute_commandFromBook(rep, world.getAllReachableSigs(), c, options);
-                    if (s.satisfiable()) { validate(s); if (s.isIncremental()) { s=s.next(); if (s.satisfiable()) validate(s); } }
                     options.skolemDepth=2;
-                    s = TranslateAlloyToKodkod.execute_commandFromBook(rep, world.getAllReachableSigs(), c, options);
+                    A4Solution s = TranslateAlloyToKodkod.execute_commandFromBook(rep, world.getAllReachableSigs(), c, options);
                     if (s.satisfiable()) { validate(s); if (s.isIncremental()) { s=s.next(); if (s.satisfiable()) validate(s); } }
                 }
             } catch(Throwable ex) {
