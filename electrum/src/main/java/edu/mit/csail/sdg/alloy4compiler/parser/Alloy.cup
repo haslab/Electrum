@@ -610,6 +610,7 @@ nonterminal Expr                       PUnopExprB;
 nonterminal Pos                        Vis;
 
 precedence left PRIME;      // [HASLab]
+precedence right TRCSEQ;    // [HASLab]
 
 //===========================================================================//
 
