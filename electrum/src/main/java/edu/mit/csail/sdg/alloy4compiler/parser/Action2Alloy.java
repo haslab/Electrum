@@ -215,6 +215,11 @@ public class Action2Alloy {
 				sss = sss.or(ExprVar.make(null, s.label.substring(6)));
 			fc_body = fc_body.and((ExprVar.make(null,evv).equal(ExprUnary.Op.PRIME.make(null, ExprVar.make(null,evv))).not()).implies(sss));
 		}
+		for (Sig svv : root.getAllSigs()) {
+			if (acts_mods.keySet().contains(svv.label) || svv.isVariable == null);
+			fc_body = fc_body.and((ExprVar.make(null,svv.label).equal(ExprUnary.Op.PRIME.make(null, ExprVar.make(null,svv.label)))));
+		}
+		
 		final String fc_name = "_fc";
 		fc_body = fc_body.always();
 		root.addFact(null, fc_name, fc_body);
