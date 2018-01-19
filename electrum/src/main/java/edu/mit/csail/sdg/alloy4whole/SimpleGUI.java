@@ -1022,8 +1022,8 @@ public final class SimpleGUI implements ComponentListener, Listener {
         opt.skolemDepth = SkolemDepth.get();
         opt.coreMinimization = CoreMinimization.get();
         opt.coreGranularity = CoreGranularity.get();
-//        opt.maxTraceLength = MaxTraceLength.get(); // pt.uminho.haslab
-        opt.decomposed = Decomposed.get(); // pt.uminho.haslab
+        if(Decomposed.get()) opt.decomposed = 1; // pt.uminho.haslab
+        else opt.decomposed = 0;
         opt.originalFilename = Util.canon(text.get().getFilename());
         opt.solver = SatSolver.get();
         task.bundleIndex = i;
