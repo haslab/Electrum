@@ -182,10 +182,9 @@ public final class SimpleCLI {
 				Command c = cmds.get(i);
 				rep.info("Executing \"" + c + "\"\n");
 				options.skolemDepth = 2;
-				long time = System.currentTimeMillis();
 				A4Solution s = TranslateAlloyToKodkod.execute_commandFromBook(rep, world.getAllReachableSigs(), c,
 						options);
-				time = System.currentTimeMillis() - time;
+				System.exit(0);
 			}
 		} catch (Throwable ex) {
 			rep.info("An error occurred.");
