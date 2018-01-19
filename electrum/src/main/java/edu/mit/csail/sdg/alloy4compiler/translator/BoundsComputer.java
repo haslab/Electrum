@@ -339,10 +339,6 @@ final class BoundsComputer {
         }
     }
 
-    public void p(String s){
-        System.out.println(s);
-    }
-
     //==============================================================================================================//
 
     /** Assign each sig and field to some Kodkod relation or expression, then set the bounds. */

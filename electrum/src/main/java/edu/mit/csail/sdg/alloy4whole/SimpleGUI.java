@@ -425,7 +425,6 @@ public final class SimpleGUI implements ComponentListener, Listener {
             if (i>=0) name=name.substring(i+1);
             return name.substring(0, name.length()-4);
         }
-        System.out.println("ENTRA na function");
         return name;
     }
 
