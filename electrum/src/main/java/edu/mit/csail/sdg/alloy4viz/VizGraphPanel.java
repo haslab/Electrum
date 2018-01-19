@@ -140,7 +140,6 @@ public final class VizGraphPanel extends JPanel {
 		 */
 		private TypePanel(AlloyType type, List<AlloyAtom> atoms, AlloyAtom initialValue) {
 			super();
-			System.out.println("Combo atoms: " + atoms);
 			final JButton left, right;
 			int initialIndex = 0;
 			this.type = type;

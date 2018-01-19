@@ -16,11 +16,6 @@
 package edu.mit.csail.sdg.alloy4whole;
 
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.RandomAccessFile;
-import java.io.StringReader;
-import java.io.StringWriter;
-import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.cli.CommandLine;
@@ -31,122 +26,76 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.OptionGroup;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import edu.mit.csail.sdg.alloy4.A4Reporter;
 import edu.mit.csail.sdg.alloy4.ErrorWarning;
-import edu.mit.csail.sdg.alloy4.Pair;
-import edu.mit.csail.sdg.alloy4.Util;
-import edu.mit.csail.sdg.alloy4.Version;
-import edu.mit.csail.sdg.alloy4.XMLNode;
 import edu.mit.csail.sdg.alloy4compiler.ast.Command;
-import edu.mit.csail.sdg.alloy4compiler.ast.Decl;
-import edu.mit.csail.sdg.alloy4compiler.ast.Expr;
-import edu.mit.csail.sdg.alloy4compiler.ast.ExprHasName;
-import edu.mit.csail.sdg.alloy4compiler.ast.Func;
 import edu.mit.csail.sdg.alloy4compiler.ast.Module;
-import edu.mit.csail.sdg.alloy4compiler.ast.Sig;
 import edu.mit.csail.sdg.alloy4compiler.parser.CompUtil;
 import edu.mit.csail.sdg.alloy4compiler.translator.A4Options;
 import edu.mit.csail.sdg.alloy4compiler.translator.A4Solution;
-import edu.mit.csail.sdg.alloy4compiler.translator.A4SolutionReader;
-import edu.mit.csail.sdg.alloy4compiler.translator.A4SolutionWriter;
 import edu.mit.csail.sdg.alloy4compiler.translator.TranslateAlloyToKodkod;
-import edu.mit.csail.sdg.alloy4viz.StaticInstanceReader;
-
-/** This class is used by the Alloy developers to drive the regression test suite.
- * For a more detailed guide on how to use Alloy API, please see "ExampleUsingTheCompiler.java"
- */
 
 public final class SimpleCLI {
 
     private static final class SimpleReporter extends A4Reporter {
+        private Logger LOGGER = LoggerFactory.getLogger(A4Reporter.class);
 
-        private final StringBuilder sb = new StringBuilder();
+        public SimpleReporter() throws IOException { }
 
-        private final List<ErrorWarning> warnings = new ArrayList<ErrorWarning>();
+        @Override public void debug(String msg) { 
+        		if (System.getProperty("debug","no").equals("yes"))
+        			LOGGER.debug(msg); 
+        	}
 
-        private final RandomAccessFile os;
+        @Override public void parse(String msg) { debug(msg); }
 
-        public SimpleReporter() throws IOException {
-            os = new RandomAccessFile(".alloy.tmp","rw");
-            os.setLength(0);
-        }
+        @Override public void typecheck(String msg) { debug(msg); }
 
-        public void flush() throws IOException {
-            if (sb.length()>65536) {
-                os.write(sb.toString().getBytes("UTF-8"));
-                sb.delete(0, sb.length());
-            }
-        }
+        public void info(String msg) { LOGGER.info(msg); }
 
-        public void close() throws IOException {
-            if (sb.length()>0) {
-                os.write(sb.toString().getBytes("UTF-8"));
-                sb.delete(0, sb.length());
-            }
-            os.close();
-        }
+        @Override public void warning(ErrorWarning msg) { LOGGER.warn(msg.msg); }
 
-        @Override public void debug(String msg) { sb.append(msg); }
+        @Override public void scope(String msg) { debug(msg); }
 
-        @Override public void parse(String msg) { sb.append(msg); }
-
-        @Override public void typecheck(String msg) { sb.append(msg); }
-
-        @Override public void warning(ErrorWarning msg) { warnings.add(msg); }
-
-        @Override public void scope(String msg) { sb.append("   "); sb.append(msg); }
-
-        @Override public void bound(String msg) { sb.append("   "); sb.append(msg); }
+        @Override public void bound(String msg) { debug(msg); }
 
         @Override public void translate(String solver, int bitwidth, int maxseq, int skolemDepth, int symmetry) {
-            sb.append("   Solver="+solver+" Bitwidth="+bitwidth+" MaxSeq="+maxseq+" Symmetry="+(symmetry>0 ? (""+symmetry) : "OFF")+"\n");
+        		debug("Solver="+solver+" Bitwidth="+bitwidth+" MaxSeq="+maxseq+" Symmetry="+(symmetry>0 ? (""+symmetry) : "OFF")+"\n");
         }
 
         @Override public void solve(int primaryVars, int totalVars, int clauses) {
-            if (db) db("   "+totalVars+" vars. "+primaryVars+" primary vars. "+clauses+" clauses.\n");
-            sb.append("   "+totalVars+" vars. "+primaryVars+" primary vars. "+clauses+" clauses. 12345ms.\n");
+            debug(totalVars+" vars. "+primaryVars+" primary vars. "+clauses+" clauses.\n");
         }
 
         @Override public void resultCNF(String filename) {}
 
         @Override public void resultSAT(Object command, long solvingTime, Object solution) {
-            if (db) db("   SAT!\n");
             if (!(command instanceof Command)) return;
             Command cmd = (Command)command;
+            StringBuilder sb = new StringBuilder();
             sb.append(cmd.check ? "   Counterexample found. " : "   Instance found. ");
             if (cmd.check) sb.append("Assertion is invalid"); else sb.append("Predicate is consistent");
             if (cmd.expects==0) sb.append(", contrary to expectation"); else if (cmd.expects==1) sb.append(", as expected");
             sb.append(". "+solvingTime+"ms.\n\n");
+            info(sb.toString());
         }
 
         @Override public void resultUNSAT(Object command, long solvingTime, Object solution) {
-            if (db) db("   UNSAT!\n");
             if (!(command instanceof Command)) return;
             Command cmd = (Command)command;
+            StringBuilder sb = new StringBuilder();
             sb.append(cmd.check ? "   No counterexample found." : "   No instance found.");
             if (cmd.check) sb.append(" Assertion may be valid"); else sb.append(" Predicate may be inconsistent");
             if (cmd.expects==1) sb.append(", contrary to expectation"); else if (cmd.expects==0) sb.append(", as expected");
             sb.append(". "+solvingTime+"ms.\n\n");
+            info(sb.toString());
         }
     }
 
-    private static boolean db=true;
-
-    private static void db(String msg) { System.out.print(msg); System.out.flush(); }
-
     private SimpleCLI() { }
-
-    private static void validate(A4Solution sol) throws Exception {
-        StringWriter sw = new StringWriter();
-        PrintWriter pw = new PrintWriter(sw);
-        sol.writeXML(pw, null, null);
-        pw.flush();
-        sw.flush();
-        String txt = sw.toString();
-        A4SolutionReader.read(new ArrayList<Sig>(), new XMLNode(new StringReader(txt))).toString();
-        StaticInstanceReader.parseInstance(new StringReader(txt));
-    }
 
     private static Options options() {
     		Options options = new Options();
@@ -158,6 +107,14 @@ public final class SimpleCLI {
     				.optionalArg(true)
     				.required(false)
     				.desc("run in decomposed mode").build());
+    		
+    		options.addOption(Option.builder("c")
+    				.longOpt("command")
+    				.hasArg(true)
+    				.argName("command")
+    				.optionalArg(false)
+    				.required(false)
+    				.desc("select command").build());
     		
     		options.addOption(Option.builder("v")
     				.longOpt("verbose")
@@ -181,7 +138,7 @@ public final class SimpleCLI {
     		CommandLine cmd = null;	
     		try {
     			CommandLineParser parser = new DefaultParser();
-    			cmd = parser.parse(options(), args, false);
+    			cmd = parser.parse(options(), args, true);
     		} catch(ParseException exp) {
     	        System.err.println( "Parsing failed.  Reason: " + exp.getMessage() );
     	        HelpFormatter formatter = new HelpFormatter();
@@ -189,95 +146,50 @@ public final class SimpleCLI {
     	        return;
     	    }
     	
-        final SimpleReporter rep = new SimpleReporter();
-        final StringBuilder sb = rep.sb;
-        String filename = args[args.length-1];
-            try {
-                // Parse+Typecheck
-                rep.sb.append("\n\nMain file = "+filename+"\n");
-                if (db) db("Parsing+Typechecking...");
-                Module world = CompUtil.parseEverything_fromFile(rep, null, filename);
-                if (db) db(" ok\n");
-                List<Command> cmds=world.getAllCommands();
-                for(ErrorWarning msg: rep.warnings) rep.sb.append("Relevance Warning:\n" + (msg.toString().trim()) + "\n\n");
-                rep.warnings.clear();
-                // Do a detailed dump if we will not be executing the commands
-                if (false) {
-                  for(Module m:world.getAllReachableModules()) {
-                    for(Sig x:m.getAllSigs()) {
-                        sb.append("\nSig ").append(x.label).append(" at position ").append(x.pos).append("\n");
-                        for(Decl d:x.getFieldDecls()) for(ExprHasName f:d.names) {
-                            sb.append("\nField ").append(f.label).append(" with type ").append(f.type()).append("\n");
-                            d.expr.toString(sb, 2);
-                        }
-                        rep.flush();
-                    }
-                    for(Func x:m.getAllFunc()) {
-                        sb.append("\nFun/pred ").append(x.label).append(" at position ").append(x.pos).append("\n");
-                        for(Decl d:x.decls) for(ExprHasName v:d.names) { v.toString(sb, 2); d.expr.toString(sb, 4); }
-                        x.returnDecl.toString(sb, 2);
-                        x.getBody().toString(sb, 4);
-                        rep.flush();
-                    }
-                    for(Pair<String,Expr> x:m.getAllFacts()) {
-                        sb.append("\nFact ").append(x.a).append("\n");  x.b.toString(sb, 4);
-                        rep.flush();
-                    }
-                    for(Pair<String,Expr> x:m.getAllAssertions()) {
-                        sb.append("\nAssertion ").append(x.a).append("\n");  x.b.toString(sb, 4);
-                        rep.flush();
-                    }
-                    if (m==world) for(Command x:m.getAllCommands()) {
-                        sb.append("\nCommand ").append(x.label).append("\n");
-                        x.formula.toString(sb, 4);
-                        rep.flush();
-                    }
-                  }
-                }
-                // Validate the metamodel generation code
-                StringWriter metasb = new StringWriter();
-                PrintWriter meta = new PrintWriter(metasb);
-                Util.encodeXMLs(meta, "\n<alloy builddate=\"", Version.buildDate(), "\">\n\n");
-                A4SolutionWriter.writeMetamodel(world.getAllReachableSigs(), filename, meta);
-                Util.encodeXMLs(meta, "\n</alloy>");
-                meta.flush();
-                metasb.flush();
-                String metaxml = metasb.toString();
-                A4SolutionReader.read(new ArrayList<Sig>(), new XMLNode(new StringReader(metaxml)));
-                StaticInstanceReader.parseInstance(new StringReader(metaxml));
-                // Okay, now solve the commands
-                A4Options options = new A4Options();
-                options.originalFilename = filename;
-                options.solverDirectory = "/zweb/zweb/tmp/alloy4/x86-freebsd";
-                options.solver = A4Options.SatSolver.MiniSatJNI;
-                if (cmd.hasOption("SAT4J")) options.solver = A4Options.SatSolver.SAT4J;
-                else if (cmd.hasOption("NuSMV")) options.solver = A4Options.SatSolver.ElectrodS;
-                else if (cmd.hasOption("nuXmv")) options.solver = A4Options.SatSolver.ElectrodX;
-                
-                options.decomposed = cmd.hasOption("decomposed");
-                Integer ii;
-                if (cmd.getParsedOptionValue("decomposed")!=null) 
-                		ii = Integer.valueOf(cmd.getOptionValue("decomposed"));
-                
-                for (int i=0; i<cmds.size(); i++) {
-                    Command c = cmds.get(i);
-                    if (db) {
-                        String cc = c.toString();
-                        if (cc.length()>60) cc=cc.substring(0,55);
-                        db("Executing "+cc+"...\n");
-                    }
-                    rep.sb.append("Executing \""+c+"\"\n");
-                    options.skolemDepth=0;
-                    A4Solution s = TranslateAlloyToKodkod.execute_commandFromBook(rep, world.getAllReachableSigs(), c, options);
-                    if (s.satisfiable()) { validate(s); if (s.isIncremental()) { s=s.next(); if (s.satisfiable()) validate(s); } }
-                    options.skolemDepth=2;
-                    s = TranslateAlloyToKodkod.execute_commandFromBook(rep, world.getAllReachableSigs(), c, options);
-                    if (s.satisfiable()) { validate(s); if (s.isIncremental()) { s=s.next(); if (s.satisfiable()) validate(s); } }
-                }
-            } catch(Throwable ex) {
-                rep.sb.append("\n\nException: "+ex);
-            }
-            if (db) { if (false) db(" ERROR!\n"); else db("\n\n"); }
-        rep.close();
-    }
+    		if (cmd.hasOption("v")) System.setProperty("debug","yes");
+    		
+		final SimpleReporter rep = new SimpleReporter();
+		String filename = args[args.length - 1];
+		try {
+			rep.info("Parsing " + filename + ".\n");
+			Module world = CompUtil.parseEverything_fromFile(rep, null, filename);
+			List<Command> cmds = world.getAllCommands();
+			A4Options options = new A4Options();
+			options.originalFilename = filename;
+			options.solver = A4Options.SatSolver.MiniSatJNI;
+			if (cmd.hasOption("SAT4J"))
+				options.solver = A4Options.SatSolver.SAT4J;
+			else if (cmd.hasOption("NuSMV"))
+				options.solver = A4Options.SatSolver.ElectrodS;
+			else if (cmd.hasOption("nuXmv"))
+				options.solver = A4Options.SatSolver.ElectrodX;
+
+			if (cmd.hasOption("decomposed"))
+				if (cmd.getOptionValue("decomposed") != null)
+					options.decomposed = Integer.valueOf(cmd.getOptionValue("decomposed"));
+				else
+					options.decomposed = 1;
+			else
+				options.decomposed = 0;
+			int i0=0, i1=cmds.size();
+			if (cmd.hasOption("command")) {
+				i0 = Integer.valueOf(cmd.getOptionValue("command"));
+				i1 = i0+1;
+			} else {
+				rep.info("Running all commands.");
+			}
+			for (int i = i0; i < i1; i++) {
+				Command c = cmds.get(i);
+				rep.info("Executing \"" + c + "\"\n");
+				options.skolemDepth = 2;
+				long time = System.currentTimeMillis();
+				A4Solution s = TranslateAlloyToKodkod.execute_commandFromBook(rep, world.getAllReachableSigs(), c,
+						options);
+				time = System.currentTimeMillis() - time;
+			}
+		} catch (Throwable ex) {
+			rep.info("An error occurred.");
+			rep.debug("\n\nException: " + ex);
+		}
+	}
 }
