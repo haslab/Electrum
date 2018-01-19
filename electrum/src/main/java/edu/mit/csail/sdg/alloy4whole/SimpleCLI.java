@@ -16,10 +16,6 @@
 package edu.mit.csail.sdg.alloy4whole;
 
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringReader;
-import java.io.StringWriter;
-import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.cli.CommandLine;
@@ -35,22 +31,12 @@ import org.slf4j.LoggerFactory;
 
 import edu.mit.csail.sdg.alloy4.A4Reporter;
 import edu.mit.csail.sdg.alloy4.ErrorWarning;
-import edu.mit.csail.sdg.alloy4.Util;
-import edu.mit.csail.sdg.alloy4.Version;
-import edu.mit.csail.sdg.alloy4.XMLNode;
 import edu.mit.csail.sdg.alloy4compiler.ast.Command;
 import edu.mit.csail.sdg.alloy4compiler.ast.Module;
-import edu.mit.csail.sdg.alloy4compiler.ast.Sig;
 import edu.mit.csail.sdg.alloy4compiler.parser.CompUtil;
 import edu.mit.csail.sdg.alloy4compiler.translator.A4Options;
 import edu.mit.csail.sdg.alloy4compiler.translator.A4Solution;
-import edu.mit.csail.sdg.alloy4compiler.translator.A4SolutionReader;
 import edu.mit.csail.sdg.alloy4compiler.translator.TranslateAlloyToKodkod;
-import edu.mit.csail.sdg.alloy4viz.StaticInstanceReader;
-
-/** This class is used by the Alloy developers to drive the regression test suite.
- * For a more detailed guide on how to use Alloy API, please see "ExampleUsingTheCompiler.java"
- */
 
 public final class SimpleCLI {
 
@@ -72,16 +58,16 @@ public final class SimpleCLI {
 
         @Override public void warning(ErrorWarning msg) { LOGGER.warn(msg.msg); }
 
-        @Override public void scope(String msg) { debug("   "); debug(msg); }
+        @Override public void scope(String msg) { debug(msg); }
 
-        @Override public void bound(String msg) { debug("   "); debug(msg); }
+        @Override public void bound(String msg) { debug(msg); }
 
         @Override public void translate(String solver, int bitwidth, int maxseq, int skolemDepth, int symmetry) {
-        		debug("   Solver="+solver+" Bitwidth="+bitwidth+" MaxSeq="+maxseq+" Symmetry="+(symmetry>0 ? (""+symmetry) : "OFF")+"\n");
+        		debug("Solver="+solver+" Bitwidth="+bitwidth+" MaxSeq="+maxseq+" Symmetry="+(symmetry>0 ? (""+symmetry) : "OFF")+"\n");
         }
 
         @Override public void solve(int primaryVars, int totalVars, int clauses) {
-            debug("   "+totalVars+" vars. "+primaryVars+" primary vars. "+clauses+" clauses.\n");
+            debug(totalVars+" vars. "+primaryVars+" primary vars. "+clauses+" clauses.\n");
         }
 
         @Override public void resultCNF(String filename) {}
@@ -89,34 +75,27 @@ public final class SimpleCLI {
         @Override public void resultSAT(Object command, long solvingTime, Object solution) {
             if (!(command instanceof Command)) return;
             Command cmd = (Command)command;
-            info(cmd.check ? "   Counterexample found. " : "   Instance found. ");
-            if (cmd.check) debug("Assertion is invalid"); else info("Predicate is consistent");
-            if (cmd.expects==0) debug(", contrary to expectation"); else if (cmd.expects==1) info(", as expected");
-            info(". "+solvingTime+"ms.\n\n");
+            StringBuilder sb = new StringBuilder();
+            sb.append(cmd.check ? "   Counterexample found. " : "   Instance found. ");
+            if (cmd.check) sb.append("Assertion is invalid"); else sb.append("Predicate is consistent");
+            if (cmd.expects==0) sb.append(", contrary to expectation"); else if (cmd.expects==1) sb.append(", as expected");
+            sb.append(". "+solvingTime+"ms.\n\n");
+            info(sb.toString());
         }
 
         @Override public void resultUNSAT(Object command, long solvingTime, Object solution) {
             if (!(command instanceof Command)) return;
             Command cmd = (Command)command;
-            info(cmd.check ? "   No counterexample found." : "   No instance found.");
-            if (cmd.check) debug(" Assertion may be valid"); else info(" Predicate may be inconsistent");
-            if (cmd.expects==1) debug(", contrary to expectation"); else if (cmd.expects==0) info(", as expected");
-            info(". "+solvingTime+"ms.\n\n");
+            StringBuilder sb = new StringBuilder();
+            sb.append(cmd.check ? "   No counterexample found." : "   No instance found.");
+            if (cmd.check) sb.append(" Assertion may be valid"); else sb.append(" Predicate may be inconsistent");
+            if (cmd.expects==1) sb.append(", contrary to expectation"); else if (cmd.expects==0) sb.append(", as expected");
+            sb.append(". "+solvingTime+"ms.\n\n");
+            info(sb.toString());
         }
     }
 
     private SimpleCLI() { }
-
-    private static void validate(A4Solution sol) throws Exception {
-        StringWriter sw = new StringWriter();
-        PrintWriter pw = new PrintWriter(sw);
-        sol.writeXML(pw, null, null);
-        pw.flush();
-        sw.flush();
-        String txt = sw.toString();
-        A4SolutionReader.read(new ArrayList<Sig>(), new XMLNode(new StringReader(txt))).toString();
-        StaticInstanceReader.parseInstance(new StringReader(txt));
-    }
 
     private static Options options() {
     		Options options = new Options();
