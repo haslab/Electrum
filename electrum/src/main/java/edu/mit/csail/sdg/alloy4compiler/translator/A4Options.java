@@ -189,13 +189,8 @@ public final class A4Options implements Serializable {
     /** This option controls how deep we unroll loops and unroll recursive predicate/function/macros (negative means it's disallowed) */
     public int unrolls = (-1);
 
-//    /** This option controls the maximum trace length that will be explored in temporal. */
-//    // [HASLab]
-//	public int maxTraceLength;
-
 	// [HASLab]
-    public boolean decomposed = false;
-
+    public int decomposed = 0;
 	
     /** This method makes a copy of this Options object. */
     public A4Options dup() {
@@ -211,7 +206,6 @@ public final class A4Options implements Serializable {
         x.recordKodkod = recordKodkod;
         x.noOverflow = noOverflow;
         x.coreGranularity = coreGranularity;
-//        x.maxTraceLength = maxTraceLength; // [HASLab]
         x.decomposed = decomposed; // [HASLab]
         return x;
     }
