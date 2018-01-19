@@ -58,6 +58,7 @@ import kodkod.engine.Evaluator;
 import kodkod.engine.PardinusSolver;
 import kodkod.engine.Proof;
 import kodkod.engine.Solution;
+import kodkod.engine.config.DecomposedOptions.DMode;
 import kodkod.engine.config.ExtendedOptions;
 import kodkod.engine.config.Options;
 import kodkod.engine.config.Reporter;
@@ -300,6 +301,7 @@ public final class A4Solution {
 		varOptions.setMinTraceLength(minTracelength); // [HASLab] propagate options
 		if (opt.decomposed > 0) { // [HASLab] propagate options
 			varOptions.setRunDecomposed(true);
+			varOptions.setDecomposedMode(DMode.HYBRID);
 			if (opt.decomposed > 1) // if 1, let default
 				varOptions.setThreads(opt.decomposed);
 		} else {
