@@ -214,13 +214,6 @@ public final class SimpleCLI {
 
     /** Copy the required files from the JAR into a temporary directory. */
     private static void copyFromJAR() {
-        // Compute the appropriate platform
-        String os = System.getProperty("os.name").toLowerCase(Locale.US).replace(' ','-');
-        if (os.startsWith("mac-")) os="mac"; else if (os.startsWith("windows-")) os="windows";
-        String arch = System.getProperty("os.arch").toLowerCase(Locale.US).replace(' ','-');
-        if (arch.equals("powerpc")) arch="ppc-"+os; else arch=arch.replaceAll("\\Ai[3456]86\\z","x86")+"-"+os;
-        if (os.equals("mac")) arch="x86-mac"; // our pre-compiled binaries are all universal binaries
-        // Find out the appropriate Alloy directory
         final String platformBinary = alloyHome() + fs + "binary";
         // Write a few test files
         try {
@@ -230,14 +223,15 @@ public final class SimpleCLI {
             // The error will be caught later by the "berkmin" or "spear" test
         }
         // Copy the platform-dependent binaries
+//        System.out.println("Will copy libs from "+" to "+platformBinary);
         Util.copy(true, false, platformBinary,
-           arch+"/libminisat.so", arch+"/libminisatx1.so", arch+"/libminisat.jnilib",
-           arch+"/libminisatprover.so", arch+"/libminisatproverx1.so", arch+"/libminisatprover.jnilib",
-           arch+"/libzchaff.so", arch+"/libzchaffx1.so", arch+"/libzchaff.jnilib",
-           arch+"/berkmin", arch+"/spear");
+           "libminisat.so", "libminisatx1.so", "libminisat.jnilib", "libminisat.dylib", "libglucose.so", "libglucose.dylib", "libglucose.jnilib",
+           "libminisatprover.so", "libminisatproverx1.so", "libminisatprover.jnilib", "libminisatprover.dylib",
+           "libzchaff.so", "libzchaffx1.so", "libzchaff.jnilib", "libzchaff.dylib",
+           "berkmin", "spear");
         Util.copy(false, false, platformBinary,
-           arch+"/minisat.dll", arch+"/minisatprover.dll", arch+"/zchaff.dll",
-           arch+"/berkmin.exe", arch+"/spear.exe");
+           "minisat.dll", "minisatprover.dll", "zchaff.dll",
+           "berkmin.exe", "spear.exe");
         // Copy the model files
         Util.copy(false, true, alloyHome(),
            "models/book/appendixA/addressBook1.als", "models/book/appendixA/addressBook2.als", "models/book/appendixA/barbers.als",
