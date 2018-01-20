@@ -130,6 +130,7 @@ public final class SimpleCLI {
     		OptionGroup g = new OptionGroup();
     		g.addOption(Option.builder("x").longOpt("nuXmv").hasArg(false).desc("select nuXmv unbounded solver").build());
     		g.addOption(Option.builder("m").longOpt("miniSAT").hasArg(false).desc("select miniSAT bounded solver").build());
+    		g.addOption(Option.builder("g").longOpt("glucose").hasArg(false).desc("select glucose unbounded solver").build());
     		g.addOption(Option.builder("n").longOpt("NuSMV").hasArg(false).desc("select NuSMV unbounded solver").build());
     		g.addOption(Option.builder("s").longOpt("SAT4J").hasArg(false).desc("select SAT4J bounded solver").build());
     		g.setRequired(true);
@@ -176,6 +177,10 @@ public final class SimpleCLI {
 			options.solver = A4Options.SatSolver.MiniSatJNI;
 			if (cmd.hasOption("SAT4J"))
 				options.solver = A4Options.SatSolver.SAT4J;
+			else if (cmd.hasOption("glucose"))
+				options.solver = A4Options.SatSolver.GlucoseJNI;
+			else if (cmd.hasOption("NuSMV"))
+				options.solver = A4Options.SatSolver.ElectrodS;
 			else if (cmd.hasOption("NuSMV"))
 				options.solver = A4Options.SatSolver.ElectrodS;
 			else if (cmd.hasOption("nuXmv"))
@@ -228,6 +233,7 @@ public final class SimpleCLI {
            "libminisat.so", "libminisatx1.so", "libminisat.jnilib", "libminisat.dylib", "libglucose.so", "libglucose.dylib", "libglucose.jnilib",
            "libminisatprover.so", "libminisatproverx1.so", "libminisatprover.jnilib", "libminisatprover.dylib",
            "libzchaff.so", "libzchaffx1.so", "libzchaff.jnilib", "libzchaff.dylib",
+           "libglucose.dylib", "libglucose.so", "libglucose.jnilib",
            "berkmin", "spear");
         Util.copy(false, false, platformBinary,
            "minisat.dll", "minisatprover.dll", "zchaff.dll",
