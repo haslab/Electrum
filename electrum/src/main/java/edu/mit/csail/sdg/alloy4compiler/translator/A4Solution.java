@@ -328,6 +328,8 @@ public final class A4Solution {
 			varOptions.setSolver(SATFactory.MiniSatProver);
 			varOptions.setLogTranslation(2);
 			varOptions.setCoreGranularity(opt.coreGranularity);
+		} else if (opt.solver.equals(A4Options.SatSolver.GlucoseJNI)) { // [HASLab]
+			varOptions.setSolver(SATFactory.Glucose);
 		} else if (opt.solver.equals(A4Options.SatSolver.ElectrodS)) { // [HASLab]
 			varOptions.setSolver(SATFactory.electrodS());
 			varOptions.setRunUnbounded(true);
