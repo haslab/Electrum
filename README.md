@@ -1,6 +1,6 @@
 # Electrum
 
-This extension to the Alloy Analyzer by the [High-Assurance Software Laboratory](http://haslab.di.uminho.pt) provides an analyzer for Electrum models, a temporal extension to the Alloy modeling language.
+This extension to the Alloy Analyzer by the [Institute for Systems and Computer Engineering, Technology and Science](https://www.inesctec.pt/en) and the [French Aerospace Lab](https://www.onera.fr/en) provides an analyzer for Electrum models, a temporal extension to the Alloy modeling language.
 
 [Alloy](http://alloy.mit.edu/) is a simple structural modeling language based on first-order logic developed at the [Software Design Group](http://sdg.csail.mit.edu/). Its Analyzer can generate instances of invariants, simulate the execution of operations, and check user-specified properties of a model.
 
@@ -16,25 +16,25 @@ system, which requires Python 2.5 or later, and needs a C/C++ compiler for the u
   `$ git clone -b master --recursive https://github.com/nmacedo/Electrum`  
   `$ cd Electrum`
 
-* Run the Maven script to generate a self containable executable under `electrum/target`. This will compile Electrum and Pardinus, as well as the underlying native libraries (see respective installation [notes](https://github.com/nmacedo/Pardinus)).
+* Run the Maven script to generate a self containable executable under `electrum/target`. This will compile Electrum and Pardinus, as well as the underlying native libraries (see respective installation [notes](https://github.com/haslab/Pardinus)).
 
  `$  mvn clean package -DskipTests`
 
 ## Running
 
-[Download]() the executable ``jar`` (or [build](#building-electrum) it) and launch it simply as
+[Download](https://github.com/nmacedo/Electrum/releases/tag/v1.0) the executable ``jar`` (or [build](#building-electrum) it) and launch it simply as
 
 `$ java -jar electrum-runnable.jar`
 
 This will launch Electrum's/Alloy Analyzer's simple GUI, which is packaged with several examples.
 
 ## Collaborators
-- Nuno Macedo, HASLab, Portugal
-- Julien Brunel, ONERA, France
-- David Chemouil, ONERA, France
-- Alcino Cunha, HASLab, Portugal
-- Denis Kuperberg TU Munich, Germany
-- Eduardo Pessoa, HASLab, Portugal
+- Nuno Macedo, HASLab, INESC TEC & Universidade do Minho, Portugal
+- Julien Brunel, ONERA/DTIS & Université fédérale de Toulouse, France
+- David Chemouil, ONERA/DTIS & Université fédérale de Toulouse, France
+- Alcino Cunha, HASLab, INESC TEC & Universidade do Minho, Portugal
+- Denis Kuperberg, TU Munich, Germany
+- Eduardo Pessoa, HASLab, INESC TEC & Universidade do Minho, Portugal
 
 ## History
 ### Electrum [0.2.0](https://github.com/nmacedo/Electrum/releases/tag/v0.2) (November 2016) 
