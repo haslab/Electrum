@@ -108,7 +108,7 @@ public class Action2Alloy {
 		// create the sig E and field events with type from each action sig to the padded type
 		List<ExprHasName> ev_names = new ArrayList<ExprHasName>();
 		ev_names.add(ExprVar.make(null, "_event"));
-		Expr ev_expr = dummy_var.product(padded_act_types);
+		Expr ev_expr = padded_act_types;
 		Decl ev = new Decl(Pos.UNKNOWN, Pos.UNKNOWN, null, null, ev_names, ev_expr);
 		System.out.println("Field "+ev_names.get(0)+ " defined with "+ ev_expr+".");	
 		
@@ -119,7 +119,7 @@ public class Action2Alloy {
 
 		final ExprVar e_var = ExprVar.make(null, e_sig.label);
 
-		Expr mult = dummy_var.join(e_var.join(ExprVar.make(null, "_event"))).one().always();
+		Expr mult = e_var.join(ExprVar.make(null, "_event")).one().always();
 		root.addFact(null, "_e_mult", mult);
 		System.out.println("Added event multiplicity fact: "+mult+".");
 
@@ -141,7 +141,7 @@ public class Action2Alloy {
 		fired_args.add(new Decl(null, null, null, null, act_decl_names, action_var));
 
 		// create the body for the fired predicate
-		Expr fired_expr = dummy_var.product(act_arg);
+		Expr fired_expr = act_arg;
 		for (int i = 0; i < max_args; i++)
 			fired_expr = fired_expr.product(args_decls_names.get(i));
 		fired_expr = fired_expr.in(e_var.join(ev_names.get(0)));
