@@ -222,8 +222,8 @@ public class Action2Alloy {
 			fc_body = fc_body.and((ExprVar.make(null,evv).equal(ExprUnary.Op.PRIME.make(null, ExprVar.make(null,evv))).not()).implies(sss));
 		}
 		for (Sig svv : root.getAllSigs()) {
-			if (acts_mods.keySet().contains(svv.label) || svv.isVariable == null);
-			fc_body = fc_body.and((ExprVar.make(null,svv.label).equal(ExprUnary.Op.PRIME.make(null, ExprVar.make(null,svv.label)))));
+			if (!(acts_mods.keySet().contains(svv.label.substring(5))))
+				fc_body = fc_body.and((ExprVar.make(null,svv.label).equal(ExprUnary.Op.PRIME.make(null, ExprVar.make(null,svv.label)))));
 		}
 		
 		final String fc_name = "_fc";
