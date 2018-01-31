@@ -273,6 +273,8 @@ public class Action2Alloy {
 		List<Expr> v1 = new ArrayList<Expr>(), v2 = new ArrayList<Expr>();
         body = (new ConvToConjunction()).visitThis(body);
         recursiveSplit(body, v1, v2);
+        v1.add(NONE.no());
+        v2.add(NONE.no());
 			
         root.addFunc(p, isPrivate, prePredName(n), null, decls, null, ExprList.make(null, null, ExprList.Op.AND, v1));
 		root.addFunc(p, isPrivate, postPredName(n), null, decls, null, ExprList.make(null, null, ExprList.Op.AND, v2));
