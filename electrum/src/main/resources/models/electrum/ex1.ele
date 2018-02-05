@@ -1,4 +1,0 @@
-abstract sig a {}
-var sig b,c extends a {}
-
-run {}

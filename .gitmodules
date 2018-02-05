@@ -1,4 +1,0 @@
-[submodule "lib/Pardinus"]
-	path = pardinus
-	url = https://github.com/nmacedo/Pardinus
-	branch = v1.0
