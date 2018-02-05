@@ -24,7 +24,7 @@ system, which requires Python 2.5 or later, and needs a C/C++ compiler for the u
 
 [Download](https://github.com/nmacedo/Electrum/releases/tag/v1.0) the executable ``jar`` (or [build](#building-electrum) it) and launch it simply as
 
-`$ java -jar electrum-runnable.jar`
+`$ java -jar electrum-1.0.0-gui.jar`
 
 This will launch Electrum's/Alloy Analyzer's simple GUI, which is packaged with several examples.
 
@@ -37,13 +37,21 @@ This will launch Electrum's/Alloy Analyzer's simple GUI, which is packaged with 
 - Eduardo Pessoa, HASLab, INESC TEC & Universidade do Minho, Portugal
 
 ## History
+### Electrum [1.0.0](https://github.com/nmacedo/Electrum/releases/tag/v1.0) (January 2018) 
+<!--- FM 18 -->
+- First stable public release
+- Common interface for temporal relational model finding problems through Pardinus
+- Bounded and unbounded model checking of Electrum models
+- Uniform visualisation of trace instances
+- Support for a decomposed solving strategy
+
 ### Electrum [0.2.0](https://github.com/nmacedo/Electrum/releases/tag/v0.2) (November 2016) 
 - Direct embedding into a temporal extension to Kodkod ([Pardinus](https://github.com/nmacedo/Pardinus))
 - Visualizer natively supports temporal solutions
 
 ### Electrum [0.1.0](https://github.com/nmacedo/Electrum/releases/tag/v0.1) (March 2016) 
 <!--- FSE 16 -->
-- First release accompannying the FSE'16 [submission](http://dx.doi.org/10.1145/2950290.2950318)
+- First release accompanying the FSE'16 [submission](http://dx.doi.org/10.1145/2950290.2950318)
 - Bounded model checking of Electrum models
 - Electrum models expanded into Alloy models
 - Expanded Alloy models returned to the visualizer
