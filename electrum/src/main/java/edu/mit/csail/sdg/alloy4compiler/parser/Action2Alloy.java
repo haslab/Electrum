@@ -81,7 +81,7 @@ public class Action2Alloy {
 		}
 		// define sig Arg as the sum of all argument types
 		// TODO: avoid repeated arg types
-		Sig arg_sig = root.addSig("_Arg", ExprVar.make(null,"="), args, null, null, Attr.PRIVATE);
+		Sig arg_sig = root.addSig("_Arg", ExprVar.make(null,"="), args, null, null, Attr.PRIVATE, Attr.VARIABLE);
 		System.out.println("Max args is "+max_args+", sig "+arg_sig.label+" defined = "+ ((SubsetSig) arg_sig).parents + " with "+arg_sig.attributes+".");	
 
 		final ExprVar arg_var = ExprVar.make(null, arg_sig.label);
