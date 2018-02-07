@@ -1,6 +1,6 @@
-# Electrum
+# Electrum Analyzer
 
-This extension to the Alloy Analyzer by the [Institute for Systems and Computer Engineering, Technology and Science](https://www.inesctec.pt/en) and [ONERA](https://www.onera.fr/en) (the French aerospace research center) provides an analyzer for Electrum models, a temporal extension to the Alloy modeling language.
+This extension to the Alloy Analyzer by [INESC TEC](https://www.inesctec.pt/en) (the Institute for Systems and Computer Engineering, Technology and Science) and [ONERA](https://www.onera.fr/en) (the French aerospace research center) provides an analyzer for Electrum models, a temporal extension to the Alloy modeling language.
 
 [Alloy](http://alloy.mit.edu/) is a simple structural modeling language based on first-order logic developed at the [Software Design Group](http://sdg.csail.mit.edu/). Its Analyzer can generate instances of invariants, simulate the execution of operations, and check user-specified properties of a model.
 
@@ -8,9 +8,9 @@ Electrum is open-source and available under the [MIT license](LICENSE), as is th
 
 Electrum can also perform analyses on an unbounded time horizon: in this case, one needs to install the [Electrod](https://github.com/grayswandyr/electrod/) program as well as [NuSMV](http://nusmv.fbk.eu/) or [nuXmv](https://nuxmv.fbk.eu/).
 
-## Building Electrum
+## Building Electrum Analyzer
 
-Electrum requires Java 8 and can be built using Maven. The script will also build Kodkod/Pardinus, which uses the [Waf](https://github.com/waf-project/waf) build
+The Electrum Analyzer requires Java 8 and can be built using Maven. The script will also build Kodkod/Pardinus, which uses the [Waf](https://github.com/waf-project/waf) build
 system, which requires Python 2.5 or later, and needs a C/C++ compiler for the underlying solvers.
 
 * Clone the Electrum repository, as well as Pardinus' as a submodule 
@@ -30,7 +30,7 @@ If you wish to build it, repeat the steps above, just replacing `-b master` in t
 
 ## Running
 
-[Download](https://github.com/nmacedo/Electrum/releases/tag/v1.0) the executable ``jar`` (or [build](#building-electrum) it) and launch it simply as
+[Download](https://github.com/nmacedo/Electrum/releases/tag/v1.0) the executable ``jar`` (or [build](#building-electrum-analyzer) it) and launch it simply as
 
 `$ java -jar electrum-1.0.0-gui.jar`
 
@@ -46,7 +46,7 @@ This will launch Electrum's/Alloy Analyzer's simple GUI, which is packaged with 
 
 ## History
 ### Electrum [1.0.0](https://github.com/nmacedo/Electrum/releases/tag/v1.0) (January 2018) 
-<!--- FM 18 -->
+<!--- FM,ABZ 18 -->
 - First stable public release
 - Common interface for temporal relational model finding problems through Pardinus
 - Bounded and unbounded model checking of Electrum models
