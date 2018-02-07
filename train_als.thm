@@ -1,0 +1,117 @@
+<?xml version="1.0"?>
+<alloy>
+
+<view nodetheme="Martha" edgetheme="Martha">
+
+<projection> <type name="Time"/> </projection>
+
+<defaultnode/>
+
+<defaultedge/>
+
+<node>
+   <type name="Ambiguous"/>
+   <type name="Free"/>
+   <type name="Int"/>
+   <type name="Occupied"/>
+   <type name="String"/>
+   <type name="Time"/>
+   <type name="univ"/>
+   <type name="Unknown"/>
+   <type name="D/Ord"/>
+   <type name="ordering/Ord"/>
+   <type name="seq/Int"/>
+   <type name="T/Ord"/>
+   <type name="V/Ord"/>
+   <set name="$S8_tr1" type="Train"/>
+   <set name="$S8_tr2" type="Train"/>
+   <set name="First" type="T/Ord"/>
+   <set name="Next" type="T/Ord"/>
+   <set name="report_rear" type="Train"/>
+</node>
+
+<node color="Blue" label="ambiguous">
+   <set name="$_ambiguous" type="VSS"/>
+</node>
+
+<node color="Green" label="free">
+   <set name="$_free" type="VSS"/>
+</node>
+
+<node color="Red">
+   <set name="mute_timer" type="Train"/>
+</node>
+
+<node color="Red" label="unknown">
+   <set name="$_unknown" type="VSS"/>
+</node>
+
+<node color="Yellow" label="occupied">
+   <set name="$_occupied" type="TTD"/>
+   <set name="$_occupied&apos;" type="VSS"/>
+</node>
+
+<node hideunconnected="no" shape="Inv Trapezoid" color="Green">
+   <type name="TTD"/>
+</node>
+
+<node hideunconnected="yes" style="Dotted" shape="Parallelogram" color="Green">
+   <type name="Train"/>
+</node>
+
+<node shape="Trapezoid">
+   <type name="VSS"/>
+</node>
+
+<node showlabel="no" style="Bold">
+   <set name="$_Arear" type="Train"/>
+</node>
+
+<node style="Dashed">
+   <set name="connected" type="Train"/>
+   <set name="disconnect_ptimer" type="VSS"/>
+   <set name="ghost_ptimer" type="TTD"/>
+</node>
+
+<node style="Dashed" color="Blue">
+   <set name="integrity_timer" type="Train"/>
+</node>
+
+<node style="Dotted">
+   <set name="integrity_loss_ptimer" type="VSS"/>
+   <set name="shadow_timer_A" type="TTD"/>
+   <set name="shadow_timer_B" type="TTD"/>
+</node>
+
+<node style="Solid">
+   <set name="report_front" type="Train"/>
+</node>
+
+<node visible="no">
+   <type name="State"/>
+</node>
+
+<edge layout="no">
+   <relation name="state"> <type name="VSS"/> <type name="State"/> </relation>
+</edge>
+
+<edge layout="yes">
+   <relation name="jumping"> <type name="VSS"/> <type name="Train"/> </relation>
+</edge>
+
+<edge layout="yes" label="VSSs">
+   <relation name="$_VSSs"> <type name="TTD"/> <type name="VSS"/> </relation>
+</edge>
+
+<edge style="Dashed" layout="no">
+   <relation name="MA"> <type name="Train"/> <type name="VSS"/> </relation>
+</edge>
+
+<edge visible="no" layout="yes" attribute="yes" constraint="no">
+   <relation name="end"> <type name="TTD"/> <type name="VSS"/> </relation>
+   <relation name="start"> <type name="TTD"/> <type name="VSS"/> </relation>
+</edge>
+
+</view>
+
+</alloy>
