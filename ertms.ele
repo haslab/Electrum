@@ -1,14 +1,14 @@
 /**
-An Electrum model of the Hybrid ERTMS/ETCS Level 3 Concept (HL3) based on the 
-"Principles" document at https://www.southampton.ac.uk/abz2018/information/case-study.page 
+An Electrum model of the Hybrid ERTMS/ETCS Level 3 Concept (HL3) based on the "Principles"
+document at https://www.southampton.ac.uk/abz2018/information/case-study.page 
 launched  as part of the ABZ 2018 call for case study contributions.
 
 A technical report describing the model and its development can be found at
-http://????.
+http://haslab.github.io/Electrum/ertms.pdf.
 
-This model is available at http://haslab.github.io/Electrum/ertms.ele and its visualizer 
-theme at http://haslab.github.io/Electrum/ertms.thm. A similar Alloy encoding can be 
-found at haslab.github.io/Electrum/ertms.als.
+This model is available at http://haslab.github.io/Electrum/ertms.ele and its visualizer theme 
+at http://haslab.github.io/Electrum/ertms.thm. A similar Alloy encoding can be found at 
+http://haslab.github.io/Electrum/ertms.als.
 
 @author: Nuno Macedo
 **/
@@ -750,7 +750,7 @@ pred split [tr,tr1:Train] {
 }
 
 /** 
-System evolution.
+Overall system evolution.
 **/
 
 -- forces state to be correctly updated; every train may move in each step.
@@ -767,6 +767,7 @@ fact trace {
 Operational scenarios of the HL3 concept.
 **/
 
+-- Scenario 1 - Normal running of a single train with integrity confirmed by external device
 pred S1 {
 
 	always no integrity_timer + mute_timer + integrity_loss_ptimer + disconnect_ptimer + ghost_ptimer + shadow_timer_A + shadow_timer_B
@@ -778,105 +779,87 @@ pred S1 {
 
 	some tr:Train {
 		-- initial state
-																	v11.state = Occupied
-																	v11.nexts.state = Free
+		v11.state = Occupied
+		v11.nexts.state = Free
 
-		always 													tr in report_front
-																	tr in report_rear
-		after 													tr not in report_rear
-		after after 											tr in report_rear
-		after after after 									tr not in report_rear
-		after after after after 							tr in report_rear
-		after after after after after					tr not in report_rear
-		after after after after after after 			tr in report_rear
-		after after after after after after after 	tr in report_rear
+		always tr in report_front
+		
+		tr in report_rear;tr not in report_rear;tr in report_rear;tr not in report_rear;
+		tr in report_rear;tr not in report_rear;tr in report_rear;tr in report_rear
 
-																	tr.(pos_front+pos_rear) = v11
-		after 													tr.(pos_front+pos_rear) = v12
-		after after 											tr.(pos_front+pos_rear) = v12
-		after after after 									tr.(pos_front+pos_rear) = v21
-		after after after after 							tr.(pos_front+pos_rear) = v21
-		after after after after after 					tr.(pos_front+pos_rear) = v22
-		after after after after after after 			tr.(pos_front+pos_rear) = v23
-		after after after after after after after 	tr.(pos_front+pos_rear) = v31
+		tr.(pos_front+pos_rear) = v11;tr.(pos_front+pos_rear) = v12;
+		tr.(pos_front+pos_rear) = v12;tr.(pos_front+pos_rear) = v21;
+		tr.(pos_front+pos_rear) = v21;tr.(pos_front+pos_rear) = v22;
+		tr.(pos_front+pos_rear) = v23;tr.(pos_front+pos_rear) = v31
  
 		-- final state
 		after after after after after after after	v31.state = Occupied
 		after after after after after after after 	(VSS-v31).state = Free
-
 	}
 	}
 }
 
-
+-- Scenario 2 - Splitting of a composite train with integrity confirmed by external device
 pred S2 {
 
 	always no ghost_ptimer + shadow_timer_A + shadow_timer_B + disconnect_ptimer
 
 	let	v11 = V/first, v12 = v11.next, v21 = v12.next,
 			v22 = v21.next, v23 = v22.next, v31 = v23.next,
-			v32 = v31.next {
+			v32 = v31.next, v33 = v32.V/next {
 	v12 in parent[first].end
 	v31 in parent[last].start
 
 	some disj tr1,tr2:Train {
 		-- initial state
-																	v11.state = Free
-																	v12.state = Occupied
-																	v12.nexts.state = Free
+		v11.state = Free
+		v12.state = Occupied
+		v12.nexts.state = Free
 
-																	(tr1 in report_rear && tr1 in report_front && tr2 in report_rear && tr2 in report_front)
-		after														(tr1 not in report_rear && tr1 in report_front && tr2 not in report_rear && tr2 not in report_front)
-		after after 											(tr1 in report_rear && tr1 in report_front && tr2 not in report_rear && tr2 not in report_front)
-		after after after 									(tr1 in report_rear && tr1 in report_front && tr2 not in report_rear && tr2 not in report_front)
-		after after after after 							(tr1 in report_rear && tr1 in report_front && tr2 not in report_rear && tr2 not in report_front)
-		after after after after after 					(tr1 in report_rear && tr1 in report_front && tr2 not in report_rear && tr2 not in report_front)
-		after after after after after after 			(tr1 not in report_rear && tr1 not in report_front && tr2 not in report_rear && tr2 not in report_front)
-		after after after after after after after 	(tr1 in report_rear && tr1 in report_front && tr2 not in report_rear && tr2 not in report_front)
+		split[tr1,tr2]
 
-																	(tr1 in connected && tr2 in connected)
-		after always											(tr1 in connected && tr2 not in connected)
+		(tr1 in report_rear && tr1 in report_front && tr2 in report_rear && tr2 in report_front);
+		(tr1 not in report_rear && tr1 in report_front && tr2 not in report_rear && tr2 not in report_front);
+		(tr1 in report_rear && tr1 in report_front && tr2 not in report_rear && tr2 not in report_front);
+		(tr1 in report_rear && tr1 in report_front && tr2 not in report_rear && tr2 not in report_front);
+		(tr1 in report_rear && tr1 in report_front && tr2 not in report_rear && tr2 not in report_front);
+		(tr1 in report_rear && tr1 in report_front && tr2 not in report_rear && tr2 not in report_front);
+		(tr1 not in report_rear && tr1 not in report_front && tr2 not in report_rear && tr2 not in report_front);
+	 	(tr1 in report_rear && tr1 in report_front && tr2 not in report_rear && tr2 not in report_front)
+		
+		(tr1 in connected && tr2 in connected)
+		after always (tr1 in connected && tr2 not in connected)
 
 		always tr1 not in mute_timer
 		after no mute_timer
 
-		after 													no integrity_loss_ptimer
-		after after 											no integrity_loss_ptimer
-		after after after 									no integrity_loss_ptimer
-		after after after after 							v12 = integrity_loss_ptimer
-	
-																	split[tr1,tr2]
+		no integrity_loss_ptimer;
+		no integrity_loss_ptimer;
+		no integrity_loss_ptimer;
+		no integrity_loss_ptimer;
+		v12 = integrity_loss_ptimer
 
-																	tr1.(pos_front+pos_rear) = v12
-		after after												tr1.(pos_front+pos_rear) = v21
-		after after after										tr1.(pos_front+pos_rear) = v22
-		after after after after 							tr1.(pos_front+pos_rear) = v23
-		after after after after after				 	tr1.(pos_front+pos_rear) = v31+v23
-		after after after after after after 			tr1.(pos_front+pos_rear) = v31
-		after after after after after after after 	tr1.(pos_front+pos_rear) = v31
+		tr1.(pos_front+pos_rear) = v12;tr1.(pos_front+pos_rear) = v12;
+		tr1.(pos_front+pos_rear) = v21;tr1.(pos_front+pos_rear) = v22;
+		tr1.(pos_front+pos_rear) = v23;tr1.(pos_front+pos_rear) = v31+v23;
+		tr1.(pos_front+pos_rear) = v31;tr1.(pos_front+pos_rear) = v31
 
-																	tr2.(pos_front+pos_rear) = v12
+		tr2.(pos_front+pos_rear) = v12
 		after after after after after after after 	tr2.(pos_front+pos_rear) = v12
 
 		tr1.MA = v32
 		after after always tr2.MA = v12
 
 		-- final state
---		after after after after after after after 	(v11+v12).state = Unknown
---		after after after after after after after 	v31.state = Occupied
---		after after after after after after after 	(v21+v22+v23+v32+v33).state = Free
+		after after after after after after after 	(v11+v12).state = Unknown
+		after after after after after after after 	v31.state = Occupied
+		after after after after after after after 	(v21+v22+v23+v32+v33).state = Free
 	}
 	}
 }
 
-
-
--- NOTES: at t5, VSS5 changes from Free to Unknown due to n01A, but in the scenario
---		n01A is not triggered, why? changed n01A according to 4.2.2
---		at t7, VSS6 changes from Unknown to Occupied by n11B due to the shadow 
---		timer A; yet in the scenario the timer is not started because "because the virtual 
---		rear end is more than the shadow timer B travel distance from the TTD20 
---		border"; how to model this?
+-- Scenario 3 - Shadow train
+-- NOTE: breaks if #1A is modelled as in the HL3 concept
 pred S3 {
 
 	always 	no ghost_ptimer + shadow_timer_A + shadow_timer_B + disconnect_ptimer
@@ -937,23 +920,19 @@ pred S3 {
 		after after after after after after after tr2.(pos_front+pos_rear) = v31
 		after after after after after after after after tr2.(pos_front+pos_rear) = v31
 
+		after after always tr2.MA = v12
+		always tr1.MA = v32
+
 		-- final state
 		after after after after after after after after v31.state = Unknown
 		after after after after after after after after v32.state = Ambiguous
 		after after after after after after after after (VSS-(v31+v32)).state = Free
-
-		after after always tr2.MA = v12
-		always tr1.MA = v32
-
-
 	}
 	}
 }
 
-
--- NOTES:	at t3, VSS2 changes to Ambiguous before going to Occupied; 
---		yet in the scenario it goes directly from Free to Occupied; I think
---		this is simplified at the scenario
+-- Scenario 4 - Start of Mission / End of Mission
+-- NOTE: breaks if #5A is modelled as in the HL3 concept
 pred S4 {
 
 	always no ghost_ptimer + shadow_timer_A + shadow_timer_B + integrity_timer
@@ -969,37 +948,17 @@ pred S4 {
 		(v11+v12).state = Unknown
 		v12.nexts.state = Free
 		
-		tr not in connected
-		after tr in connected
-		after after tr in connected
-		after after after tr in connected
-    	after after after after tr in connected
-        after after after after after tr in connected
-    	after after after after after after tr not in connected
-        after after after after after after after tr not in connected
+		tr not in connected;tr in connected;tr in connected;tr in connected;
+		tr in connected;tr in connected;tr not in connected;tr not in connected
         
-        tr not in report_front
-        after tr in report_front
-        after after tr in report_front
-        after after after tr in report_front
-        after after after after tr in report_front
-        after after after after after tr in report_front
-        always after after after after after after tr not in report_front
+        tr not in report_front;after tr in report_front;tr in report_front;
+        tr in report_front;tr in report_front;tr in report_front; always tr not in report_front
         
-        tr not in report_rear
-        after tr in report_rear
-        after after tr in report_rear
-        after after after tr in report_rear
-        after after after after tr in report_rear
-        after after after after after tr in report_rear
-        always after after after after after after tr not in report_rear
+        tr not in report_rear;tr in report_rear;tr in report_rear;tr in report_rear;
+        tr in report_rear;tr in report_rear;always tr not in report_rear
 
-		tr.(pos_front+pos_rear) = v11
-		after tr.(pos_front+pos_rear) = v11
-		after after tr.(pos_front+pos_rear) = v12
-		after after after tr.(pos_front+pos_rear) = v21
-		after after after after tr.(pos_front+pos_rear) = v21
-		after after after after after always tr.(pos_front+pos_rear) = v22
+		tr.(pos_front+pos_rear) = v11;tr.(pos_front+pos_rear) = v11;tr.(pos_front+pos_rear) = v12;
+		tr.(pos_front+pos_rear) = v21;tr.(pos_front+pos_rear) = v21; always tr.(pos_front+pos_rear) = v22
 
 		after after after after after after after no disconnect_ptimer
 		after after after after after after after after some disconnect_ptimer
@@ -1015,13 +974,11 @@ pred S4 {
 	}
 }
 
-
--- NOTES:	at t6 all VSSs change automatically to Free; in the scenario
---		a delay on the TTD detection system is applied, which is not
---		implemented in this model
+-- Scenario 5 - Integrity lost
+-- NOTE: model does not implement delays on TTD detection
 pred S5 {
 
---	always no ghost_ptimer + shadow_timer_A + shadow_timer_B + disconnect_ptimer
+	always no ghost_ptimer + shadow_timer_A + shadow_timer_B + disconnect_ptimer
 
 	let	v11 = V/first, v12 = v11.next, v21 = v12.next,
 			v22 = v21.next, v23 = v22.next, v31 = v23.next,
@@ -1036,24 +993,16 @@ pred S5 {
 		v12.nexts.state = Free
 
 		always tr1 in report_front
-		tr1 in report_rear
-		after tr1 not in report_rear
-		after after tr1 not in report_rear
-		after after after always tr1 in report_rear
+		tr1 in report_rear;tr1 not in report_rear;tr1 not in report_rear;always tr1 in report_rear
 
-		tr2 in report_front
-		tr2 in report_rear
-		after always tr2 not in report_front
-		after always tr2 not in report_rear
+		tr2 in report_front; always tr2 not in report_front
+		tr2 in report_rear; always tr2 not in report_rear
 
 		split[tr1,tr2]
 
 		always no mute_timer
 
-		no integrity_loss_ptimer
-		after no integrity_loss_ptimer
-		after after no integrity_loss_ptimer
-		after after after always some integrity_loss_ptimer
+		no integrity_loss_ptimer;no integrity_loss_ptimer;no integrity_loss_ptimer;always some integrity_loss_ptimer
 
 		tr1.(pos_front+pos_rear) = v12
 		after after tr1.(pos_front+pos_rear) = v21
@@ -1077,12 +1026,8 @@ pred S5 {
 	}
 }
 
-
--- NOTES: at t4, VSS4 changes from Free to Unknown due to n01A, but in the scenario
---		n01A is not triggered, why? changed n01A according to 4.2.2
--- NOTES: at t8, VSS5 changes to Ambiguous before going to Occupied; 
---		yet in the scenario it goes directly from Free to Occupied;
---		this is simplified at the scenario
+-- Scenario 6 - Connection lost and reconnect within session
+-- NOTE: breaks if #1A is modelled as in the HL3 concept
 pred S6 {
 
 	always no ghost_ptimer + shadow_timer_A + shadow_timer_B + integrity_loss_ptimer + integrity_timer
@@ -1098,50 +1043,31 @@ pred S6 {
 		v12.state = Occupied
 		v12.nexts.state = Free
 	
-		tr1 in report_front
-		tr1 in report_rear
-		tr1 in connected
-		after tr1 not in report_front
-		after tr1 not in report_rear
-		after tr1 in connected
-		after after tr1 not in report_front
-		after after tr1 not in report_rear
-		after after tr1 not in connected
-		after after after tr1 not in report_front
-		after after after tr1 not in report_rear
-		after after after tr1 not in connected
-		after after after after tr1 not in report_front
-		after after after after tr1 not in report_rear
-		after after after after tr1 not in connected
-		after after after after after always tr1 in report_front
-		after after after after after always tr1 in report_rear
-		after after after after after always tr1 in connected
+		(tr1 in report_front && tr1 in report_rear && tr1 in connected);
+		(tr1 not in report_front && tr1 not in report_rear && tr1 in connected);
+		(tr1 not in report_front && tr1 not in report_rear && tr1 not in connected);
+		(tr1 not in report_front && tr1 not in report_rear && tr1 not in connected);
+		(tr1 not in report_front && tr1 not in report_rear && tr1 not in connected);
+		(always tr1 in report_front && always tr1 in report_rear && always tr1 in connected)
 
-		tr1.(pos_front+pos_rear) = v12
-		after tr1.(pos_front+pos_rear) = v12
-		after after tr1.(pos_front+pos_rear) = v12
-		after after after tr1.(pos_front+pos_rear) = v21
-		after after after after tr1.(pos_front+pos_rear) = v22
-		after after after after after tr1.(pos_front+pos_rear) = v22
-		after after after after after after tr1.(pos_front+pos_rear) = v23
-		after after after after after after after tr1.(pos_front+pos_rear) = v31
+		tr1.(pos_front+pos_rear) = v12;
+		tr1.(pos_front+pos_rear) = v12;
+		tr1.(pos_front+pos_rear) = v12;
+		tr1.(pos_front+pos_rear) = v21;
+		tr1.(pos_front+pos_rear) = v22;
+		tr1.(pos_front+pos_rear) = v22;
+		tr1.(pos_front+pos_rear) = v23;
+		tr1.(pos_front+pos_rear) = v31
 
-		no mute_timer
-		after no mute_timer
-		after after tr1 in mute_timer
+		no mute_timer;no mute_timer;tr1 in mute_timer
 		
 		after no disconnect_ptimer
 		after after no disconnect_ptimer
 		after after after no disconnect_ptimer
 		after after after after some disconnect_ptimer
 
-		tr1.MA = v22
-		after tr1.MA = v22
-		after after tr1.MA = v22
-		after after after tr1.MA = v22
-		after after after after tr1.MA = v22
-		after after after after after tr1.MA = v22
-		after after after after after after always tr1.MA = V/last
+		tr1.MA = v22;tr1.MA = v22;tr1.MA = v22;tr1.MA = v22;
+		tr1.MA = v22;tr1.MA = v22;always tr1.MA = V/last
 
 		-- final state
 		after after after after after after after after v31.state = Occupied
@@ -1150,7 +1076,8 @@ pred S6 {
 	}
 }
 
-
+-- Scenario 7 - Connection lost and reconnect within session with release of VSS
+-- NOTE: breaks if #1A is modelled as in the HL3 concept
 pred S7 {
 
 	always no ghost_ptimer + shadow_timer_A + shadow_timer_B + integrity_loss_ptimer + disconnect_ptimer + integrity_timer
@@ -1167,45 +1094,28 @@ pred S7 {
 		v21.state = Occupied
 		v21.nexts.state = Free
 
-		tr1 in report_front
-		tr1 in report_rear
-		tr1 in connected
-		after tr1 in report_front
-		after tr1 in report_rear
-		after tr1 in connected
-		after after tr1 in report_front
-		after after tr1 in report_rear
-		after after tr1 in connected
-		after after after tr1 not in report_front
-		after after after tr1 not in report_rear
-		after after after tr1 not in connected
-		after after after after tr1 not in report_front
-		after after after after tr1 not in report_rear
-		after after after after tr1 not in connected
-		after after after after after tr1 not in report_front
-		after after after after after tr1 not in report_rear
-		after after after after after tr1 not in connected
-		after after after after after after always tr1 in report_front
-		after after after after after after always tr1 in report_rear
-		after after after after after after always tr1 in connected
+		(tr1 in report_front && tr1 in report_rear && tr1 in connected);
+		(tr1 in report_front && tr1 in report_rear && tr1 in connected);
+		(tr1 in report_front && tr1 in report_rear && tr1 in connected);
+		(tr1 not in report_front && tr1 not in report_rear && tr1 not in connected);
+		(tr1 not in report_front && tr1 not in report_rear && tr1 not in connected);
+		(tr1 not in report_front && tr1 not in report_rear && tr1 not in connected);
+		(always tr1 in report_front && always tr1 in report_rear && always tr1 in connected)
 
-		tr1.(pos_front+pos_rear) = v21
-		after tr1.(pos_front+pos_rear) = v22
-		after after tr1.(pos_front+pos_rear) = v22
-		after after after tr1.(pos_front+pos_rear) = v22
-		after after after after tr1.(pos_front+pos_rear) = v23
-		after after after after after tr1.(pos_front+pos_rear) = v23+v31
-		after after after after after after tr1.(pos_front+pos_rear) = v23+v31
-		after after after after after after after tr1.(pos_front+pos_rear) = v31
-		after after after after after after after after tr1.(pos_front+pos_rear) = v32
+		tr1.(pos_front+pos_rear) = v21;
+		tr1.(pos_front+pos_rear) = v22;
+		tr1.(pos_front+pos_rear) = v22;
+		tr1.(pos_front+pos_rear) = v22;
+		tr1.(pos_front+pos_rear) = v23;
+		tr1.(pos_front+pos_rear) = v23+v31;
+		tr1.(pos_front+pos_rear) = v23+v31;
+		tr1.(pos_front+pos_rear) = v31;
+		tr1.(pos_front+pos_rear) = v32
 
-		tr1 not in mute_timer
-		after tr1 not in mute_timer
-		after after tr1 not in mute_timer
-		after after after tr1 not in mute_timer
-		after after after after tr1 in mute_timer
-		after after after after after tr1 in mute_timer
-		after after after after after after always tr1 not in mute_timer
+		tr1 not in mute_timer;tr1 not in mute_timer;
+		tr1 not in mute_timer;tr1 not in mute_timer;
+		tr1 in mute_timer;tr1 in mute_timer;
+		always tr1 not in mute_timer
 
 		always tr1.MA = v32
 
@@ -1216,12 +1126,8 @@ pred S7 {
 	}
 }
 
-
-/*
-	at t5, the state of VSS2 in the scenario changes directly from Unknown to Occupied,
-	but here it goes first into Ambiguous; yet, in the description n11A is mentioned, so
-	it is probably a simplification in the scenario
-*/
+-- Scenario 8 – Sweeping, jumping and two trains in a VSS
+-- NOTE: trains can't enter or leave the track, modelled with "dummy" TTD
 pred S8 {
 	always no ghost_ptimer + shadow_timer_A + shadow_timer_B + integrity_loss_ptimer + disconnect_ptimer + mute_timer + integrity_timer
 
@@ -1240,52 +1146,41 @@ pred S8 {
 		always tr1 in report_rear
 		always tr1 in report_front
 
-		tr2 in report_front
-		tr2 in report_rear
-		after tr2 in report_front
-		after tr2 in report_rear
-		after after tr2 in report_front
-		after after tr2 in report_rear
-		after after after tr2 in report_front
-		after after after tr2 in report_rear
-		after after after after tr2 in report_front
-		after after after after tr2 in report_rear
-		after after after after after tr2 in report_front
-		after after after after after tr2 in report_rear
-		after after after after after after tr2 in report_front
-		after after after after after after tr2 in report_rear
-		after after after after after after after tr2 in report_front
-		after after after after after after after tr2 in report_rear
-		after after after after after after after after tr2 in report_front
-		after after after after after after after after tr2 in report_rear
-		after after after after after after after after after tr2 in report_front
-		after after after after after after after after after tr2 in report_rear
-		after after after after after after after after after after tr2 not in report_front
-		after after after after after after after after after after tr2 not in report_rear
+		(tr2 in report_front && tr2 in report_rear);
+		(tr2 in report_front && tr2 in report_rear);
+		(tr2 in report_front && tr2 in report_rear);
+		(tr2 in report_front && tr2 in report_rear);
+		(tr2 in report_front && tr2 in report_rear);
+		(tr2 in report_front && tr2 in report_rear);
+		(tr2 in report_front && tr2 in report_rear);
+		(tr2 in report_front && tr2 in report_rear);
+		(tr2 in report_front && tr2 in report_rear);
+		(tr2 in report_front && tr2 in report_rear);
+		(tr2 not in report_front && tr2 not in report_rear)
 
-		tr1.(pos_front+pos_rear) = v12
-		after tr1.(pos_front+pos_rear) = v12
-        after after tr1.(pos_front+pos_rear) = v21
-		after after after tr1.(pos_front+pos_rear) = v22
-		after after after after tr1.(pos_front+pos_rear) = v23
-		after after after after after tr1.(pos_front+pos_rear) = v31
-		after after after after after after tr1.(pos_front+pos_rear) = v31
-		after after after after after after after tr1.(pos_front+pos_rear) = v32
-		after after after after after after after after tr1.(pos_front+pos_rear) = v33
-		after after after after after after after after after tr1.(pos_front+pos_rear) = v4
-		after after after after after after after after after after tr1.(pos_front+pos_rear) = v4
+		tr1.(pos_front+pos_rear) = v12;
+		tr1.(pos_front+pos_rear) = v12;
+        tr1.(pos_front+pos_rear) = v21;
+		tr1.(pos_front+pos_rear) = v22;
+		tr1.(pos_front+pos_rear) = v23;
+		tr1.(pos_front+pos_rear) = v31;
+		tr1.(pos_front+pos_rear) = v31;
+		tr1.(pos_front+pos_rear) = v32;
+		tr1.(pos_front+pos_rear) = v33;
+		tr1.(pos_front+pos_rear) = v4;
+		tr1.(pos_front+pos_rear) = v4
 		
-		tr2.(pos_front+pos_rear) = v11
-		after tr2.(pos_front+pos_rear) = v11+v12
-		after after tr2.(pos_front+pos_rear) = v12
-		after after after tr2.(pos_front+pos_rear) = v12
-		after after after after tr2.(pos_front+pos_rear) = v12
-		after after after after after tr2.(pos_front+pos_rear) = v21
-		after after after after after after tr2.(pos_front+pos_rear) = v21
-		after after after after after after after tr2.(pos_front+pos_rear) = v22
-		after after after after after after after after tr2.(pos_front+pos_rear) = v22
-		after after after after after after after after after tr2.(pos_front+pos_rear) = v23
-		after after after after after after after after after after tr2.(pos_front+pos_rear) = v31
+		tr2.(pos_front+pos_rear) = v11;
+		tr2.(pos_front+pos_rear) = v11+v12;
+		tr2.(pos_front+pos_rear) = v12;
+		tr2.(pos_front+pos_rear) = v12;
+		tr2.(pos_front+pos_rear) = v12;
+		tr2.(pos_front+pos_rear) = v21;
+		tr2.(pos_front+pos_rear) = v21;
+		tr2.(pos_front+pos_rear) = v22;
+		tr2.(pos_front+pos_rear) = v22;
+		tr2.(pos_front+pos_rear) = v23;
+		tr2.(pos_front+pos_rear) = v31
 	
 		tr2.MA = v12
 		after after after after after always tr2.MA= v4
@@ -1297,10 +1192,10 @@ pred S8 {
 	}
 }
 
-/*
-	This scenario requires that the front report be processed before the rear report!
-	This isn't modeled, must be unfolded into two states.
-*/
+-- Scenario 9 – Ghost train
+-- NOTE: breaks if indefinite timer expiration is implemented
+-- NOTE: requires that the front report be processed before the rear report, must be forced
+-- NOTE: trains can't enter or leave the track, modelled with "dummy" TTD
 pred S9 {
 	always no shadow_timer_A + shadow_timer_B + integrity_loss_ptimer + disconnect_ptimer
 
@@ -1318,6 +1213,17 @@ pred S9 {
 		(VSS-(v23+v0)).state = Free
 
 		always tr1 in connected
+		always tr1 in report_front
+
+		tr1 in report_rear;
+		tr1 in report_rear;
+		tr1 in report_rear;
+		tr1 in report_rear;
+		tr1 in report_rear;
+		tr1 not in report_rear;
+		tr1 not in report_rear;
+		always tr1 in report_rear  
+
 		tr2 not in connected+report_rear+report_front
 		after tr2 not in connected
 		after after tr2 not in connected
@@ -1328,46 +1234,35 @@ pred S9 {
 		after after after after after after after after tr2 in report_rear
 		after after after after after after after after after tr2 not in report_rear
 		after after after after after after after after after after tr2 not in report_rear
-		always tr1 in report_front
-		tr1 in report_rear
-		after tr1 in report_rear
-		after after tr1 in report_rear
-		after after after tr1 in report_rear
-		after after after after tr1 in report_rear
-		after after after after after tr1 not in report_rear  -- split event to process front first!
-		after after after after after after tr1 not in report_rear 
-		after after after after after after after always tr1 in report_rear  
 
 		after after after after after after after after after tr2 not in integrity_timer
 		after after after after after after after after after after tr2 in integrity_timer
 
-		tr1.(pos_front+pos_rear) = v23
-		after tr1.(pos_front+pos_rear) = v23
-		after after tr1.(pos_front+pos_rear) = v23
-		after after after tr1.pos_front = v31
-		after after after tr1.pos_rear = v23
-		after after after after tr1.pos_front = v32
-		after after after after tr1.pos_rear = v31
-		after after after after after tr1.(pos_front+pos_rear) = v32
-		after after after after after after tr1.(pos_front+pos_rear) = v32
-		after after after after after after after tr1.(pos_front+pos_rear) = v32
-		after after after after after after after after tr1.(pos_front+pos_rear) = v32 + v33
-		after after after after after after after after after always tr1.(pos_front+pos_rear) = v33
+		tr1.(pos_front+pos_rear) = v23;
+		tr1.(pos_front+pos_rear) = v23;
+		tr1.(pos_front+pos_rear) = v23;
+		(tr1.pos_front = v31 && tr1.pos_rear = v23);
+		(tr1.pos_front = v32 && tr1.pos_rear = v31);
+		tr1.(pos_front+pos_rear) = v32;
+		tr1.(pos_front+pos_rear) = v32;
+		tr1.(pos_front+pos_rear) = v32;
+		tr1.(pos_front+pos_rear) = v32 + v33;
+		always tr1.(pos_front+pos_rear) = v33
 
-		tr2.(pos_front+pos_rear) = v0
-		after tr2.(pos_front+pos_rear) = v11
-		after after tr2.(pos_front+pos_rear) = v11
-		after after after tr2.(pos_front+pos_rear) = v12
-		after after after after tr2.(pos_front+pos_rear) = v12
-		after after after after after tr2.(pos_front+pos_rear) = v12
-		after after after after after after tr2.(pos_front+pos_rear) = v12
-		after after after after after after after tr2.(pos_front+pos_rear) = v21
-		after after after after after after after after tr2.(pos_front+pos_rear) = v21
-		after after after after after after after after after always tr2.(pos_front+pos_rear) = v22
+		tr2.(pos_front+pos_rear) = v0;
+		tr2.(pos_front+pos_rear) = v11;
+		tr2.(pos_front+pos_rear) = v11;
+		tr2.(pos_front+pos_rear) = v12;
+		tr2.(pos_front+pos_rear) = v12;
+		tr2.(pos_front+pos_rear) = v12;
+		tr2.(pos_front+pos_rear) = v12;
+		tr2.(pos_front+pos_rear) = v21;
+		tr2.(pos_front+pos_rear) = v21;
+		always tr2.(pos_front+pos_rear) = v22
 	
 		after no ghost_ptimer
 		after after D/first.next in ghost_ptimer
-		after after after always no ghost_ptimer -- wrong!
+		after after after always no ghost_ptimer
 
 		-- final state
 		after after after after after after after after after after v21.state = Unknown
@@ -1381,17 +1276,51 @@ pred S9 {
 run S1 for exactly 1 Train, exactly 3 TTD, exactly 8 VSS, exactly 8 Time expect 1
 run S2 for exactly 2 Train, exactly 3 TTD, exactly 8 VSS, exactly 8 Time expect 1
 run S3 for exactly 2 Train, exactly 3 TTD, exactly 8 VSS, exactly 9 Time expect 1
-run S4 for exactly 1 Train, exactly 3 TTD, exactly 8 VSS, exactly 9 Time expect 1 -- needs extra step for loop!
+run S4 for exactly 1 Train, exactly 3 TTD, exactly 8 VSS, exactly 9 Time expect 1
 run S5 for exactly 2 Train, exactly 3 TTD, exactly 8 VSS, exactly 8 Time expect 1
 run S6 for exactly 1 Train, exactly 3 TTD, exactly 8 VSS, exactly 9 Time expect 1
 run S7 for exactly 1 Train, exactly 3 TTD, exactly 8 VSS, exactly 9 Time expect 1
 run S8 for exactly 2 Train, exactly 4 TTD, exactly 9 VSS, exactly 11 Time expect 1
-run S9 for exactly 2 Train, exactly 4 TTD, exactly 9 VSS, exactly 12 Time expect 1 -- needs 12 for loop
+run S9 for exactly 2 Train, exactly 4 TTD, exactly 9 VSS, exactly 12 Time expect 1
 
 /**
 Verification
 **/
-pred init_allOK {
+
+-- if all PTD information is consistent and no OS MAs, then only Free and Occupied states are assigned
+assert trains_ok_states_ok {
+	(init && always (no mute && no disintegrated && all tr:Train | not (after OSMA[tr]))) =>
+		after always VSS.state in Free + Occupied
+}
+
+-- if all PTD information is consistent and no OS MAs, then Free is always correctly assigned (has no train)
+assert trains_ok_free_ok {
+	(init && always (no mute && no disintegrated && all tr:Train | not (after OSMA[tr]))) =>
+		always (VSS-Train.(pos_front+pos_rear)).state = Free
+}
+
+-- if all PTD information is consistent and no OS MAs, then Occupied is always correctly assigned (has train)
+assert trains_ok_occupied_ok {
+	(init && always (no mute && no disintegrated && all tr:Train | not (after OSMA[tr]))) =>
+		always Train.(pos_front+pos_rear).state = Occupied
+}
+
+-- if all timers expire automatically, no OS MAs and trains don't move outside MAs,
+-- then Occupied VSSs have at most a train
+assert timers_auto_occupied_ok {
+	(init && always (auto_timer && all tr:Train | tr.pos_front in MAs[tr] && not (after OSMA[tr]))) =>
+		always all v:VSS | v.state in Occupied => lone (pos_front + pos_rear).v
+}
+
+-- if all timers expire automatically, no OS MAs and trains don't move outside MAs,
+-- then VSSs with a train are never Free
+assert timers_auto_free_ok {
+	(init && always (auto_timer && all tr:Train | tr.pos_front in MAs[tr] && not (after OSMA[tr]))) =>
+		always all tr:Train | (tr.pos_front).state != Free
+}
+
+-- initial predicate, all trains reporting, all VSS states consistent, no expired timers.
+pred init {
 	some Train
 	no mute_timer + integrity_timer + shadow_timer_A + shadow_timer_B + integrity_loss_ptimer + disconnect_ptimer
 	Train = connected & report_rear & report_front
@@ -1401,36 +1330,7 @@ pred init_allOK {
 		all t2 : Train-tr | no MAs[tr] & MAs[t2]
 }
 
--- if no train goes mute or disintegrated, then free is always correctly assigned (no train)
-assert trains_ok_free_ok {
-	(init_allOK && always (no mute && no disintegrated && all tr:Train | not (after OSMA[tr]))) =>
-		always (VSS-Train.(pos_front+pos_rear)).state = Free
-}
-
--- if no train goes mute or disintegrated, then occupied is always correctly assigned (exactly one train)
-assert trains_ok_occupied_ok {
-	(init_allOK && always (no mute && no disintegrated && all tr:Train | not (after OSMA[tr]))) =>
-		always Train.(pos_front+pos_rear).state = Occupied
-}
-
--- if no train goes mute or disintegrated, then no unknown or ambiguous states are assigned
-assert trains_ok_states_ok {
-	(init_allOK && always (no mute && no disintegrated && all tr:Train | not (after OSMA[tr]))) =>
-		after always VSS.state in Free + Occupied
-}
-
--- if all timers are automatic and the trains move within the MAs, then occupied is always correctly assigned (exactly one train)
-assert timers_auto_occupied_ok {
-	(init_allOK && always (auto_timer && all tr:Train | tr.pos_front in MAs[tr] && not (after OSMA[tr]))) =>
-		always all v:VSS | v.state in Occupied => lone (pos_front + pos_rear).v
-}
-
--- if all timers are automatic and the trains move within the MAs, then no free is incorrectly assigned (some train)
-assert timers_auto_free_ok {
-	(init_allOK && always (auto_timer && all tr:Train | tr.pos_front in MAs[tr] && not (after OSMA[tr]))) =>
-		always all tr:Train | (tr.pos_front).state != Free
-}
-
+-- forces all timers to expire as soon as start event is met
 pred auto_timer {
 	start_shadow_timer_A in shadow_timer_A
 	start_shadow_timer_B in shadow_timer_B
@@ -1440,13 +1340,11 @@ pred auto_timer {
 	all vs:VSS | some (knownTrain[vs])&mute_timer => vs in disconnect_ptimer
 }
 
-check timers_auto_free_ok 			for 5 VSS, 2 TTD, 2 Train, exactly 10 Time expect 0
-check timers_auto_occupied_ok	for 8 VSS, 3 TTD, 2 Train, exactly 10 Time expect 0
-check trains_ok_states_ok			for 8 VSS, 3 TTD, 2 Train, exactly 10 Time expect 0
--- 10 Time, 8 VSS, 3 TTD, 2 Train: 30mins
-check trains_ok_occupied_ok	 	for 8 VSS, 3 TTD, 2 Train, exactly 10 Time expect 0
--- 10 Time, 8 VSS, 3 TTD, 2 Train: 20mins
-check trains_ok_free_ok 			for 8 VSS, 3 TTD, 2 Train, exactly 10 Time expect 0
+check trains_ok_states_ok			for 6 VSS, 3 TTD, 2 Train, exactly 10 Time expect 0
+check trains_ok_occupied_ok	 	for 6 VSS, 3 TTD, 2 Train, exactly 10 Time expect 0
+check trains_ok_free_ok 			for 6 VSS, 3 TTD, 2 Train, exactly 10 Time expect 0
+check timers_auto_free_ok 			for 6 VSS, 3 TTD, 2 Train, exactly 10 Time expect 0
+check timers_auto_occupied_ok	for 6 VSS, 3 TTD, 2 Train, exactly 10 Time expect 0
 
 /**
 Visualization auxiliary functions.
