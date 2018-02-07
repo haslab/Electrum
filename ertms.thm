@@ -216,7 +216,25 @@
    <relation name="jumping"> <type name="VSS"/> <type name="Train"/> </relation>
 </edge>
 
+<edge color="Blue">
+   <relation name="position_rear"> <type name="Train"/> <type name="VSS"/> </relation>
+</edge>
 
+<edge color="Gray" layout="yes">
+   <relation name="jumping"> <type name="VSS"/> <type name="Train"/> </relation>
+</edge>
+
+<edge color="Green">
+   <relation name="position_front"> <type name="Train"/> <type name="VSS"/> </relation>
+</edge>
+
+<edge color="Magic" layout="yes" label="VSSs">
+   <relation name="$_VSSs"> <type name="TTD"/> <type name="VSS"/> </relation>
+</edge>
+
+<edge color="Red">
+   <relation name="MA"> <type name="Train"/> <type name="VSS"/> </relation>
+</edge>
 </view>
 
 </alloy>
