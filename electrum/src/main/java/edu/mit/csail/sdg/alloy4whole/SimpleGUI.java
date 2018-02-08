@@ -397,7 +397,7 @@ public final class SimpleGUI implements ComponentListener, Listener {
         if (text==null) return null; // If this was called prior to the "text" being fully initialized
         OurSyntaxWidget t = text.get();
         if (Util.onMac()) frame.getRootPane().putClientProperty("windowModified", Boolean.valueOf(t.modified()));
-        if (t.isFile()) frame.setTitle(t.getFilename()); else frame.setTitle("Alloy Analyzer "+Version.version() + " (Electrum Analyzer"+Version.eleVersion()+")");
+        if (t.isFile()) frame.setTitle(t.getFilename()); else frame.setTitle("Alloy Analyzer "+Version.version() + " (Electrum Analyzer "+Version.eleVersion()+")");
         toolbar.setBorder(new OurBorder(false, false, text.count()<=1, false));
         int c = t.getCaret();
         int y = t.getLineOfOffset(c)+1;
@@ -1790,7 +1790,7 @@ public final class SimpleGUI implements ComponentListener, Listener {
 
         // Enable better look-and-feel
         if (Util.onMac() || Util.onWindows()) {
-            System.setProperty("com.apple.mrj.application.apple.menu.about.name", "Alloy Analyzer "+Version.version() + " (Electrum Analyzer"+Version.eleVersion()+")");
+            System.setProperty("com.apple.mrj.application.apple.menu.about.name", "Alloy Analyzer "+Version.version() + " (Electrum Analyzer "+Version.eleVersion()+")");
             System.setProperty("com.apple.mrj.application.growbox.intrudes","true");
             System.setProperty("com.apple.mrj.application.live-resize","true");
             System.setProperty("com.apple.macos.useScreenMenuBar","true");
@@ -1826,7 +1826,7 @@ public final class SimpleGUI implements ComponentListener, Listener {
         frame.setSize(width,height);
         frame.setLocation(x,y);
         frame.setVisible(true);
-        frame.setTitle("Alloy Analyzer (Electrum) "+Version.version()+" loading... please wait...");
+        frame.setTitle("Alloy Analyzer "+Version.version()+" (Electrum Analyzer "+Version.eleVersion()+") loading... please wait...");
         final int windowWidth = width;
         // We intentionally call setVisible(true) first before settings the "please wait" title,
         // since we want the minimized window title on Linux/FreeBSD to just say Alloy Analyzer
