@@ -44,6 +44,11 @@ This will launch Electrum's/Alloy Analyzer's simple GUI, which is packaged with 
 - Denis Kuperberg, TU Munich, Germany
 - Eduardo Pessoa, HASLab, INESC TEC & Universidade do Minho, Portugal
 
+## ERTMS Case Study
+ERTMS models developed in response to the ABZ 2018 call for case study submissions:
+* Electrum [model](http://haslab.github.io/Electrum/ertms.ele) and [theme](http://haslab.github.io/Electrum/ertms.thm)
+* Alloy [model](http://haslab.github.io/Electrum/ertms.als) and [theme](http://haslab.github.io/Electrum/ertms_als.thm)
+
 ## History
 ### Electrum [1.0.0](https://github.com/nmacedo/Electrum/releases/tag/v1.0) (January 2018) 
 <!--- FM,ABZ 18 -->
