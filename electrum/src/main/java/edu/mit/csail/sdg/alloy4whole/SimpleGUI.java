@@ -52,7 +52,6 @@ import java.util.Random;
 import java.util.Scanner;
 import java.util.Set;
 import java.util.prefs.Preferences;
-import java.util.regex.Pattern;
 
 import javax.swing.Box;
 import javax.swing.Icon;
@@ -398,7 +397,7 @@ public final class SimpleGUI implements ComponentListener, Listener {
         if (text==null) return null; // If this was called prior to the "text" being fully initialized
         OurSyntaxWidget t = text.get();
         if (Util.onMac()) frame.getRootPane().putClientProperty("windowModified", Boolean.valueOf(t.modified()));
-        if (t.isFile()) frame.setTitle(t.getFilename()); else frame.setTitle("Alloy Analyzer (Electrum) "+Version.version());
+        if (t.isFile()) frame.setTitle(t.getFilename()); else frame.setTitle("Alloy Analyzer "+Version.version() + " (Electrum Analyzer"+Version.eleVersion()+")");
         toolbar.setBorder(new OurBorder(false, false, text.count()<=1, false));
         int c = t.getCaret();
         int y = t.getLineOfOffset(c)+1;
@@ -514,7 +513,7 @@ public final class SimpleGUI implements ComponentListener, Listener {
         // Record the locations
         System.setProperty("alloy.theme0", alloyHome() + fs + "models");
         System.setProperty("alloy.home", alloyHome());
-//        System.setProperty("debug", "no"); // [HASLab]: this breaks iteration!
+//        		System.setProperty("debug", "yes"); // [HASLab]: this breaks iteration!
     }
 
     /** Called when this window is resized. */
@@ -1454,7 +1453,7 @@ public final class SimpleGUI implements ComponentListener, Listener {
     /** This method displays the about box. */
     private Runner doAbout() {
        if (wrap) return wrapMe();
-       OurDialog.showmsg("About Alloy Analyzer " + Version.version(),
+       OurDialog.showmsg("About Alloy Analyzer " + Version.version() + " (Electrum Analyzer "+Version.eleVersion()+")",
              OurUtil.loadIcon("images/logo.gif"),
              "Alloy Analyzer " + Version.version(),
              "Build date: " + Version.buildDate(),
@@ -1468,7 +1467,13 @@ public final class SimpleGUI implements ComponentListener, Listener {
              " ",
              "Thanks to: Ilya Shlyakhter, Manu Sridharan, Derek Rayside, Jonathan Edwards, Gregory Dennis,",
              "Robert Seater, Edmond Lau, Vincent Yeung, Sam Daitch, Andrew Yip, Jongmin Baek, Ning Song,",
-             "Arturo Arizpe, Li-kuo (Brian) Lin, Joseph Cohen, Jesse Pavel, Ian Schechter, and Uriel Schafer."
+             "Arturo Arizpe, Li-kuo (Brian) Lin, Joseph Cohen, Jesse Pavel, Ian Schechter, and Uriel Schafer.",
+             " ",
+             "Electrum Analyzer " + Version.eleVersion(),
+             " ",
+             "Lead developer: Nuno Macedo",
+             "Project lead: Alcino Cunha",
+             "Thanks to: David Chemouil, Julien Brunel, Denis Kuperberg, Eduardo Pessoa, Tiago Guimarães."
        );
        return null;
     }
@@ -1785,7 +1790,7 @@ public final class SimpleGUI implements ComponentListener, Listener {
 
         // Enable better look-and-feel
         if (Util.onMac() || Util.onWindows()) {
-            System.setProperty("com.apple.mrj.application.apple.menu.about.name", "Alloy Analyzer (Electrum) "+Version.version());
+            System.setProperty("com.apple.mrj.application.apple.menu.about.name", "Alloy Analyzer "+Version.version() + " (Electrum Analyzer"+Version.eleVersion()+")");
             System.setProperty("com.apple.mrj.application.growbox.intrudes","true");
             System.setProperty("com.apple.mrj.application.live-resize","true");
             System.setProperty("com.apple.macos.useScreenMenuBar","true");
@@ -1962,7 +1967,7 @@ public final class SimpleGUI implements ComponentListener, Listener {
         all.add(status, BorderLayout.SOUTH);
 
         // Generate some informative log messages
-        log.logBold("Alloy Analyzer (Electrum) "+Version.version()+" (build date: "+Version.buildDate()+")\n\n");
+        log.logBold("Alloy Analyzer "+Version.version()+" (Electrum Analyzer "+Version.eleVersion()+") (build date: "+Version.buildDate()+")\n\n");
 
         // If on Mac, then register an application listener
         try {

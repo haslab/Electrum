@@ -304,18 +304,13 @@ public final class SimpleCLI {
     private static synchronized String alloyHome() {
         String temp=System.getProperty("java.io.tmpdir");
         if (temp==null || temp.length()==0)
-            OurDialog.fatal("Error. JVM need to specify a temporary directory using java.io.tmpdir property.");
+            throw new RuntimeException("Error. JVM need to specify a temporary directory using java.io.tmpdir property.");
         String username=System.getProperty("user.name");
         File tempfile=new File(temp+File.separatorChar+"alloy4tmp40-"+(username==null?"":username));
         tempfile.mkdirs();
         String ans=Util.canon(tempfile.getPath());
         if (!tempfile.isDirectory()) {
-            OurDialog.fatal("Error. Cannot create the temporary directory "+ans);
-        }
-        if (!Util.onWindows()) {
-            String[] args={"chmod", "700", ans};
-            try {Runtime.getRuntime().exec(args).waitFor();}
-            catch (Throwable ex) {} // We only intend to make a best effort.
+        		throw new RuntimeException("Error. Cannot create the temporary directory "+ans);
         }
         return ans;
     }

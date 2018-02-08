@@ -33,8 +33,11 @@ public final class Version {
    /** Returns the build number. */
    public static int buildNumber() { return Integer.MAX_VALUE; }
 
-   /** Returns the version string. */
+   /** Returns the Alloy version string. */
    public static String version() { return "4.2.?"; }
+
+   /** Returns the Electrum version string. */
+   public static String eleVersion() { return "1.0.?"; }
 
    /** Returns the build date. */
    public static String buildDate() { return "unknown"; }
