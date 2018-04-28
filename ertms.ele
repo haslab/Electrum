@@ -297,7 +297,7 @@ pred n01 [v:VSS] {
 pred n01A [v:VSS] {
 	-- no FS MA issued or no train on TTD
 	-- NOTE: the "no train on TTD" breaks the scenarios; also, 4.2.2 does not mention this
-	no MAs[parent[v]] -- || no positioned[parent[v]]
+	no MAs[parent[v]] && no positioned[parent[v]]
 }
 
 pred n01B [v:VSS] {
