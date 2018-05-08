@@ -141,77 +141,81 @@ public final class SimpleCLI {
     }
     
     public static void main(String[] args) throws Exception {
-    		CommandLine cmd = null;	
-    		try {
-    			CommandLineParser parser = new DefaultParser();
-    			cmd = parser.parse(options(), args, true);
-    		} catch(ParseException exp) {
-    	        System.err.println( "Parsing failed.  Reason: " + exp.getMessage() );
-    	        HelpFormatter formatter = new HelpFormatter();
-    	        formatter.printHelp("electrum [options] [FILE]",options());
-    	        return;
-    	    }
-    	
-    		if (cmd.hasOption("v")) System.setProperty("debug","yes");
-
-    		copyFromJAR();
-        final String binary = alloyHome() + fs + "binary";
-        try {
-            System.setProperty("java.library.path", binary);
-            // The above line is actually useless on Sun JDK/JRE (see Sun's bug ID 4280189)
-            // The following 4 lines should work for Sun's JDK/JRE (though they probably won't work for others)
-            String[] newarray = new String[]{binary};
-            java.lang.reflect.Field old = ClassLoader.class.getDeclaredField("usr_paths");
-            old.setAccessible(true);
-            old.set(null,newarray);
-        } catch (Throwable ex) { }
-        
-		final SimpleReporter rep = new SimpleReporter();
-		String filename = args[args.length - 1];
-		try {
-			rep.info("Parsing " + filename + ".\n");
-			Module world = CompUtil.parseEverything_fromFile(rep, null, filename);
-			List<Command> cmds = world.getAllCommands();
-			A4Options options = new A4Options();
-			options.originalFilename = filename;
-			options.solver = A4Options.SatSolver.MiniSatJNI;
-			if (cmd.hasOption("SAT4J"))
-				options.solver = A4Options.SatSolver.SAT4J;
-			else if (cmd.hasOption("glucose"))
-				options.solver = A4Options.SatSolver.GlucoseJNI;
-			else if (cmd.hasOption("NuSMV"))
-				options.solver = A4Options.SatSolver.ElectrodS;
-			else if (cmd.hasOption("NuSMV"))
-				options.solver = A4Options.SatSolver.ElectrodS;
-			else if (cmd.hasOption("nuXmv"))
-				options.solver = A4Options.SatSolver.ElectrodX;
-
-			if (cmd.hasOption("decomposed"))
-				if (cmd.getOptionValue("decomposed") != null)
-					options.decomposed = Integer.valueOf(cmd.getOptionValue("decomposed"));
+    		if (args.length == 0)
+    			SimpleGUI.main(args);
+    		else {
+	    		CommandLine cmd = null;	
+	    		try {
+	    			CommandLineParser parser = new DefaultParser();
+	    			cmd = parser.parse(options(), args, true);
+	    		} catch(ParseException exp) {
+	    	        System.err.println( "Parsing failed.  Reason: " + exp.getMessage() );
+	    	        HelpFormatter formatter = new HelpFormatter();
+	    	        formatter.printHelp("electrum [options] [FILE]",options());
+	    	        return;
+	    	    }
+	    	
+	    		if (cmd.hasOption("v")) System.setProperty("debug","yes");
+	
+	    		copyFromJAR();
+	        final String binary = alloyHome() + fs + "binary";
+	        try {
+	            System.setProperty("java.library.path", binary);
+	            // The above line is actually useless on Sun JDK/JRE (see Sun's bug ID 4280189)
+	            // The following 4 lines should work for Sun's JDK/JRE (though they probably won't work for others)
+	            String[] newarray = new String[]{binary};
+	            java.lang.reflect.Field old = ClassLoader.class.getDeclaredField("usr_paths");
+	            old.setAccessible(true);
+	            old.set(null,newarray);
+	        } catch (Throwable ex) { }
+	        
+			final SimpleReporter rep = new SimpleReporter();
+			String filename = args[args.length - 1];
+			try {
+				rep.info("Parsing " + filename + ".\n");
+				Module world = CompUtil.parseEverything_fromFile(rep, null, filename);
+				List<Command> cmds = world.getAllCommands();
+				A4Options options = new A4Options();
+				options.originalFilename = filename;
+				options.solver = A4Options.SatSolver.MiniSatJNI;
+				if (cmd.hasOption("SAT4J"))
+					options.solver = A4Options.SatSolver.SAT4J;
+				else if (cmd.hasOption("glucose"))
+					options.solver = A4Options.SatSolver.GlucoseJNI;
+				else if (cmd.hasOption("NuSMV"))
+					options.solver = A4Options.SatSolver.ElectrodS;
+				else if (cmd.hasOption("NuSMV"))
+					options.solver = A4Options.SatSolver.ElectrodS;
+				else if (cmd.hasOption("nuXmv"))
+					options.solver = A4Options.SatSolver.ElectrodX;
+	
+				if (cmd.hasOption("decomposed"))
+					if (cmd.getOptionValue("decomposed") != null)
+						options.decomposed = Integer.valueOf(cmd.getOptionValue("decomposed"));
+					else
+						options.decomposed = 1;
 				else
-					options.decomposed = 1;
-			else
-				options.decomposed = 0;
-			int i0=0, i1=cmds.size();
-			if (cmd.hasOption("command")) {
-				i0 = Integer.valueOf(cmd.getOptionValue("command"));
-				i1 = i0+1;
-			} else {
-				rep.info("Running all commands.");
+					options.decomposed = 0;
+				int i0=0, i1=cmds.size();
+				if (cmd.hasOption("command")) {
+					i0 = Integer.valueOf(cmd.getOptionValue("command"));
+					i1 = i0+1;
+				} else {
+					rep.info("Running all commands.");
+				}
+				for (int i = i0; i < i1; i++) {
+					Command c = cmds.get(i);
+					rep.info("Executing \"" + c + "\"\n");
+					options.skolemDepth = 2;
+					A4Solution s = TranslateAlloyToKodkod.execute_commandFromBook(rep, world.getAllReachableSigs(), c,
+							options);
+					System.exit(0);
+				}
+			} catch (Throwable ex) {
+				rep.info("An error occurred.");
+				rep.debug("\n\nException: " + ex);
 			}
-			for (int i = i0; i < i1; i++) {
-				Command c = cmds.get(i);
-				rep.info("Executing \"" + c + "\"\n");
-				options.skolemDepth = 2;
-				A4Solution s = TranslateAlloyToKodkod.execute_commandFromBook(rep, world.getAllReachableSigs(), c,
-						options);
-				System.exit(0);
-			}
-		} catch (Throwable ex) {
-			rep.info("An error occurred.");
-			rep.debug("\n\nException: " + ex);
-		}
+    		}
 	}
     
     /** The system-specific file separator (forward-slash on UNIX, back-slash on Windows, etc.) */
@@ -291,9 +295,9 @@ public final class SimpleCLI {
            "models/examples/tutorial/farmer.als",
            "models/util/boolean.als", "models/util/graph.als", "models/util/integer.als", "models/util/natural.als",
            "models/util/ordering.als", "models/util/relation.als", "models/util/seqrel.als", "models/util/sequence.als",
-           "models/util/sequniv.als", "models/util/ternary.als", "models/util/time.als", "models/Temporal_Examples/firewire.ele", // pt.uminho.haslab
-                "models/Temporal_Examples/hotel.ele","models/Temporal_Examples/lift_spl.ele","models/Temporal_Examples/ring.ele", // pt.uminho.haslab
-                "models/Temporal_Examples/span_tree.ele", "models/Temporal_Examples/ex1.ele" // pt.uminho.haslab
+           "models/util/sequniv.als", "models/util/ternary.als", "models/util/time.als", "models/electrum/firewire.ele", // pt.uminho.haslab
+           "models/electrum/hotel.ele","models/electrum/lift_spl.ele","models/electrum/ring.ele", // pt.uminho.haslab
+           "models/electrum/span_tree.ele", "models/electrum/ex1.ele", "models/electrum/train.ele", "models/electrum/train.thm" // pt.uminho.haslab
            );
         // Record the locations
         System.setProperty("alloy.theme0", alloyHome() + fs + "models");

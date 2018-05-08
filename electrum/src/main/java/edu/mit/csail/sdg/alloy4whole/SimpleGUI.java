@@ -506,9 +506,9 @@ public final class SimpleGUI implements ComponentListener, Listener {
            "models/examples/tutorial/farmer.als",
            "models/util/boolean.als", "models/util/graph.als", "models/util/integer.als", "models/util/natural.als",
            "models/util/ordering.als", "models/util/relation.als", "models/util/seqrel.als", "models/util/sequence.als",
-           "models/util/sequniv.als", "models/util/ternary.als", "models/util/time.als", "models/Temporal_Examples/firewire.ele", // pt.uminho.haslab
-                "models/Temporal_Examples/hotel.ele","models/Temporal_Examples/lift_spl.ele","models/Temporal_Examples/ring.ele", // pt.uminho.haslab
-                "models/Temporal_Examples/span_tree.ele", "models/Temporal_Examples/ex1.ele" // pt.uminho.haslab
+           "models/util/sequniv.als", "models/util/ternary.als", "models/util/time.als", "models/electrum/firewire.ele", // pt.uminho.haslab
+                "models/electrum/hotel.ele","models/electrum/lift_spl.ele","models/electrum/ring.ele", // pt.uminho.haslab
+                "models/electrum/span_tree.ele", "models/electrum/ex1.ele", "models/electrum/train.ele", "models/electrum/train.thm" // pt.uminho.haslab
            );
         // Record the locations
         System.setProperty("alloy.theme0", alloyHome() + fs + "models");
