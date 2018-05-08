@@ -1,0 +1,189 @@
+module examples/algorithms/peterson
+
+/*
+ * Model of Peterson's algorithm for mutual exclusion of n
+ * processes. The names kept similar to Murphi specification
+ * to make correspondence clear.
+ */
+
+open util/ordering[priority] as po
+
+sig pid {
+	var P : set label_t,
+	var Q : set priority,
+	var localj: set priority
+}
+
+sig priority {
+	var turn: set pid,
+}
+
+fact {
+--  # priority = # pid + 1
+}
+
+abstract sig label_t {}
+
+// here subtyping would help
+one sig L0, L1, L2, L3, L4 extends label_t {}
+
+pred NOPTrans[i: pid] {
+  P'[i] = P[i]
+  Q'[i] = Q[i]
+  localj'[i] = localj[i]
+}
+
+pred L0TransPre[i : pid] {
+  // precondition
+  P[i] = L0
+}
+
+pred L0Trans[i: pid] {
+  L0TransPre[i]
+  // localj[i] := 1
+  localj'[i] = po/next[po/first]
+  P'[i] = L1
+  Q'[i] = Q[i]
+  // something for turn?
+  turn' = turn
+}
+
+pred L1TransPre[i : pid] {
+  // precondition
+  P[i] = L1
+}
+
+pred L1Trans[i : pid] {
+  L1TransPre[i]
+  localj'[i] = localj[i]
+  Q'[i] = localj[i]
+  P'[i] = L2
+  // something for turn?
+  turn' = turn
+}
+
+pred L2TransPre[i : pid] {
+  // precondition
+  P[i] = L2
+}
+
+pred L2Trans[i : pid] {
+  L2TransPre[i]
+  localj'[i] = localj[i]
+  Q'[i] = Q[i]
+  P'[i] = L3
+  turn'[localj'[i]] = i
+  all j : priority - localj'[i] |
+    turn'[j] = turn[j]
+}
+
+pred L3TransPre[i : pid] {
+  // precondition
+  P[i] = L3
+
+  all k : pid - i |
+    po/lt[Q[k], localj[i]] ||
+    turn[localj[i]] != i
+}
+
+pred L3Trans[i : pid] {
+  L3TransPre[i]
+    localj'[i] = po/next[localj[i]]
+    po/lt[localj'[i], po/last] =>
+      P'[i] = L1
+    else
+      P'[i] = L4
+    Q'[i] = Q[i]
+    turn' = turn
+}
+
+pred L4TransPre[i : pid] {
+  // precondition
+  P[i] = L4
+}
+
+pred L4Trans[i : pid] {
+  L4TransPre[i]
+
+  P'[i] = L0
+  Q'[i] = po/first
+  localj'[i] = localj[i]
+  turn' = turn
+}
+
+pred RealTrans[i : pid] {
+  L0Trans[i] ||
+  L1Trans[i] ||
+  L2Trans[i] ||
+  L3Trans[i] ||
+  L4Trans[i]
+}
+
+pred SomePre[i : pid] {
+  L0TransPre[i] ||
+  L1TransPre[i] ||
+  L2TransPre[i] ||
+  L3TransPre[i] ||
+  L4TransPre[i]
+}
+
+fact Init {
+    all i : pid {
+      P[i] = L0
+      Q[i] = po/first
+    }
+    no turn
+    no localj
+}
+
+fact LegalTrans {
+  always {
+      /*some i : pid | {
+        // HACK:
+        // need to specify that if some node
+        // can make a non-NOP transition, it
+        // does, but i can't figure out how
+        // right now
+        Trans(i) && !NOPTrans(i)
+        all j : pid - i |
+          NOPTrans(j)
+      }*/
+      all i : pid |
+        RealTrans[i] || NOPTrans[i]
+      (all i : pid | NOPTrans[i]) => {
+         all i : pid | !SomePre[i]
+         turn' = turn
+      }
+    }
+}
+
+assert Safety {
+  always all i1, i2 : pid | i1!=i2 => not (P[i1] = L4 && P[i2] = L4)
+}
+
+assert NotStuck {
+  always some i : pid | RealTrans[i] && !NOPTrans[i]
+}
+
+pred TwoRun {
+  some disj i1, i2: pid |
+    eventually (P[i1] = L4 and after eventually P[i2] = L4)
+}
+
+pred ThreeRun  {
+  some disj i1, i2, i3: pid |
+    eventually (P[i1] = L4 and after (eventually P[i2] = L4 and after eventually P[i3] = L4))
+}
+
+// 2 pids requires 8 states
+// 3 pids requires 16 states
+run TwoRun for 13 but 3 pid, 4 priority, 5 label_t, exactly 18 Time expect 1
+
+// haven't run this one successfully yet
+run ThreeRun for 19 but 3 pid,4 priority,5 label_t, exactly 22 Time expect 1
+
+// how many states do we need for this to match murphi?
+check Safety for 10 but 2 pid, 3 priority, 5 label_t expect 0
+
+// this assertion is trivial because of the hack described above
+check NotStuck for 10 but 2 pid, 3 priority, 5 label_t expect 0
