@@ -1,0 +1,203 @@
+module examples/systems/views
+
+/*
+ * Model of views in object-oriented programming.
+ *
+ * Two object references, called the view and the backing,
+ * are related by a view mechanism when changes to the
+ * backing are automatically propagated to the view. Note
+ * that the state of a view need not be a projection of the
+ * state of the backing; the keySet method of Map, for
+ * example, produces two view relationships, and for the
+ * one in which the map is modified by changes to the key
+ * set, the value of the new map cannot be determined from
+ * the key set. Note that in the iterator view mechanism,
+ * the iterator is by this definition the backing object,
+ * since changes are propagated from iterator to collection
+ * and not vice versa. Oddly, a reference may be a view of
+ * more than one backing: there can be two iterators on the
+ * same collection, eg. A reference cannot be a view under
+ * more than one view type.
+ *
+ * A reference is made dirty when it is a backing for a view
+ * with which it is no longer related by the view invariant.
+ * This usually happens when a view is modified, either
+ * directly or via another backing. For example, changing a
+ * collection directly when it has an iterator invalidates
+ * it, as does changing the collection through one iterator
+ * when there are others.
+ *
+ * More work is needed if we want to model more closely the
+ * failure of an iterator when its collection is invalidated.
+ *
+ * As a terminological convention, when there are two
+ * complementary view relationships, we will give them types
+ * t and t'. For example, KeySetView propagates from map to
+ * set, and KeySetView' propagates from set to map.
+ *
+ * author: Daniel Jackson
+ */
+
+open util/relation as rel
+
+sig Ref {}
+var sig refs in Ref {
+	var obj : one Object
+}
+var sig dirty in Ref {}
+sig Object {}
+
+sig Map extends Object {
+  keys: set Ref,
+  map: keys -> one Ref
+  }{always keys + Ref.map in refs}
+sig MapRef extends Ref {}
+fact {always obj[MapRef] in Map}
+
+sig Iterator extends Object {
+  left, done: set Ref,
+  lastRef: lone done
+  }{always done + left + lastRef in refs}
+sig IteratorRef extends Ref {}
+fact {always obj[IteratorRef] in Iterator}
+
+sig Set extends Object {
+  elts: set Ref
+  }{always elts in refs}
+sig SetRef extends Ref {}
+fact {always obj[SetRef] in Set}
+
+abstract sig ViewType {
+	var views : refs -> refs
+}
+one sig KeySetView, KeySetView1, IteratorView extends ViewType {}
+fact ViewTypes {
+  always views[KeySetView] in MapRef -> SetRef
+  always views[KeySetView1] in SetRef -> MapRef
+  always views[IteratorView] in IteratorRef -> SetRef
+  always views[KeySetView] = ~(views[KeySetView1])
+  }
+
+/**
+ * mods is refs modified directly or by view mechanism
+ * doesn't handle possibility of modifying an object and its view at once?
+ * should we limit frame conds to non-dirty refs?
+ */
+pred modifies [rs: set Ref] {
+  let vr = views[ViewType], mods = rs.*vr {
+    all r: refs - mods | obj[r] = obj'[r]
+    all b: mods, v: refs, t: ViewType |
+      b->v in views[t] => viewFrame [t, obj[v], obj'[v], obj'[b]]
+    dirty' = dirty +
+      {b: refs | some v: Ref, t: ViewType |
+          b->v in views[t] && !viewFrame [t, obj[v], obj'[v], obj'[b]]
+      }
+    }
+  }
+
+pred allocates [rs: set Ref] {
+  no rs & refs
+  refs' = refs + rs
+  }
+
+/** 
+ * models frame condition that limits change to view object from v to v' when backing object changes to b'
+ */
+pred viewFrame [t: ViewType, v, v1, b1: Object] {
+  t in KeySetView => v1.elts = dom [b1.map]
+  t in KeySetView' => b1.elts = dom [v1.map]
+  t in KeySetView' => (b1.elts) <: (v.map) = (b1.elts) <: (v1.map)
+  t in IteratorView => v1.elts = b1.left + b1.done
+  }
+
+pred MapRef.keySet [setRefs: SetRef] {
+  obj'[setRefs].elts = dom [obj[this].map]
+  modifies [none]
+  allocates [setRefs]
+  views' = views + KeySetView->this->setRefs + KeySetView'->setRefs->this
+  }
+
+pred MapRef.put [k, v: Ref] {
+  obj'[this].map = obj[this].map ++ k->v
+  modifies [this]
+  allocates [none]
+  views' = views
+  }
+
+pred SetRef.iterator [iterRef: IteratorRef] {
+  let i = obj'[iterRef] {
+    i.left = obj[this].elts
+    no i.done + i.lastRef
+    }
+  modifies [none]
+  allocates [iterRef]
+  views' = views + IteratorView->iterRef->this
+  }
+
+pred IteratorRef.remove {
+  let i = obj[this], i1 = obj'[this] {
+    i1.left = i.left
+    i1.done = i.done - i.lastRef
+    no i1.lastRef
+    }
+  modifies [this]
+  allocates [none]
+  views' = views
+  }
+
+pred IteratorRef.next [ref: Ref] {
+  let i = obj[this], i1 = obj'[this] {
+    ref in i.left
+    i1.left = i.left - ref
+    i1.done = i.done + ref
+    i1.lastRef = ref
+    }
+  modifies [this]
+  allocates [none]
+  views' = views
+  }
+
+pred IteratorRef.hasNext {
+  some obj[this].left
+  }
+
+assert zippishOK {
+  all
+    ks, vs: SetRef,
+    m: MapRef,
+    ki, vi: IteratorRef,
+    k, v: Ref |
+  ({
+    precondition [ks, vs, m]
+    no dirty
+    ks.iterator [ki]
+    after vs.iterator [vi]
+    after after ki.hasNext
+    after after vi.hasNext
+    after after ki.this/next [k]
+    after after after vi.this/next [v]
+    after after after after m.put [k, v]
+    after after after after after ki.remove
+    after after after after after after vi.remove
+  } => always no dirty)
+  }
+
+pred precondition [ks, vs, m: Ref] {
+  // all these conditions and other errors discovered in scope of 6 but 8,3
+  // in initial state, must have view invariants hold
+  (all t: ViewType, b, v: refs |
+    b->v in views[t] => viewFrame [t, obj[v], obj[v], obj[b]])
+  // sets are not aliases
+--  ks != vs
+  // sets are not views of map
+--  no (ks+vs)->m & ViewType.pre.views
+  // no iterator currently on either set
+--  no Ref->(ks+vs) & ViewType.pre.views
+  }
+
+check zippishOK for 6 but 8 Time, 3 ViewType expect 1
+
+/** 
+ * experiment with controlling heap size
+ */
+fact {always lt[#obj,5]}
