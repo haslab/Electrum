@@ -1,0 +1,67 @@
+module examples/toys/railway
+
+/*
+ * A simple model of a railway system. Trains sit on segments of tracks
+ * and segments overlap one another. It shows a that simple gate policy
+ * does not ensure train safety.
+ *
+ * author: Daniel Jackson
+ */
+
+sig Seg {next, overlaps: set Seg}
+var sig occupied in Seg {}
+fact {all s: Seg | s in s.overlaps}
+fact {all s1, s2: Seg | s1 in s2.overlaps => s2 in s1.overlaps}
+
+sig Train {
+	var on: lone Seg
+}
+sig GateState {closed: set Seg}
+
+fact {
+  always occupied = {s: Seg | some t: Train | t.on = s}
+}
+
+pred Safe {all s: Seg | lone s.overlaps.~on}
+
+pred MayMove [g: GateState, ts: set Train] {
+  no ts.on & g.closed
+  }
+
+pred TrainsMove [ts: set Train] {
+  all t: ts | t.on' in t.on.next
+  all t: Train - ts | t.on' = t.on
+}
+
+pred GatePolicy [g: GateState] {
+  occupied.overlaps.~next in g.closed
+  all s1, s2: Seg | some s1.next.overlaps & s2.next => lone (s1+s2) - g.closed
+}
+
+assert PolicyWorks {
+  all g: GateState, ts: set Train | always
+    {MayMove [g, ts]
+    TrainsMove [ts]
+    Safe
+    GatePolicy [g]
+    } => after Safe
+  }
+
+-- has counterexample in scope of 4
+check PolicyWorks for 2 Train, 1 GateState, 2 Time, 4 Seg expect 1
+
+pred TrainsMoveLegal [g: GateState, ts: set Train] {
+  TrainsMove [ts]
+  MayMove [g, ts]
+  GatePolicy [g]
+  }
+run TrainsMoveLegal for 3 but exactly 3 Time expect 1
+
+
+
+// DEFINED VARIABLES
+// Defined variables are uncalled, no-argument functions.
+// They are helpful for getting good visualization.
+fun contains [] : Seg -> Train {
+	{seg: Seg, train: Train | seg = train.on}
+}
