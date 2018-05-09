@@ -18,7 +18,6 @@ package edu.mit.csail.sdg.alloy4whole;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
-import java.util.Locale;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -34,20 +33,27 @@ import org.slf4j.LoggerFactory;
 import edu.mit.csail.sdg.alloy4.A4Reporter;
 import edu.mit.csail.sdg.alloy4.Err;
 import edu.mit.csail.sdg.alloy4.ErrorWarning;
-import edu.mit.csail.sdg.alloy4.OurDialog;
 import edu.mit.csail.sdg.alloy4.Util;
 import edu.mit.csail.sdg.alloy4compiler.ast.Command;
 import edu.mit.csail.sdg.alloy4compiler.ast.Module;
 import edu.mit.csail.sdg.alloy4compiler.parser.CompUtil;
 import edu.mit.csail.sdg.alloy4compiler.translator.A4Options;
-import edu.mit.csail.sdg.alloy4compiler.translator.A4Solution;
 import edu.mit.csail.sdg.alloy4compiler.translator.TranslateAlloyToKodkod;
 
 public final class SimpleCLI {
 
+
     private static final class SimpleReporter extends A4Reporter {
         private Logger LOGGER = LoggerFactory.getLogger(A4Reporter.class);
 
+        private int cmd_index;
+        private boolean outcome;
+        private long solve_time;
+        private String cmd_name;
+        private boolean cmd_type;
+        private boolean expected;
+        private int overall;
+        
         public SimpleReporter() throws IOException { }
 
         @Override public void debug(String msg) { 
@@ -59,6 +65,8 @@ public final class SimpleCLI {
 
         @Override public void typecheck(String msg) { debug(msg); }
 
+        public void cmd_index(int i) { cmd_index = i; }
+        
         public void info(String msg) { LOGGER.info(msg); }
 
         @Override public void warning(ErrorWarning msg) { LOGGER.warn(msg.msg); }
@@ -80,23 +88,49 @@ public final class SimpleCLI {
         @Override public void resultSAT(Object command, long solvingTime, Object solution) {
             if (!(command instanceof Command)) return;
             Command cmd = (Command)command;
+            outcome = true;
+            solve_time = solvingTime;
+            expected = cmd.expects==1;
+            cmd_name = cmd.label;
+            cmd_type = cmd.check;
+            overall = cmd.overall;
             StringBuilder sb = new StringBuilder();
             sb.append(cmd.check ? "   Counterexample found. " : "   Instance found. ");
             if (cmd.check) sb.append("Assertion is invalid"); else sb.append("Predicate is consistent");
             if (cmd.expects==0) sb.append(", contrary to expectation"); else if (cmd.expects==1) sb.append(", as expected");
             sb.append(". "+solvingTime+"ms.\n\n");
             info(sb.toString());
+            info(outcome());
         }
 
         @Override public void resultUNSAT(Object command, long solvingTime, Object solution) {
             if (!(command instanceof Command)) return;
             Command cmd = (Command)command;
+            outcome = false;
+            solve_time = solvingTime;
+            expected = cmd.expects==0;
+            cmd_name = cmd.label;
+            cmd_type = cmd.check;
+            overall = cmd.overall;
             StringBuilder sb = new StringBuilder();
             sb.append(cmd.check ? "   No counterexample found." : "   No instance found.");
             if (cmd.check) sb.append(" Assertion may be valid"); else sb.append(" Predicate may be inconsistent");
             if (cmd.expects==1) sb.append(", contrary to expectation"); else if (cmd.expects==0) sb.append(", as expected");
             sb.append(". "+solvingTime+"ms.\n\n");
             info(sb.toString());
+            info(outcome());
+        }
+        
+        private String outcome() {
+        		StringBuilder sb = new StringBuilder("outcome ");
+        		sb.append("(cmd "+(cmd_type?"check ":"run")+") ");
+        		sb.append("(index "+cmd_index+") ");
+        		sb.append("(label "+cmd_name+") ");
+        		sb.append("(scope "+overall+") ");
+        		sb.append("(ms "+solve_time+") ");
+        		sb.append("(outcome "+(outcome?"SAT":"UNSAT")+") ");
+        		sb.append("(asexpect "+expected+")\n");
+			return sb.toString();
         }
     }
 
@@ -141,13 +175,14 @@ public final class SimpleCLI {
     }
     
     public static void main(String[] args) throws Exception {
+    		// if no cli args, just launch gui
     		if (args.length == 0)
     			SimpleGUI.main(args);
     		else {
-	    		CommandLine cmd = null;	
+	    		CommandLine clargs = null;	
 	    		try {
 	    			CommandLineParser parser = new DefaultParser();
-	    			cmd = parser.parse(options(), args, true);
+	    			clargs = parser.parse(options(), args, true);
 	    		} catch(ParseException exp) {
 	    	        System.err.println( "Parsing failed.  Reason: " + exp.getMessage() );
 	    	        HelpFormatter formatter = new HelpFormatter();
@@ -155,19 +190,10 @@ public final class SimpleCLI {
 	    	        return;
 	    	    }
 	    	
-	    		if (cmd.hasOption("v")) System.setProperty("debug","yes");
+	    		if (clargs.hasOption("v")) System.setProperty("debug","yes");
 	
+	    		// set the temp files
 	    		copyFromJAR();
-	        final String binary = alloyHome() + fs + "binary";
-	        try {
-	            System.setProperty("java.library.path", binary);
-	            // The above line is actually useless on Sun JDK/JRE (see Sun's bug ID 4280189)
-	            // The following 4 lines should work for Sun's JDK/JRE (though they probably won't work for others)
-	            String[] newarray = new String[]{binary};
-	            java.lang.reflect.Field old = ClassLoader.class.getDeclaredField("usr_paths");
-	            old.setAccessible(true);
-	            old.set(null,newarray);
-	        } catch (Throwable ex) { }
 	        
 			final SimpleReporter rep = new SimpleReporter();
 			String filename = args[args.length - 1];
@@ -178,39 +204,39 @@ public final class SimpleCLI {
 				A4Options options = new A4Options();
 				options.originalFilename = filename;
 				options.solver = A4Options.SatSolver.MiniSatJNI;
-				if (cmd.hasOption("SAT4J"))
+				if (clargs.hasOption("SAT4J"))
 					options.solver = A4Options.SatSolver.SAT4J;
-				else if (cmd.hasOption("glucose"))
+				else if (clargs.hasOption("glucose"))
 					options.solver = A4Options.SatSolver.GlucoseJNI;
-				else if (cmd.hasOption("NuSMV"))
+				else if (clargs.hasOption("NuSMV"))
 					options.solver = A4Options.SatSolver.ElectrodS;
-				else if (cmd.hasOption("NuSMV"))
+				else if (clargs.hasOption("NuSMV"))
 					options.solver = A4Options.SatSolver.ElectrodS;
-				else if (cmd.hasOption("nuXmv"))
+				else if (clargs.hasOption("nuXmv"))
 					options.solver = A4Options.SatSolver.ElectrodX;
 	
-				if (cmd.hasOption("decomposed"))
-					if (cmd.getOptionValue("decomposed") != null)
-						options.decomposed = Integer.valueOf(cmd.getOptionValue("decomposed"));
+				if (clargs.hasOption("decomposed"))
+					if (clargs.getOptionValue("decomposed") != null)
+						options.decomposed = Integer.valueOf(clargs.getOptionValue("decomposed"));
 					else
 						options.decomposed = 1;
 				else
 					options.decomposed = 0;
 				int i0=0, i1=cmds.size();
-				if (cmd.hasOption("command")) {
-					i0 = Integer.valueOf(cmd.getOptionValue("command"));
+				if (clargs.hasOption("command")) {
+					i0 = Integer.valueOf(clargs.getOptionValue("command"));
 					i1 = i0+1;
 				} else {
 					rep.info("Running all commands.");
 				}
 				for (int i = i0; i < i1; i++) {
 					Command c = cmds.get(i);
+					rep.cmd_index(i);
 					rep.info("Executing \"" + c + "\"\n");
 					options.skolemDepth = 2;
-					A4Solution s = TranslateAlloyToKodkod.execute_commandFromBook(rep, world.getAllReachableSigs(), c,
-							options);
-					System.exit(0);
+					TranslateAlloyToKodkod.execute_commandFromBook(rep, world.getAllReachableSigs(), c, options);
 				}
+				System.exit(0);
 			} catch (Throwable ex) {
 				rep.info("An error occurred.");
 				rep.debug("\n\nException: " + ex);
@@ -218,9 +244,6 @@ public final class SimpleCLI {
     		}
 	}
     
-    /** The system-specific file separator (forward-slash on UNIX, back-slash on Windows, etc.) */
-    private static final String fs = System.getProperty("file.separator");
-
     /** Copy the required files from the JAR into a temporary directory. */
     private static void copyFromJAR() {
         final String platformBinary = alloyHome() + fs + "binary";
@@ -232,7 +255,6 @@ public final class SimpleCLI {
             // The error will be caught later by the "berkmin" or "spear" test
         }
         // Copy the platform-dependent binaries
-//        System.out.println("Will copy libs from "+" to "+platformBinary);
         Util.copy(true, false, platformBinary,
            "libminisat.so", "libminisatx1.so", "libminisat.jnilib", "libminisat.dylib", "libglucose.so", "libglucose.dylib", "libglucose.jnilib",
            "libminisatprover.so", "libminisatproverx1.so", "libminisatprover.jnilib", "libminisatprover.dylib",
@@ -302,10 +324,23 @@ public final class SimpleCLI {
         // Record the locations
         System.setProperty("alloy.theme0", alloyHome() + fs + "models");
         System.setProperty("alloy.home", alloyHome());
-//        System.setProperty("debug", "no"); // [HASLab]: this breaks iteration!
+        
+        final String binary = alloyHome() + fs + "binary";
+        try {
+            System.setProperty("java.library.path", binary);
+            // The above line is actually useless on Sun JDK/JRE (see Sun's bug ID 4280189)
+            // The following 4 lines should work for Sun's JDK/JRE (though they probably won't work for others)
+            String[] newarray = new String[]{binary};
+            java.lang.reflect.Field old = ClassLoader.class.getDeclaredField("usr_paths");
+            old.setAccessible(true);
+            old.set(null,newarray);
+        } catch (Throwable ex) { }
     }
     
-    private static synchronized String alloyHome() {
+    /** The system-specific file separator (forward-slash on UNIX, back-slash on Windows, etc.) */
+	private static final String fs = System.getProperty("file.separator");
+
+	private static synchronized String alloyHome() {
         String temp=System.getProperty("java.io.tmpdir");
         if (temp==null || temp.length()==0)
             throw new RuntimeException("Error. JVM need to specify a temporary directory using java.io.tmpdir property.");
