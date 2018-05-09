@@ -3,14 +3,14 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>pt.uminho.haslab.electrum</groupId>
 	<artifactId>electrum</artifactId>
-	<version>1.0.0</version>
+	<version>1.0.1</version>
 	<name>electrum</name>
 	<packaging>jar</packaging>
 	<profiles>
 		<profile>
 			<id>GUI</id>
 			<activation>
-				<activeByDefault>true</activeByDefault>
+				<activeByDefault>false</activeByDefault>
 			</activation>
 			<build>
 				<plugins>
@@ -56,7 +56,7 @@
 		<profile>
 			<id>CLI</id>
 			<activation>
-				<activeByDefault>false</activeByDefault>
+				<activeByDefault>true</activeByDefault>
 			</activation>
 			<build>
 				<plugins>
@@ -82,7 +82,7 @@
 									<descriptorRefs>
 										<descriptorRef>jar-with-dependencies</descriptorRef>
 									</descriptorRefs>
-									<finalName>${project.artifactId}-${project.version}-cli</finalName>
+									<finalName>${project.artifactId}-${project.version}</finalName>
 									<appendAssemblyId>false</appendAssemblyId>
 								</configuration>
 							</execution>
