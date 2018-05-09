@@ -188,7 +188,7 @@ pred NoMessageShortage {
 }
 
 pred SomeState  {
-   # Node > 1
+   some Node
    //# Tick$read > 1
 }
 

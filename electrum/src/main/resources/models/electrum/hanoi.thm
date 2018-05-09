@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<alloy>
+
+<view nodetheme="Martha" edgetheme="Standard">
+
+<defaultnode/>
+
+<defaultedge/>
+
+<node>
+   <type name="Int"/>
+   <type name="String"/>
+   <type name="univ"/>
+   <type name="seq/Int"/>
+</node>
+
+<node shape="Ellipse">
+   <type name="Disc"/>
+</node>
+
+<node shape="Triangle" color="Black">
+   <type name="Stake"/>
+</node>
+
+<node visible="no">
+   <type name="discs/Ord"/>
+   <type name="stakes/Ord"/>
+</node>
+
+<edge label="">
+   <relation name="on"> <type name="Disc"/> <type name="Stake"/> </relation>
+</edge>
+
+</view>
+
+</alloy>
