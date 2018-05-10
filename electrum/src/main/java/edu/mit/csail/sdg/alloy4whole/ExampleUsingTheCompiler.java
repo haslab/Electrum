@@ -26,7 +26,10 @@ import edu.mit.csail.sdg.alloy4compiler.translator.A4Solution;
 import edu.mit.csail.sdg.alloy4compiler.translator.TranslateAlloyToKodkod;
 import edu.mit.csail.sdg.alloy4viz.VizGUI;
 
-/** This class demonstrates how to access Alloy4 via the compiler methods. */
+/** This class demonstrates how to access Alloy4 via the compiler methods. 
+ * 
+ * @modified [HASLab]
+ * */
 
 public final class ExampleUsingTheCompiler {
 

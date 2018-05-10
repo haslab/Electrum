@@ -17,8 +17,12 @@ package edu.mit.csail.sdg.alloy4;
 
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.awt.Toolkit;
 import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
@@ -308,7 +312,7 @@ public final class OurUtil {
       if (parent!=null) parent.add(m);
       return m;
    }
-
+   
    /** This method minimizes the window. */
    public static void minimize(JFrame frame) { frame.setExtendedState(JFrame.ICONIFIED); }
 
@@ -324,5 +328,79 @@ public final class OurUtil {
       frame.setExtendedState(frame.getExtendedState() & ~JFrame.ICONIFIED);
       frame.requestFocus();
       frame.toFront();
+   }
+
+   public static JPanel makeGrid(int cols, GridBagConstraints template, Container... containers) {
+      JPanel ans = new JPanel(new GridBagLayout());
+      int i = -1;
+      for (Container container : containers) {
+         for (Component comp : container.getComponents()) {
+            i++;
+            GridBagConstraints c = (GridBagConstraints) template.clone();
+            c.gridx = i % cols;
+            c.gridy = i / cols;
+            ans.add(comp, c);
+         }
+      }
+      return ans;
+   }
+
+   /** Simple builder class for building GridBagConstraints objects */
+   public static class GridBagConstraintsBuilder {
+      private final GridBagConstraints gbc;
+
+      /** Constructor */ 
+      public GridBagConstraintsBuilder() { this.gbc = new GridBagConstraints(); }
+      
+      /** Returns the built GridBagConstraints instance */
+      public GridBagConstraints make() { return this.gbc; }
+      
+      /** @see GridBagConstraints#anchor} */     
+      public GridBagConstraintsBuilder anchor(int a)     { gbc.anchor = a; return this; }
+      /** @see GridBagConstraints#fill */       
+      public GridBagConstraintsBuilder fill(int a)       { gbc.fill = a; return this; }
+      /** @see GridBagConstraints#gridheight */ 
+      public GridBagConstraintsBuilder gridheight(int a) { gbc.gridheight = a; return this; }
+      /** @see GridBagConstraints#gridwidth */  
+      public GridBagConstraintsBuilder gridwidth(int a)  { gbc.gridwidth = a; return this; }
+      /** @see GridBagConstraints#gridx */      
+      public GridBagConstraintsBuilder gridx(int a)      { gbc.gridx = a; return this; }
+      /** @see GridBagConstraints#gridy */      
+      public GridBagConstraintsBuilder gridy(int a)      { gbc.gridy = a; return this; }
+      /** @see GridBagConstraints#insets */     
+      public GridBagConstraintsBuilder insets(Insets a)  { gbc.insets = a; return this; }
+      /** @see GridBagConstraints#ipadx */      
+      public GridBagConstraintsBuilder ipadx(int a)      { gbc.ipadx = a; return this; }
+      /** @see GridBagConstraints#ipady */      
+      public GridBagConstraintsBuilder ipady(int a)      { gbc.ipady = a; return this; }
+      /** @see GridBagConstraints#weightx */    
+      public GridBagConstraintsBuilder weightx(int a)    { gbc.weightx = a; return this; }
+      /** @see GridBagConstraints#weighty */    
+      public GridBagConstraintsBuilder weighty(int a)    { gbc.weighty = a; return this; }
+      
+      /**
+       * Applies gridx(x).gridy(y)
+       * 
+       * @see GridBagConstraints#gridx
+       * @see GridBagConstraints#gridy
+       */        
+      public GridBagConstraintsBuilder pos(int x, int y)     { return gridx(x).gridy(y); }
+      
+      
+      /** 
+       * Applies weightx(x).weighty(y)
+       * 
+       * @see GridBagConstraints#weightx 
+       * @see GridBagConstraints#weighty
+       */    
+      public GridBagConstraintsBuilder weights(int x, int y) { return weightx(x).weighty(y); }
+      
+      /** 
+       * Applies ipadx(x).ipday(y)
+       * 
+       * @see GridBagConstraints#ipadx 
+       * @see GridBagConstraints#ipady
+       */    
+      public GridBagConstraintsBuilder ipads(int x, int y)   { return ipadx(x).ipady(y); }
    }
 }

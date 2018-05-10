@@ -739,7 +739,7 @@ public final class TranslateAlloyToKodkod extends VisitReturn<Object> {
             return k2pos(f3.and(f4).and(f5).forAll(e.oneOf(elem)).and(f1).and(f2), x);
         }
         // This says  no(a&b) and no((a+b)&c) and no((a+b+c)&d)...
-        // Emperically this seems to be more efficient than "no(a&b) and no(a&c) and no(b&c)"
+        // Empirically this seems to be more efficient than "no(a&b) and no(a&c) and no(b&c)"
         Formula answer = null;
         Expression a = null;
         for(Expr arg:x.args) {
@@ -931,19 +931,17 @@ public final class TranslateAlloyToKodkod extends VisitReturn<Object> {
         return ans;
     }
 
-    public Decls am(final Expression a, Decls d, int i, Variable v) {
-        kodkod.ast.Decl ddd;
+    private Decls am(final Expression a, Decls d, int i, Variable v) {
+        Expression colType;
         if (a.arity() == 1) {
             assert i == 1; 
-            ddd = v.oneOf(a);
+            colType = a;
         } else {
-            ddd = v.oneOf(a.project(IntConstant.constant(i - 1)));
+            // colType = a.project(IntConstant.constant(i - 1))); //UNSOUND
+            colType = Relation.UNIV;
         }
-        if (d == null)
-            d = ddd;
-        else
-            d = ddd.and(d);
-        return d;
+        return (d == null) ? v.oneOf(colType)
+                           : d.and(v.oneOf(colType));
     }
 
     /*===========================*/

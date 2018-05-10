@@ -111,57 +111,57 @@ import edu.mit.csail.sdg.alloy4compiler.translator.A4Options.SatSolver;
 
 public final class A4Solution {
 
-	//====== static immutable fields ====================================================================//
+    //====== static immutable fields ====================================================================//
 
-	/** The constant unary relation representing the smallest Int atom. */
-	static final Relation KK_MIN = Relation.unary("Int/min");
+    /** The constant unary relation representing the smallest Int atom. */
+    static final Relation KK_MIN = Relation.unary("Int/min");
 
-	/** The constant unary relation representing the Int atom "0". */
-	static final Relation KK_ZERO = Relation.unary("Int/zero");
+    /** The constant unary relation representing the Int atom "0". */
+    static final Relation KK_ZERO = Relation.unary("Int/zero");
 
-	/** The constant unary relation representing the largest Int atom. */
-	static final Relation KK_MAX = Relation.unary("Int/max");
+    /** The constant unary relation representing the largest Int atom. */
+    static final Relation KK_MAX = Relation.unary("Int/max");
 
-	/** The constant binary relation representing the "next" relation from each Int atom to its successor. */
-	static final Relation KK_NEXT = Relation.binary("Int/next");
+    /** The constant binary relation representing the "next" relation from each Int atom to its successor. */
+    static final Relation KK_NEXT = Relation.binary("Int/next");
 
-	/** The constant unary relation representing the set of all seq/Int atoms. */
-	static final Relation KK_SEQIDX = Relation.unary("seq/Int");
+    /** The constant unary relation representing the set of all seq/Int atoms. */
+    static final Relation KK_SEQIDX = Relation.unary("seq/Int");
 
-	/** The constant unary relation representing the set of all String atoms. */
-	static final Relation KK_STRING = Relation.unary("String");
+    /** The constant unary relation representing the set of all String atoms. */
+    static final Relation KK_STRING = Relation.unary("String");
 
-	//====== immutable fields ===========================================================================//
+    //====== immutable fields ===========================================================================//
 
-	/** The original Alloy options that generated this solution. */
-	private final A4Options originalOptions;
+    /** The original Alloy options that generated this solution. */
+    private final A4Options originalOptions;
 
-	/** The original Alloy command that generated this solution; can be "" if unknown. */
-	private final String originalCommand;
+    /** The original Alloy command that generated this solution; can be "" if unknown. */
+    private final String originalCommand;
 
-	/** The bitwidth; always between 1 and 30. */
-	private final int bitwidth;
+    /** The bitwidth; always between 1 and 30. */
+    private final int bitwidth;
 
-	/** The maximum allowed sequence length; always between 0 and 2^(bitwidth-1)-1. */
-	private final int maxseq;
+    /** The maximum allowed sequence length; always between 0 and 2^(bitwidth-1)-1. */
+    private final int maxseq;
 
-	/** The maximum allowed number of loop unrolling and recursion level. */
-	private final int unrolls;
+    /** The maximum allowed number of loop unrolling and recursion level. */
+    private final int unrolls;
 
-	/** The list of all atoms. */
-	private final ConstList<String> kAtoms;
+    /** The list of all atoms. */
+    private final ConstList<String> kAtoms;
 
-	/** The Kodkod TupleFactory object. */
-	private final TupleFactory factory;
+    /** The Kodkod TupleFactory object. */
+    private final TupleFactory factory;
 
-	/** The set of all Int atoms; immutable. */
-	private final TupleSet sigintBounds;
+    /** The set of all Int atoms; immutable. */
+    private final TupleSet sigintBounds;
 
-	/** The set of all seq/Int atoms; immutable. */
-	private final TupleSet seqidxBounds;
+    /** The set of all seq/Int atoms; immutable. */
+    private final TupleSet seqidxBounds;
 
-	/** The set of all String atoms; immutable. */
-	private final TupleSet stringBounds;
+    /** The set of all String atoms; immutable. */
+    private final TupleSet stringBounds;
 
 	/** The Temporal Kodkod Solver object. */
 	// [HASLab]
@@ -176,44 +176,45 @@ public final class A4Solution {
 	// [HASLab]
 	private PardinusBounds bounds; 
 
-	/** The list of Kodkod formulas; can be empty if unknown; once a solution is solved we must not modify this anymore */
-	private ArrayList<Formula> formulas = new ArrayList<Formula>();
 
-	/** The list of known Alloy4 sigs. */
-	private SafeList<Sig> sigs;
+    /** The list of Kodkod formulas; can be empty if unknown; once a solution is solved we must not modify this anymore */
+    private ArrayList<Formula> formulas = new ArrayList<Formula>();
 
-	/** If solved==true and is satisfiable, then this is the list of known skolems. */
-	private SafeList<ExprVar> skolems = new SafeList<ExprVar>();
+    /** The list of known Alloy4 sigs. */
+    private SafeList<Sig> sigs;
 
-	/** If solved==true and is satisfiable, then this is the list of actually used atoms. */
-	private SafeList<ExprVar> atoms = new SafeList<ExprVar>();
-	
-	/** If solved==true and is satisfiable, then this maps each Kodkod atom to a short name. */
-	private Map<Object,String> atom2name = new LinkedHashMap<Object,String>();
+    /** If solved==true and is satisfiable, then this is the list of known skolems. */
+    private SafeList<ExprVar> skolems = new SafeList<ExprVar>();
 
-	/** If solved==true and is satisfiable, then this maps each Kodkod atom to its most specific sig. */
-	private Map<Object,PrimSig> atom2sig = new LinkedHashMap<Object,PrimSig>();
+    /** If solved==true and is satisfiable, then this is the list of actually used atoms. */
+    private SafeList<ExprVar> atoms = new SafeList<ExprVar>();
 
-	/** If solved==true and is satisfiable, then this is the Kodkod evaluator. */
-	private Evaluator eval = null;
+    /** If solved==true and is satisfiable, then this maps each Kodkod atom to a short name. */
+    private Map<Object,String> atom2name = new LinkedHashMap<Object,String>();
 
-	/** If not null, you can ask it to get another solution. */
-	private Iterator<Solution> kEnumerator = null; 
+    /** If solved==true and is satisfiable, then this maps each Kodkod atom to its most specific sig. */
+    private Map<Object,PrimSig> atom2sig = new LinkedHashMap<Object,PrimSig>();
 
-	/** The map from each Sig/Field/Skolem/Atom to its corresponding Kodkod expression. */
-	private Map<Expr,Expression> a2k;
+    /** If solved==true and is satisfiable, then this is the Kodkod evaluator. */
+    private Evaluator eval = null;
 
-	/** The map from each String literal to its corresponding Kodkod expression. */
-	private final ConstMap<String,Expression> s2k;
+    /** If not null, you can ask it to get another solution. */
+    private Iterator<Solution> kEnumerator = null;
 
-	/** The map from each kodkod Formula to Alloy Expr or Alloy Pos (can be empty if unknown) */
-	private Map<Formula,Object> k2pos;
+    /** The map from each Sig/Field/Skolem/Atom to its corresponding Kodkod expression. */
+    private Map<Expr,Expression> a2k;
 
-	/** The map from each Kodkod Relation to Alloy Type (can be empty or incomplete if unknown) */
-	private Map<Relation,Type> rel2type;
+    /** The map from each String literal to its corresponding Kodkod expression. */
+    private final ConstMap<String,Expression> s2k;
 
-	/** The map from each Kodkod Variable to an Alloy Type and Alloy Pos. */
-	private Map<Variable,Pair<Type,Pos>> decl2type;
+    /** The map from each kodkod Formula to Alloy Expr or Alloy Pos (can be empty if unknown) */
+    private Map<Formula,Object> k2pos;
+
+    /** The map from each Kodkod Relation to Alloy Type (can be empty or incomplete if unknown) */
+    private Map<Relation,Type> rel2type;
+
+    /** The map from each Kodkod Variable to an Alloy Type and Alloy Pos. */
+    private Map<Variable,Pair<Type,Pos>> decl2type;
 
 	/** The maximum trace length of this solution. */
 	// [HASLab]

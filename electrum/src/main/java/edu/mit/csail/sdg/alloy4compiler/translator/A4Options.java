@@ -100,10 +100,6 @@ public final class A4Options implements Serializable {
             synchronized(SatSolver.class) { for(SatSolver x:values) if (x.id.equals(id)) return x; }
             return SAT4J;
         }
-        /** Saves this value into the Java preference object. */
-        public void set() { Preferences.userNodeForPackage(Util.class).put("SatSolver2",id); }
-        /** Reads the current value of the Java preference object (if it's not set, then return SAT4J). */
-        public static SatSolver get() { return parse(Preferences.userNodeForPackage(Util.class).get("SatSolver2","")); }
         /** BerkMin via pipe */
         public static final SatSolver BerkMinPIPE = new SatSolver("berkmin", "BerkMin", "berkmin", null, true);
         /** Spear via pipe */
@@ -138,7 +134,7 @@ public final class A4Options implements Serializable {
 
     /** Constructs an A4Options object with default values for everything. */
     public A4Options() { }
-
+    
     /** This option specifies the amount of symmetry breaking to do (when symmetry breaking isn't explicitly disabled).
      *
      * <p> If a formula is unsatisfiable, then in general, the higher this value,
@@ -160,7 +156,7 @@ public final class A4Options implements Serializable {
      * <p> Default value is set to the fastest current strategy.
      */
     public int coreMinimization = 2;
-    
+
     /** Unsat core granularity, default is 0 (only top-level conjuncts are considered), 3 expands all quantifiers */
     public int coreGranularity = 0;
 
@@ -188,12 +184,12 @@ public final class A4Options implements Serializable {
      * <p> Default value is false.
      */
     public boolean recordKodkod = false;
-    
+
     /** This option specifies whether the solver should report only solutions
      *  that don't cause any overflows. */
     public boolean noOverflow = false;
 
-    /** This option controls how deep we unroll loops and unroll recursive predicate/function/macros (negative means it's disallowed) */
+    /** This option constrols how deep we unroll loops and unroll recursive predicate/function/macros (negative means it's disallowed) */
     public int unrolls = (-1);
 
 	// [HASLab]
