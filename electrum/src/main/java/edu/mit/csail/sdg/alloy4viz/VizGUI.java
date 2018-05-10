@@ -798,7 +798,7 @@ public final class VizGUI implements ComponentListener {
 	 * @return the file with the representation of the state
 	 */
 	// [HASLab]
-	public static String temporize(String file, int state) {
+	private static String temporize(String file, int state) {
 		String[] spl = file.split(Pattern.quote("_"));
 		String dfilename = spl[0] + "_" + state;
 		return dfilename;

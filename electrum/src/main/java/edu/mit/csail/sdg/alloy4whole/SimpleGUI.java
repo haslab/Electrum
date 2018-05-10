@@ -168,8 +168,8 @@ public final class SimpleGUI implements ComponentListener, Listener {
     //======== The Preferences ======================================================================================//
     //======== Note: you must make sure each preference has a unique key ============================================//
 
-    /** The list of allowable memory sizes. */
-    private List<Integer> allowedMemorySizes;
+//    /** The list of allowable memory sizes. */
+//    private List<Integer> allowedMemorySizes;
 
     /** True if Alloy Analyzer should let warning be nonfatal. */
     private static final BooleanPref WarningNonfatal = new BooleanPref("WarningNonfatal");
@@ -513,7 +513,6 @@ public final class SimpleGUI implements ComponentListener, Listener {
         // Record the locations
         System.setProperty("alloy.theme0", alloyHome() + fs + "models");
         System.setProperty("alloy.home", alloyHome());
-//        		System.setProperty("debug", "yes"); // [HASLab]: this breaks iteration!
     }
 
     /** Called when this window is resized. */
@@ -1215,12 +1214,12 @@ public final class SimpleGUI implements ComponentListener, Listener {
             //
             menuItem(optmenu, "Warnings are Fatal: "+(WarningNonfatal.get()?"No":"Yes"), doOptWarning());
             //
-            final int mem = SubMemory.get();
-            final JMenu subMemoryMenu = new JMenu("Maximum Memory to Use: " + mem + "M");
-            for(int n: allowedMemorySizes) {
-               menuItem(subMemoryMenu, ""+n+"M", doOptMemory(n), n==mem?iconYes:iconNo);
-            }
-            optmenu.add(subMemoryMenu);
+//            final int mem = SubMemory.get();
+//            final JMenu subMemoryMenu = new JMenu("Maximum Memory to Use: " + mem + "M");
+//            for(int n: allowedMemorySizes) {
+//               menuItem(subMemoryMenu, ""+n+"M", doOptMemory(n), n==mem?iconYes:iconNo);
+//            }
+//            optmenu.add(subMemoryMenu);
             //
             final int stack = SubStack.get();
             final JMenu subStackMenu = new JMenu("Maximum Stack to Use: " + stack + "k");
@@ -1809,7 +1808,7 @@ public final class SimpleGUI implements ComponentListener, Listener {
         // Put up a slash screen
         final JFrame frame = new JFrame("Alloy Analyzer");
         frame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
-//        frame.pack(); // [HASLab]
+        frame.pack(); // [HASLab]
         if (!Util.onMac() && !Util.onWindows()) {
            String gravity = System.getenv("_JAVA_AWT_WM_STATIC_GRAVITY");
            if (gravity==null || gravity.length()==0) {
@@ -1829,33 +1828,36 @@ public final class SimpleGUI implements ComponentListener, Listener {
         // since we want the minimized window title on Linux/FreeBSD to just say Alloy Analyzer
 
         // Test the allowed memory sizes
-        final WorkerEngine.WorkerCallback c = new WorkerEngine.WorkerCallback() {
-            private final List<Integer> allowed = new ArrayList<Integer>();
-            private final List<Integer> toTry = new ArrayList<Integer>(Arrays.asList(256,512,768,1024,1536,2048,2560,3072,3584,4096));
-            private int mem;
-            public synchronized void callback(Object msg) {
-                if (toTry.size()==0) {
-                    SwingUtilities.invokeLater(new Runnable() {
-                        public void run() { SimpleGUI.this.frame=frame; SimpleGUI.this.finishInit(args, allowed, windowWidth); }
-                    });
-                    return;
-                }
-                try { mem=toTry.remove(0); WorkerEngine.stop(); WorkerEngine.run(dummyTask, mem, 128, "", "", this); return; } catch(IOException ex) { fail(); }
-            }
-            public synchronized void done() {
-                //System.out.println("Alloy4 can use "+mem+"M"); System.out.flush();
-                allowed.add(mem);
-                callback(null);
-            }
-            public synchronized void fail() {
-                //System.out.println("Alloy4 cannot use "+mem+"M"); System.out.flush();
-                callback(null);
-            }
-        };
-        c.callback(null);
+//        final WorkerEngine.WorkerCallback c = new WorkerEngine.WorkerCallback() {
+//            private final List<Integer> allowed = new ArrayList<Integer>();
+//            private final List<Integer> toTry = new ArrayList<Integer>(Arrays.asList(256,512,768,1024,1536,2048,2560,3072,3584,4096));
+//            private int mem;
+//            public synchronized void callback(Object msg) {
+//                if (toTry.size()==0) {
+//                    SwingUtilities.invokeLater(new Runnable() {
+//                        public void run() { SimpleGUI.this.frame=frame; SimpleGUI.this.finishInit(args, allowed, windowWidth); }
+//                    });
+//                    return;
+//                }
+//                try { mem=toTry.remove(0); WorkerEngine.stop(); WorkerEngine.run(dummyTask, mem, 128, "", "", this); return; } catch(IOException ex) { fail(); }
+//            }
+//            public synchronized void done() {
+//                //System.out.println("Alloy4 can use "+mem+"M"); System.out.flush();
+//                allowed.add(mem);
+//                callback(null);
+//            }
+//            public synchronized void fail() {
+//                //System.out.println("Alloy4 cannot use "+mem+"M"); System.out.flush();
+//                callback(null);
+//            }
+//        };
+//        c.callback(null);
+        
+        SimpleGUI.this.frame = frame;
+        finishInit(args, windowWidth);
     }
 
-    private void finishInit(String[] args, List<Integer> initialAllowedMemorySizes, int width) {
+    private void finishInit(String[] args, int width) {
 
         // Add the listeners
         try {
@@ -1867,15 +1869,15 @@ public final class SimpleGUI implements ComponentListener, Listener {
         frame.addComponentListener(this);
 
         // initialize the "allowed memory sizes" array
-        allowedMemorySizes = new ArrayList<Integer>(initialAllowedMemorySizes);
-        int newmem = SubMemory.get();
-        if (!allowedMemorySizes.contains(newmem)) {
-           int newmemlen = allowedMemorySizes.size();
-           if (allowedMemorySizes.contains(768) || newmemlen==0)
-              SubMemory.set(768); // a nice default value
-           else
-              SubMemory.set(allowedMemorySizes.get(newmemlen-1));
-        }
+//        allowedMemorySizes = new ArrayList<Integer>(initialAllowedMemorySizes);
+//        int newmem = SubMemory.get();
+//        if (!allowedMemorySizes.contains(newmem)) {
+//           int newmemlen = allowedMemorySizes.size();
+//           if (allowedMemorySizes.contains(768) || newmemlen==0)
+//              SubMemory.set(768); // a nice default value
+//           else
+//              SubMemory.set(allowedMemorySizes.get(newmemlen-1));
+//        }
 
         // Choose the appropriate font
         int fontSize=FontSize.get();
@@ -2002,11 +2004,9 @@ public final class SimpleGUI implements ComponentListener, Listener {
                 satChoices.remove(SatSolver.MiniSatJNI);
             }
             if (!loadLibrary("minisatprover")) satChoices.remove(SatSolver.MiniSatProverJNI);
-            if (!loadLibrary("zchaff"))        satChoices.remove(SatSolver.ZChaffJNI);
-            SatSolver now = SatSolver.get();
+            SatSolver now = SatSolver.get();  // [HASLab] removed ZChaff
             if (!satChoices.contains(now)) {
-                now=SatSolver.ZChaffJNI;
-                if (!satChoices.contains(now)) now=SatSolver.SAT4J;
+                now=SatSolver.SAT4J;
                 now.set();
             }
             if (now==SatSolver.SAT4J && satChoices.size()>3 && satChoices.contains(SatSolver.CNF) && satChoices.contains(SatSolver.KK)) {
