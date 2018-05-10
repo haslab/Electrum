@@ -318,18 +318,21 @@ public final class A4Solution {
 //				solver.options().setSolver(SATFactory.externalFactory(ext, tmp.getAbsolutePath(), "", opt.solver.options())); // [HASLab] kodkod 2.0+
 				varOptions.setSolver(SATFactory.externalFactory(ext, tmp.getAbsolutePath(), opt.solver.options()));
 			} catch(IOException ex) { throw new ErrorFatal("Cannot create temporary directory.", ex); }
-		} else if (opt.solver.equals(A4Options.SatSolver.ZChaffJNI)) { // [HASLab] kodkod 2.0+
-//			solver.options().setSolver(SATFactory.ZChaff);
-			throw new UnsupportedOperationException("Kodkod no longer supports ZChaff.");
-		} else if (opt.solver.equals(A4Options.SatSolver.MiniSatJNI)) {
-			varOptions.setSolver(SATFactory.MiniSat);
-		} else if (opt.solver.equals(A4Options.SatSolver.MiniSatProverJNI)) {
-			sym=20;
-			varOptions.setSolver(SATFactory.MiniSatProver);
-			varOptions.setLogTranslation(2);
-			varOptions.setCoreGranularity(opt.coreGranularity);
-		} else if (opt.solver.equals(A4Options.SatSolver.GlucoseJNI)) { // [HASLab]
-			varOptions.setSolver(SATFactory.Glucose);
+        } else if (opt.solver.equals(A4Options.SatSolver.LingelingJNI)) {
+        	varOptions.setSolver(SATFactory.Lingeling);
+        } else if (opt.solver.equals(A4Options.SatSolver.PLingelingJNI)) {
+        	varOptions.setSolver(SATFactory.plingeling(4, null));
+        } else if (opt.solver.equals(A4Options.SatSolver.GlucoseJNI)) {
+        	varOptions.setSolver(SATFactory.Glucose);
+        } else if (opt.solver.equals(A4Options.SatSolver.CryptoMiniSatJNI)) {
+        	varOptions.setSolver(SATFactory.CryptoMiniSat);
+        } else if (opt.solver.equals(A4Options.SatSolver.MiniSatJNI)) {
+        	varOptions.setSolver(SATFactory.MiniSat);
+        } else if (opt.solver.equals(A4Options.SatSolver.MiniSatProverJNI)) {
+            sym=20;
+            varOptions.setSolver(SATFactory.MiniSatProver);
+            varOptions.setLogTranslation(2);
+            varOptions.setCoreGranularity(opt.coreGranularity);
 		} else if (opt.solver.equals(A4Options.SatSolver.ElectrodS)) { // [HASLab]
 			varOptions.setSolver(SATFactory.electrodS());
 			varOptions.setRunUnbounded(true);
@@ -1072,21 +1075,21 @@ public final class A4Solution {
 			rep.resultCNF(out);
 			return null;
 		}
-//		if (solver.options().solver()==SATFactory.ZChaffMincost || !solver.options().solver().incremental()) {
-//			if (sol==null) sol = solver.solve(fgoal, bounds);
-//		} else { // [HASLab] kodkod 2.0+
+		if (/*solver.options().solver()==SATFactory.ZChaffMincost ||*/ !solver.options().solver().incremental()) {
+			if (sol==null) sol = solver.solve(fgoal, bounds);
+		} else { // [HASLab] kodkod 2.0+
 
-		rep.debug("eff: "+fgoal.toString());
-		rep.debug("eff: "+bounds.toString());
-		rep.debug("eff: "+solver.options().toString());
-		PardinusBounds b;
-		if (solver.options().decomposed())
-			b = new PardinusBounds(bounds,true); // [HASLab] support for decomposed
-		else b = bounds;
-		kEnumerator = new Peeker<Solution>(solver.solveAll(fgoal, b));
-		if (sol==null) sol = kEnumerator.next();
+			rep.debug("eff: "+fgoal.toString());
+			rep.debug("eff: "+bounds.toString());
+			rep.debug("eff: "+solver.options().toString());
+			PardinusBounds b;
+			if (solver.options().decomposed())
+				b = new PardinusBounds(bounds,true); // [HASLab] support for decomposed
+			else b = bounds;
+			kEnumerator = new Peeker<Solution>(solver.solveAll(fgoal, b));
+			if (sol==null) sol = kEnumerator.next();
 
-//		}
+		}
 		if (!solved[0]) rep.solve(0, 0, 0);
 		final TemporalInstance inst = (TemporalInstance) sol.instance(); // [HASLab]
 		// To ensure no more output during SolutionEnumeration
