@@ -409,7 +409,7 @@ public final class SimpleGUI implements ComponentListener, Listener {
 
     /** Helper method that returns a hopefully very short name for a file name. */
     public static String slightlyShorterFilename(String name) {
-        if (name.toLowerCase(Locale.US).endsWith(".als")) {
+        if (name.toLowerCase(Locale.US).endsWith(".ele")) { // [HASLab] ele extension
             int i=name.lastIndexOf('/');
             if (i>=0) name=name.substring(i+1);
             i=name.lastIndexOf('\\');
@@ -704,7 +704,7 @@ public final class SimpleGUI implements ComponentListener, Listener {
     /** This method performs File->Open. */
     private Runner doOpen() {
         if (wrap) return wrapMe();
-        File file=OurDialog.askFile(true, null, "", ".als files"); //pt.uminho.haslab: allow .ele files
+        File file=OurDialog.askFile(true, null, ".ele", ".ele files"); // [HASLab] ele extension
         if (file!=null) {
             Util.setCurrentDirectory(file.getParentFile());
             doOpenFile(file.getPath());
@@ -715,7 +715,7 @@ public final class SimpleGUI implements ComponentListener, Listener {
     /** This method performs File->OpenBuiltinModels. */
     private Runner doBuiltin() {
         if (wrap) return wrapMe();
-        File file=OurDialog.askFile(true, alloyHome() + fs + "models", "", ".als files"); // pt.uminho.haslab: allow .ele files
+        File file=OurDialog.askFile(true, alloyHome() + fs + "models", ".ele", ".ele files"); // [HASLab] ele extension
         if (file!=null) {
             doOpenFile(file.getPath());
         }
@@ -1073,8 +1073,6 @@ public final class SimpleGUI implements ComponentListener, Listener {
            latestAutoInstance="";
            if (subrunningTask==2){
                viz.loadXML(f, true);
-               // [HASLab] the JPanel with temporal states is created
-               viz.setTemporalJPanel(viz.getVizState().getOriginalInstance().originalA4.getLastTrace());
            } else if (AutoVisualize.get() || subrunningTask==1) doVisualize("XML: "+f);
         }
         return null;
@@ -1621,7 +1619,6 @@ public final class SimpleGUI implements ComponentListener, Listener {
         if (arg.startsWith("XML: ")) { // XML: filename
             viz.loadXML(Util.canon(arg.substring(5)), false);
             viz.getVizState().useOriginalName(true); // pt.uminho.haslab: the instance show the atoms' original names
-            viz.setTemporalJPanel(viz.getVizState().getOriginalInstance().originalA4.getLastTrace()); // [HASLab]
             viz.doShowViz();
         }
         return null;
@@ -2041,7 +2038,7 @@ public final class SimpleGUI implements ComponentListener, Listener {
         frame.setJMenuBar(bar);
 
         // Open the given file, if a filename is given in the command line
-        for(String f:args) if (f.toLowerCase(Locale.US).endsWith(".als")) {
+        for(String f:args) if (f.toLowerCase(Locale.US).endsWith(".ele")) {  // [HASLab] ele extension
             File file = new File(f);
             if (file.exists() && file.isFile()) doOpenFile(file.getPath());
         }

@@ -34,7 +34,6 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -84,7 +83,7 @@ import edu.mit.csail.sdg.alloy4graph.GraphViewer;
  * <p>
  * <b>Thread Safety:</b> Can be called only by the AWT event thread.
  * 
- * @modified: Nuno Macedo, Eduardo Pessoa // [HASLab] temporal solving
+ * @modified: Nuno Macedo, Eduardo Pessoa // [HASLab] temporal instances, file extensions
  */
 
 public final class VizGUI implements ComponentListener {
@@ -195,9 +194,6 @@ public final class VizGUI implements ComponentListener {
 
 	/** If nonnull, you can pass in an XML file to find the next solution. */
 	private final Computer enumerator;
-
-	// [HASLab] control structure to keep a map between a file and the state of that file
-	private final Map<String, Integer> cacheForXmlState = new HashMap<String, Integer>();
 
 	// ==============================================================================================//
 
@@ -607,7 +603,7 @@ public final class VizGUI implements ComponentListener {
 					"Save the current theme customization as a new theme file", "images/24_save.gif", doSaveThemeAs()));
 			toolbar.add(resetSettingsButton = OurUtil.button("Reset", "Reset the theme customization",
 					"images/24_settings_close2.gif", doResetTheme()));
-            addTemporalJPanel(); // [HASLab] the JPanel with temporal states is created
+            addTemporalJPanel(); // [HASLab] the JPanel for trace navigation
 		} finally {
 			wrap = false;
 		}
@@ -659,133 +655,211 @@ public final class VizGUI implements ComponentListener {
 			doLoadInstance(xmlFileName);
 	}
 
-	// [HASLab] control structures to make the JPanel with the times
-	private JComboBox<Object> atomComboTime;
+	// ==============================================================================================//
+
+	/** Trace navigation combo box. */
+	// [HASLab]
+	private JComboBox<Object> comboTime;
+	
+	/** Trace navigation buttons. */
+	// [HASLab]
 	private JButton leftTime, rightTime;
+	
+	/** Index of the back loop, or -1 if none. */
+	// [HASLab]
 	private int backindex = -1;
+
+	/** Optional message to be displayed. */
+	// [HASLab]
 	private JLabel tempMsg;
 	
-	// [HASLab] creates the temporal JPanel
+	/**
+	 * Populates the JPanel with the objects for trace navigation.
+	 */
+	// [HASLab] 
 	private final void addTemporalJPanel() {
 
 		tempMsg = new JLabel();
 		leftTime = new JButton("<<");
 		rightTime = new JButton(">>");
-		final String[] atomnames = this.createTimeComboAtoms(0);
-		atomComboTime = new OurCombobox(atomnames.length < 1 ? new String[] { " " } : atomnames);
+		final String[] atomnames = this.createTimeAtoms(0);
+		comboTime = new OurCombobox(atomnames.length < 1 ? new String[] { " " } : atomnames);
 		
-		// [HASLab]
-		atomComboTime.setRenderer(new TimePainter());
+		comboTime.setRenderer(new TimePainter()); // color back loop and last time differently
 		
 		leftTime.setEnabled(false);
 		rightTime.setEnabled(false);
 
 		leftTime.addActionListener(new ActionListener() {
 			public final void actionPerformed(ActionEvent e) {
-				int curIndex = atomComboTime.getSelectedIndex();
+				int curIndex = comboTime.getSelectedIndex();
 				if (curIndex > 0)
-					atomComboTime.setSelectedIndex(curIndex - 1);
+					comboTime.setSelectedIndex(curIndex - 1);
 			}
 		});
 		rightTime.addActionListener(new ActionListener() {
 			public final void actionPerformed(ActionEvent e) {
-				if (atomComboTime.getSelectedIndex() == getVizState().getOriginalInstance().originalA4.getLastTrace())
-					atomComboTime.setSelectedIndex(backindex);
+				if (comboTime.getSelectedIndex() == getVizState().getOriginalInstance().originalA4.getLastTrace())
+					comboTime.setSelectedIndex(backindex);
 				else {
-					int curIndex = atomComboTime.getSelectedIndex();
-					if (curIndex < atomComboTime.getItemCount() - 1)
-						atomComboTime.setSelectedIndex(curIndex + 1);
+					int curIndex = comboTime.getSelectedIndex();
+					if (curIndex < comboTime.getItemCount() - 1)
+						comboTime.setSelectedIndex(curIndex + 1);
 					else if (backindex >= 0)
-						atomComboTime.setSelectedIndex(backindex);
+						comboTime.setSelectedIndex(backindex);
 				}
 			}
 		});
-		atomComboTime.addActionListener(new ActionListener() {
+		comboTime.addActionListener(new ActionListener() {
 			public final void actionPerformed(ActionEvent e) {
 				int loop = getVizState().getOriginalInstance().originalA4.getBackLoop();
 				int leng = getVizState().getOriginalInstance().originalA4.getLastTrace();
 				
-				leftTime.setEnabled(atomComboTime.getSelectedIndex() > 0);
-				rightTime.setEnabled(atomComboTime.getSelectedIndex() < atomComboTime.getItemCount() - 1 || backindex != -1);
-				// [HASLab] change button when looping
-				if (atomComboTime.getSelectedIndex() == leng && loop != -1) {
+				leftTime.setEnabled(comboTime.getSelectedIndex() > 0);
+				rightTime.setEnabled(comboTime.getSelectedIndex() < comboTime.getItemCount() - 1 || backindex != -1);
+				// change button when looping
+				if (comboTime.getSelectedIndex() == leng && loop != -1) {
 					rightTime.setText(">"+loop);
-					atomComboTime.setFont(atomComboTime.getFont().deriveFont(Font.BOLD));
-					atomComboTime.setForeground(Color.BLUE);
-					if (atomComboTime.getSelectedIndex() == loop)
+					comboTime.setFont(comboTime.getFont().deriveFont(Font.BOLD));
+					comboTime.setForeground(Color.BLUE);
+					if (comboTime.getSelectedIndex() == loop)
 						tempMsg.setText("Loop starts and ends here.");
 					else
 						tempMsg.setText("Last state before looping.");
 				}
 				else {
 					rightTime.setText(">>");
-					// [HASLab] change text when loop state
-					if (atomComboTime.getSelectedIndex() == loop) {
-						atomComboTime.setFont(atomComboTime.getFont().deriveFont(Font.BOLD));
-						atomComboTime.setForeground(Color.GREEN);
+					// change text when loop state
+					if (comboTime.getSelectedIndex() == loop) {
+						comboTime.setFont(comboTime.getFont().deriveFont(Font.BOLD));
+						comboTime.setForeground(Color.GREEN);
 						tempMsg.setText("Loop starts here.");
 					}
 					else {
-						atomComboTime.setFont(atomComboTime.getFont().deriveFont(Font.PLAIN));
-						atomComboTime.setForeground(Color.BLACK);
+						comboTime.setFont(comboTime.getFont().deriveFont(Font.PLAIN));
+						comboTime.setForeground(Color.BLACK);
 						tempMsg.setText("");
 					}
 				}
 
 				xmlLoaded.remove(getXMLfilename());
-				if (loadXmlFile) {
-					if (atomComboTime.getSelectedIndex() >= 0)  {
-						loadXML(getXMLfilename(), false, atomComboTime.getSelectedIndex());
-						cacheForXmlState.put(getXMLfilename(), atomComboTime.getSelectedIndex());
-						if (thmFileName != "") loadThemeFile(thmFileName);
-					}
+				if (comboTime.getSelectedIndex() >= 0)  {
+					loadXML(getXMLfilename(), false, comboTime.getSelectedIndex());
+					if (thmFileName != "") loadThemeFile(thmFileName);
 				}
 			}
 
 		});
-		atomComboTime.setMaximumSize(atomComboTime.getPreferredSize());
+		comboTime.setMaximumSize(comboTime.getPreferredSize());
 		toolbar.add(Box.createHorizontalGlue());
 		toolbar.add(tempMsg);
 		toolbar.add(Box.createHorizontalStrut(15));
 		toolbar.add(leftTime);
-		toolbar.add(atomComboTime);
+		toolbar.add(comboTime);
 		toolbar.add(rightTime);
 		toolbar.setBorder(new EmptyBorder(0, 0, 0, 10));
 	}
 	
-	// [HASLab] sets the current state of the temporal JPanel
-	public final void setTemporalJPanel(int last) {
-
-		final String[] atomnames = this.createTimeComboAtoms(last+1);
-		atomComboTime.removeAllItems();
+	/** 
+	 * Updates the state of trace navigation pane given a new trace length.
+	 */
+	// [HASLab]
+	private final void repopulateTemporalPanel() {
+		int last = getVizState().getOriginalInstance().originalA4.getLastTrace();
+		final String[] atomnames = this.createTimeAtoms(last+1);
+		comboTime.removeAllItems();
 		for (String s : atomnames)
-			atomComboTime.addItem(s);
+			comboTime.addItem(s);
 		
 		backindex = getVizState().getOriginalInstance().originalA4.getBackLoop();
 
 		leftTime.setEnabled(false);
-		rightTime.setEnabled(atomnames.length > 0 || backindex == 0);
-
+		rightTime.setEnabled(atomnames.length > 1 || backindex == 0);
 	}
 
-	// [HASLab] create a list with n times with the purpose of adding it to the
-	// temporal JPanel
-	private String[] createTimeComboAtoms(int numberOfStates) {
-		String[] times = new String[numberOfStates];
-		for (int i = 0; i < numberOfStates; i++)
+	/** 
+	 * Creates a list with n times with the purpose of adding it to the	trace navigation panel. 
+	 * 
+	 * @param n number of states
+	 */
+	// [HASLab]
+	private String[] createTimeAtoms(int n) {
+		String[] times = new String[n];
+		for (int i = 0; i < n; i++)
 			times[i] = "Time " + i;
 		return times;
 	}
-
-	// [HASLab] boolean variable to control if the first xml file was loaded
-	private boolean loadXmlFile = true;
-
-	// [HASLab] change the solution to see given a particular state
-	private void refreshComboAtomTime(int state) {
-		this.loadXmlFile = false;
-		atomComboTime.setSelectedIndex(state);
-		this.loadXmlFile = true;
+	
+	/** 
+	 * Determines the name of the xml file for a particular state of the trace.
+	 * 
+	 * @param file the original name of the file
+	 * @param state the particular state to be retrieved
+	 * @return the file with the representation of the state
+	 */
+	// [HASLab]
+	public static String temporize(String file, int state) {
+		String[] spl = file.split(Pattern.quote("_"));
+		String dfilename = spl[0] + "_" + state;
+		return dfilename;
 	}
+
+	/** Paints the label of the loop and last states differently.*/
+	// [HASLab]
+	private class TimePainter extends JLabel implements ListCellRenderer<Object> {
+	
+		private static final long serialVersionUID = -7905186538514458958L;
+	
+		private TimePainter() {
+			setOpaque(true);
+		}
+	
+		public Component getListCellRendererComponent(JList<?> list,
+				Object value, int index, boolean isSelected,
+				boolean cellHasFocus) {
+	
+			if (value != null)
+				setText(value.toString());
+	
+			int bold;
+			Color color;
+	
+			if (index == list.getModel().getSize() - 1 && backindex > 0) {
+				bold = Font.BOLD;
+				color = Color.BLUE;
+			} else if (index == backindex) {
+				bold = Font.BOLD;
+				color = Color.GREEN;
+			} else {
+				bold = Font.PLAIN;
+				color = Color.BLACK;
+			}
+	
+			setFont(getFont().deriveFont(bold));
+			setForeground(color);
+			setBackground(Color.WHITE);
+	
+			return this;
+		}
+	}
+	
+	// ==============================================================================================//
+
+	// /** This method changes the display mode to show the equivalent dot text
+	// (the return value is always null). */
+	// public Runner doShowDot() {
+	// if (!wrap) { currentMode=VisualizerMode.DOT; updateDisplay(); return
+	// null; }
+	// return wrapMe();
+	// }
+	//
+	// /** This method changes the display mode to show the instance as XML (the
+	// return value is always null). */
+	// public Runner doShowXML() {
+	// if (!wrap) { currentMode=VisualizerMode.XML; updateDisplay(); return
+	// null; }
+	// return wrapMe();
+	// }
 
 	/** Invoked when the Visualizationwindow is resized. */
 	public void componentResized(ComponentEvent e) {
@@ -974,6 +1048,7 @@ public final class VizGUI implements ComponentListener {
 		else
 			myEvaluatorPanel.requestFocusInWindow();
 		repopulateProjectionPopup();
+		
 		if (frame!=null) frame.validate(); else splitpane.validate();
 	}
 
@@ -1002,7 +1077,7 @@ public final class VizGUI implements ComponentListener {
 		if (i >= 0)
 			filename = filename.substring(i + 1);
 		int n = filename.length();
-		if (n > 4 && filename.substring(n - 4).equalsIgnoreCase(".als"))
+		if (n > 4 && filename.substring(n - 4).equalsIgnoreCase(".ele")) // [HASLab] ele extension
 			filename = filename.substring(0, n - 4);
 		if (filename.length() > 0)
 			return "(" + filename + ") " + commandname;
@@ -1068,15 +1143,16 @@ public final class VizGUI implements ComponentListener {
 	}
 
 	/** Load the XML instance. */
-	// [HASLab] considers initial state
+	// [HASLab] considers initial state and create the temporal navigation panel
 	public void loadXML(final String fileName, boolean forcefully) {
 		loadXML(fileName, forcefully, 0);
+        repopulateTemporalPanel(); // [HASLab] must only be initially and not whenever the state changes
 	}
 	
 	/** Load the XML instance. */
 	// [HASLab] considers particular state
 	public void loadXML(final String fileName, boolean forcefully, int state) {
-		final String xmlFileName = Util.canon(temporize(fileName,state) + ".xml"); // [HASLab]
+		final String xmlFileName = Util.canon(temporize(fileName,state) + ".xml"); // [HASLab] state
 		File f = new File(xmlFileName);
 		if (forcefully || !xmlFileName.equals(this.xmlFileName)) {
 			AlloyInstance myInstance;
@@ -1088,7 +1164,7 @@ public final class VizGUI implements ComponentListener {
 				xmlLoaded.remove(xmlFileName);
 	            OurDialog.alert("Cannot read or parse Alloy instance: "+xmlFileName+"\n\nError: "+e.getMessage());
 				if (xmlLoaded.size() > 0) {
-					loadXML(xmlLoaded.get(xmlLoaded.size() - 1), false, state); // [HASLab]
+					loadXML(xmlLoaded.get(xmlLoaded.size() - 1), false, state); // [HASLab] state
 					return;
 				}
 				doCloseAll();
@@ -1101,7 +1177,7 @@ public final class VizGUI implements ComponentListener {
 		}
 		if (!xmlLoaded.contains(xmlFileName)) xmlLoaded.add(xmlFileName);
 		toolbar.setEnabled(true);
-//		settingsOpen = 0; // [HASLab]
+		settingsOpen = 0; // [HASLab] this was commented out by us, why?
 		thememenu.setEnabled(true);
 		windowmenu.setEnabled(true);
 		if (frame != null) {
@@ -1202,13 +1278,11 @@ public final class VizGUI implements ComponentListener {
 	 * as invisible (if not in standalone mode), or it will terminate the entire
 	 * application (if in standalone mode).
 	 */
-	// [HASLab] extended to not keep open the previous temporal solutions when the viz is closed
 	private Runner doClose() {
 		if (wrap) return wrapMe();
 		xmlLoaded.remove(xmlFileName);
 		if (xmlLoaded.size() > 0) {
 			doLoadInstance(xmlLoaded.get(xmlLoaded.size() - 1));
-			refreshComboAtomTime((Integer) cacheForXmlState.get(xmlLoaded.get(xmlLoaded.size() - 1))); // [HASLab]
 			return null;
 		}
 		if (standalone) System.exit(0); else if (frame!=null) frame.setVisible(false);
@@ -1458,19 +1532,12 @@ public final class VizGUI implements ComponentListener {
 		} else if (enumerator == null) {
 			OurDialog.alert("Cannot display the next solution since the analysis engine is not loaded with the visualizer.");
 		} else {
-			final String xmlFileName = Util.canon(temporize(this.xmlFileName,0) + ".xml"); // [HASLab]
+			final String xmlFileName = Util.canon(temporize(this.xmlFileName,0) + ".xml"); // [HASLab] get xml for current state
 			try { enumerator.compute(xmlFileName); } catch(Throwable ex) { OurDialog.alert(ex.getMessage()); }
 		}
 		return null;
 	}
 	
-	// [HASLab]
-	public static String temporize(String file, int state) {
-		String[] spl = file.split(Pattern.quote("_")); // [HASLab]
-		String dfilename = spl[0] + "_" + state; // [HASLab]
-		return dfilename;
-	}
-
 	/** This method updates the graph with the current theme customization. */
 	private Runner doApply() {
 		if (!wrap)
@@ -1569,41 +1636,4 @@ public final class VizGUI implements ComponentListener {
 	// return wrapMe();
 	// }
 
-	// [HASLab]
-	private class TimePainter extends JLabel implements ListCellRenderer<Object> {
-
-		private static final long serialVersionUID = -7905186538514458958L;
-
-		private TimePainter() {
-			setOpaque(true);
-		}
-
-		public Component getListCellRendererComponent(JList<?> list,
-				Object value, int index, boolean isSelected,
-				boolean cellHasFocus) {
-
-			if (value != null)
-				setText(value.toString());
-
-			int bold;
-			Color color;
-
-			if (index == list.getModel().getSize() - 1) {
-				bold = Font.BOLD;
-				color = Color.BLUE;
-			} else if (index == backindex) {
-				bold = Font.BOLD;
-				color = Color.GREEN;
-			} else {
-				bold = Font.PLAIN;
-				color = Color.BLACK;
-			}
-
-			setFont(getFont().deriveFont(bold));
-			setForeground(color);
-			setBackground(Color.WHITE);
-
-			return this;
-		}
-	}
 }
