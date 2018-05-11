@@ -18,6 +18,8 @@ package edu.mit.csail.sdg.alloy4;
 
 /** This class receives diagnostic, progress, and warning messages from Alloy4.
  * (This default implementation ignores all calls; you should subclass it to do the appropriate screen output)
+ * 
+ * @modified Nuno Macedo // [HASLab] report decomposed 
  */
 
 public class A4Reporter {
@@ -143,4 +145,11 @@ public class A4Reporter {
    public void write (Object expr) {
       if (parent != null) parent.write(expr);
    }
+
+   /** Called to report the number of configs found when running in decomposed mode. */
+   // [HASLab]
+   public void configs(int configs) {
+      if (parent != null) parent.configs(configs);
+   }
+   
 }

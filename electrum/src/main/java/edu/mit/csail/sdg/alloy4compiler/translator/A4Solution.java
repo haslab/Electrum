@@ -84,6 +84,7 @@ import edu.mit.csail.sdg.alloy4.Err;
 import edu.mit.csail.sdg.alloy4.ErrorAPI;
 import edu.mit.csail.sdg.alloy4.ErrorFatal;
 import edu.mit.csail.sdg.alloy4.ErrorSyntax;
+import edu.mit.csail.sdg.alloy4.ErrorWarning;
 import edu.mit.csail.sdg.alloy4.Pair;
 import edu.mit.csail.sdg.alloy4.Pos;
 import edu.mit.csail.sdg.alloy4.SafeList;
@@ -1047,6 +1048,9 @@ public final class A4Solution {
 			@Override public void solvingCNF(int primaryVars, int vars, int clauses) {
 				if (solved[0]) return; else solved[0]=true; // initially solved[0] is true, so we won't report the # of vars/clauses
 				if (rep!=null) rep.solve(primaryVars, vars, clauses);
+			}
+			@Override public void reportConfigs(int configs) { // [HASLab] propagate found configs
+				rep.configs(configs);
 			}
 		});
 		// [HASLab] TODO: how to handle non-temporal examples?

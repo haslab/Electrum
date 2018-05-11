@@ -247,6 +247,13 @@ final class SimpleReporter extends A4Reporter {
         cb("solve", ""+totalVars+" vars. "+primaryVars+" primary vars. "+clauses+" clauses. "+(System.currentTimeMillis()-lastTime)+"ms.\n");
         lastTime = System.currentTimeMillis();
     }
+    
+    /** {@inheritDoc} */
+    // [HASLab]
+    @Override public void configs(final int configs) {
+        cb("bold", "   Warning, "+configs+"+ configs...\n");
+    }
+
 
     /** {@inheritDoc} */
     @Override public void resultSAT(Object command, long solvingTime, Object solution) {
