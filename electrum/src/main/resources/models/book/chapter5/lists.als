@@ -11,7 +11,7 @@ sig NonEmptyList extends List {
 
 fact ListGenerator {
 	all list: List, e: Element |
-		some list': List | list'.rest = list and list'.element = e
+		some list1: List | list1.rest = list and list1.element = e
 	}
 
 assert FalseAssertion {

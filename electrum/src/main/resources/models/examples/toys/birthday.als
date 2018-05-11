@@ -27,12 +27,12 @@ sig Name {}
 sig Date {}
 sig BirthdayBook {known: set Name, date: known -> one Date}
 
-pred AddBirthday [bb, bb': BirthdayBook, n: Name, d: Date] {
-    bb'.date = bb.date ++ (n->d)
+pred AddBirthday [bb, bb1: BirthdayBook, n: Name, d: Date] {
+    bb1.date = bb.date ++ (n->d)
     }
 
-pred DelBirthday [bb, bb': BirthdayBook, n: Name] {
-    bb'.date = bb.date - (n->Date)
+pred DelBirthday [bb, bb1: BirthdayBook, n: Name] {
+    bb1.date = bb.date - (n->Date)
     }
 
 pred FindBirthday [bb: BirthdayBook, n: Name, d: lone Date] {
@@ -48,8 +48,8 @@ pred InitBirthdayBook [bb: BirthdayBook] {
     }
 
 assert AddWorks {
-    all bb, bb': BirthdayBook, n: Name, d: Date, d': lone Date |
-        AddBirthday [bb,bb',n,d] && FindBirthday [bb',n,d'] => d = d'
+    all bb, bb1: BirthdayBook, n: Name, d: Date, d1: lone Date |
+        AddBirthday [bb,bb1,n,d] && FindBirthday [bb1,n,d1] => d = d1
     }
 
 assert DelIsUndo {

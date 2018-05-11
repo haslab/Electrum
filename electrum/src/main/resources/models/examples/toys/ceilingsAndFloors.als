@@ -33,14 +33,14 @@ check BelowToo for 2 expect 1
 
 pred Geometry {no m: Man | m.floor = m.ceiling}
 
-assert BelowToo' { Geometry => (all m: Man | some n: Man | m.Above[n]) }
-check BelowToo' for 2 expect 0
-check BelowToo' for 3 expect 1
+assert BelowToo1 { Geometry => (all m: Man | some n: Man | m.Above[n]) }
+check BelowToo1 for 2 expect 0
+check BelowToo1 for 3 expect 1
 
 pred NoSharing {
   no m,n: Man | m!=n && (m.floor = n.floor || m.ceiling = n.ceiling)
 }
 
-assert BelowToo'' { NoSharing => (all m: Man | some n: Man | m.Above[n]) }
-check BelowToo'' for 6 expect 0
-check BelowToo'' for 10 expect 0
+assert BelowToo2 { NoSharing => (all m: Man | some n: Man | m.Above[n]) }
+check BelowToo2 for 6 expect 0
+check BelowToo2 for 10 expect 0
