@@ -299,27 +299,34 @@ public final class A4SolutionWriter {
 	 * If sol==null, write the list of Sigs as a Metamodel, else write the
 	 * solution as an XML file. 
 	 */
-	// pt.uminho.haslab: writes a specific time instant, temporal metadata.
+	// [HASLab] writes a specific time instant; writes temporal metadata if !full_trace.
 	private A4SolutionWriter(A4Reporter rep, A4Solution sol, Iterable<Sig> sigs, int bitwidth, int maxseq, int tracelength, int backloop,
-			String originalCommand, String originalFileName, PrintWriter out, Iterable<Func> extraSkolems, int state)
+			String originalCommand, String originalFileName, PrintWriter out, Iterable<Func> extraSkolems, int state, boolean full_trace)
 			throws Err {
+
 		this.rep = rep;
 		this.out = out;
 		this.sol = sol;
 		for (Sig s : sigs)
 			if (s instanceof PrimSig && ((PrimSig) s).parent == Sig.UNIV)
 				toplevels.add((PrimSig) s);
-		out.print("<instance bitwidth=\""); out.print(bitwidth);
-		out.print("\" maxseq=\""); out.print(maxseq);
-		out.print("\" command=\""); Util.encodeXML(out, originalCommand);
-		out.print("\" filename=\""); Util.encodeXML(out, originalFileName);
-		out.print("\" tracelength=\""); out.print(tracelength); // [HASLab] the trace length of the instance
-		out.print("\" backloop=\""); out.print(backloop); // [HASLab] the back loop of the instance
-		if (sol == null)
-			out.print("\" metamodel=\"yes");
-		out.print("\">\n");
+		// [HASLab] write temporal metadata it not part of a trace.
+		if (!full_trace) {
+			out.print("<instance bitwidth=\""); out.print(bitwidth);
+			out.print("\" maxseq=\""); out.print(maxseq);
+			out.print("\" command=\""); Util.encodeXML(out, originalCommand);
+			out.print("\" filename=\""); Util.encodeXML(out, originalFileName);
+			out.print("\" tracelength=\""); out.print(tracelength); // [HASLab] the trace length of the instance
+			out.print("\" backloop=\""); out.print(backloop); // [HASLab] the back loop of the instance
+			if (sol == null)
+				out.print("\" metamodel=\"yes");
+			out.print("\">\n");
+		} else {
+			out.print("<instance backloop=\""); out.print(backloop==state?"yes":"no");
+			out.print("\">\n");
+		}
 
-		// pt.uminho.haslab: write specific instant.
+		// [HASLab] write specific instant.
 		writeSig(Sig.UNIV, state);
         for (Sig s:sigs) if (s instanceof SubsetSig) writeSig(s, state);
         if (sol!=null) for (ExprVar s:sol.getAllSkolems()) { if (rep!=null) rep.write(s); writeSkolem(s, state); }
@@ -351,18 +358,36 @@ public final class A4SolutionWriter {
 	/**
 	 * If this solution is a satisfiable solution, this method will write it out
 	 * in XML format. 
-	 * pt.uminho.haslab: writes a specific time instant.
 	 */
+ 	// [HASLab] writes a specific time instant or all instants (if state < 0)
 	static void writeInstance(A4Reporter rep, A4Solution sol, PrintWriter out, Iterable<Func> extraSkolems,
 			Map<String, String> sources, int state) throws Err {
 		if (!sol.satisfiable())
 			throw new ErrorAPI("This solution is unsatisfiable.");
 		try {
-			Util.encodeXMLs(out, "<alloy builddate=\"", Version.buildDate(), "\">\n\n");
-			// [HASLab] write specific instant and trace info.
+			// [HASLab] if state < 0, write every instance in the xml
+			int i1 = 0,i2 = sol.getLastTrace();
+			if (state >= 0)
+				i1 = i2 = state;
+
+			// [HASLab] if state < 0, temporal metadata goes in the header.
+			if (state >= 0) 
+				Util.encodeXMLs(out, "<alloy builddate=\"", Version.buildDate(), "\">\n\n");
+			else {
+				Util.encodeXMLs(out, "<alloy builddate=\"", Version.buildDate());
+				out.print("\" bitwidth=\""); out.print(sol.getBitwidth());
+				out.print("\" maxseq=\""); out.print(sol.getMaxSeq());
+				out.print("\" command=\""); Util.encodeXML(out, sol.getOriginalCommand());
+				out.print("\" filename=\""); Util.encodeXML(out, sol.getOriginalFilename());
+				out.print("\" tracelength=\""); out.print(sol.getLastTrace()); // [HASLab] the trace length of the instance
+				out.print("\" backloop=\""); out.print(sol.getBackLoop()); // [HASLab] the back loop of the instance
+				out.print("\">\n\n");
+			}
+			// [HASLab] write all relevant instances.
+			for (int i = i1; i <= i2; i ++)
 			new A4SolutionWriter(rep, sol, sol.getAllReachableSigs(), sol.getBitwidth(), sol.getMaxSeq(),
 					sol.getLastTrace(), sol.getBackLoop(),
-					sol.getOriginalCommand(), sol.getOriginalFilename(), out, extraSkolems, state);  
+					sol.getOriginalCommand(), sol.getOriginalFilename(), out, extraSkolems, i, state < 0);  
 			if (sources != null)
 				for (Map.Entry<String, String> e : sources.entrySet()) {
 					Util.encodeXMLs(out, "\n<source filename=\"", e.getKey(), "\" content=\"", e.getValue(), "\"/>\n");
@@ -377,7 +402,7 @@ public final class A4SolutionWriter {
 		if (out.checkError())
 			throw new ErrorFatal("Error writing the solution XML file.");
 	}
-
+	
 	/**
 	 * Write the metamodel as &lt;instance&gt;..&lt;/instance&gt; in XML format.
 	 * pt.uminho.haslab: writes instant 0.
@@ -386,7 +411,7 @@ public final class A4SolutionWriter {
 			throws Err {
 		try {
 			// [HASLab] write at instant 0.
-			new A4SolutionWriter(null, null, sigs, 4, 4, 10, 0, "show metamodel", originalFilename, out, null, 0); 
+			new A4SolutionWriter(null, null, sigs, 4, 4, 10, 0, "show metamodel", originalFilename, out, null, 0, true); 
 		} catch (Throwable ex) {
 			if (ex instanceof Err)
 				throw (Err) ex;

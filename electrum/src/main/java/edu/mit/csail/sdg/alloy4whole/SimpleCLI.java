@@ -17,6 +17,10 @@ package edu.mit.csail.sdg.alloy4whole;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import org.apache.commons.cli.CommandLine;
@@ -35,9 +39,11 @@ import edu.mit.csail.sdg.alloy4.Err;
 import edu.mit.csail.sdg.alloy4.ErrorWarning;
 import edu.mit.csail.sdg.alloy4.Util;
 import edu.mit.csail.sdg.alloy4compiler.ast.Command;
+import edu.mit.csail.sdg.alloy4compiler.ast.Func;
 import edu.mit.csail.sdg.alloy4compiler.ast.Module;
 import edu.mit.csail.sdg.alloy4compiler.parser.CompUtil;
 import edu.mit.csail.sdg.alloy4compiler.translator.A4Options;
+import edu.mit.csail.sdg.alloy4compiler.translator.A4Solution;
 import edu.mit.csail.sdg.alloy4compiler.translator.TranslateAlloyToKodkod;
 
 public final class SimpleCLI {
@@ -53,13 +59,14 @@ public final class SimpleCLI {
         private boolean cmd_type;
         private boolean expected;
         private int overall;
+        private A4Solution solution;
         
         public SimpleReporter() throws IOException { }
 
         @Override public void debug(String msg) { 
-        		if (System.getProperty("debug","no").equals("yes"))
-        			LOGGER.debug(msg); 
-        	}
+    		if (System.getProperty("debug","no").equals("yes"))
+    			LOGGER.debug(msg); 
+    	}
 
         @Override public void parse(String msg) { debug(msg); }
 
@@ -94,6 +101,7 @@ public final class SimpleCLI {
             cmd_name = cmd.label;
             cmd_type = cmd.check;
             overall = cmd.overall;
+            this.solution = (A4Solution) solution;
             StringBuilder sb = new StringBuilder();
             sb.append(cmd.check ? "   Counterexample found. " : "   Instance found. ");
             if (cmd.check) sb.append("Assertion is invalid"); else sb.append("Predicate is consistent");
@@ -112,6 +120,7 @@ public final class SimpleCLI {
             cmd_name = cmd.label;
             cmd_type = cmd.check;
             overall = cmd.overall;
+            this.solution = null;
             StringBuilder sb = new StringBuilder();
             sb.append(cmd.check ? "   No counterexample found." : "   No instance found.");
             if (cmd.check) sb.append(" Assertion may be valid"); else sb.append(" Predicate may be inconsistent");
@@ -122,14 +131,24 @@ public final class SimpleCLI {
         }
         
         private String outcome() {
-        		StringBuilder sb = new StringBuilder("outcome ");
-        		sb.append("(cmd "+(cmd_type?"check ":"run")+") ");
-        		sb.append("(index "+cmd_index+") ");
-        		sb.append("(label "+cmd_name+") ");
-        		sb.append("(scope "+overall+") ");
-        		sb.append("(ms "+solve_time+") ");
-        		sb.append("(outcome "+(outcome?"SAT":"UNSAT")+") ");
-        		sb.append("(asexpect "+expected+")\n");
+    		StringBuilder sb = new StringBuilder("outcome ");
+    		sb.append("(cmd "+(cmd_type?"check":"run")+") ");
+    		sb.append("(index "+cmd_index+") ");
+    		sb.append("(label "+cmd_name+") ");
+    		sb.append("(scope "+overall+") ");
+    		sb.append("(ms "+solve_time+") ");
+    		sb.append("(outcome "+(outcome?"SAT":"UNSAT")+") ");
+    		sb.append("(asexpect "+expected+")\n");
+    		if (clargs.hasOption('o') && solution != null) {
+    			StringWriter wr = new StringWriter();
+				try {
+					solution.writeXML(this, new PrintWriter(wr), new ArrayList<Func>(), new HashMap<String,String>(), -1);
+				} catch (Err e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+    			sb.append(wr.toString());
+    		}
 			return sb.toString();
         }
     }
@@ -161,6 +180,12 @@ public final class SimpleCLI {
     				.required(false)
     				.desc("run in debug mode").build());
     		
+       		options.addOption(Option.builder("o")
+    				.longOpt("output")
+    				.hasArg(false)
+    				.required(false)
+    				.desc("print full output if SAT").build());
+       		
     		OptionGroup g = new OptionGroup();
     		g.addOption(Option.builder("x").longOpt("nuXmv").hasArg(false).desc("select nuXmv unbounded solver").build());
     		g.addOption(Option.builder("m").longOpt("miniSAT").hasArg(false).desc("select miniSAT bounded solver").build());
@@ -174,12 +199,13 @@ public final class SimpleCLI {
     		return options;
     }
     
+    static CommandLine clargs = null;	
+    
     public static void main(String[] args) throws Exception {
     		// if no cli args, just launch gui
     		if (args.length == 0)
     			SimpleGUI.main(args);
     		else {
-	    		CommandLine clargs = null;	
 	    		try {
 	    			CommandLineParser parser = new DefaultParser();
 	    			clargs = parser.parse(options(), args, true);

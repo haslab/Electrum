@@ -371,8 +371,16 @@ final class SimpleReporter extends A4Reporter {
     private SimpleReporter(WorkerCallback cb, boolean recordKodkod) { this.cb=cb; this.recordKodkod=recordKodkod; }
 
     /** Helper method to write out a full XML file. */
+    // [HASLab] print a particular state
     private static void writeXML(A4Reporter rep, Module mod, String filename, A4Solution sol, Map<String,String> sources, int state) throws Exception { // [HASLab]
-        sol.writeXML(rep, filename, mod.getAllFunc(), sources, state); // [HASLab]
+        sol.writeXML(rep, filename, mod.getAllFunc(), sources, state); // [HASLab] particular state
+        if ("yes".equals(System.getProperty("debug"))) validate(filename);
+    }
+    
+    /** Helper method to write out a full XML file. */
+    // [HASLab] print all states
+    private static void writeXML(A4Reporter rep, Module mod, String filename, A4Solution sol, Map<String,String> sources) throws Exception { // [HASLab]
+        sol.writeXML(rep, filename, mod.getAllFunc(), sources, -1); // [HASLab] -1 means all states will be written
         if ("yes".equals(System.getProperty("debug"))) validate(filename);
     }
 
@@ -556,7 +564,7 @@ final class SimpleReporter extends A4Reporter {
 					if (simpleReporter != null) simpleReporter.debug(i +": "+a4Solution);
 				}
 				a4Solution.temporalAtoms.optimizeTemporalAtoms();
-				writeXML(simpleReporter, latestModule, filename + "Evaluator.xml", a4Solution, kkSRC, 0);
+				writeXML(simpleReporter, latestModule, filename + "Trace.xml", a4Solution, kkSRC);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}

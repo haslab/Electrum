@@ -1076,7 +1076,7 @@ public final class A4Solution {
 			rep.resultCNF(out);
 			return null;
 		}
-		if (/*solver.options().solver()==SATFactory.ZChaffMincost ||*/ !solver.options().solver().incremental()) {
+		if (/*solver.options().solver()==SATFactory.ZChaffMincost ||*/ !solver.options().solver().incremental() && !solver.options().decomposed()) { // [HASLab] decomposed is incremental
 			if (sol==null) sol = solver.solve(fgoal, bounds);
 		} else { // [HASLab] kodkod 2.0+
 
@@ -1308,25 +1308,9 @@ public final class A4Solution {
 	//===================================================================================================//
 
 	/** Helper method to write out a full XML file. */
-	public void writeXML(String filename) throws Err {
-		writeXML(filename, null, null);
-	}
-
-	/** Helper method to write out a full XML file. */
 	// [HASLab] evals to specific state.
 	public void writeXML(String filename, int state) throws Err {
 		writeXML(filename, null, null, state);
-	}
-
-	/** Helper method to write out a full XML file. */
-	public void writeXML(String filename, Iterable<Func> macros) throws Err {
-		writeXML(filename, macros, null);
-	}
-	
-	/** Helper method to write out a full XML file.*/
-	// [HASLab] evals to 0. 
-	public void writeXML(String filename, Iterable<Func> macros, Map<String,String> sourceFiles) throws Err {
-		writeXML(filename, macros, sourceFiles, 0);
 	}
 
 	/** Helper method to write out a full XML file.*/
@@ -1355,12 +1339,6 @@ public final class A4Solution {
 			Util.close(out);
 			throw new ErrorFatal("Error writing the solution XML file.", ex);
 		}
-	}
-
-	/** Helper method to write out a full XML file. */
-	// [HASLab] evals to 0. 
-	public void writeXML(PrintWriter writer, Iterable<Func> macros, Map<String,String> sourceFiles) throws Err {
-		writeXML(writer, macros, sourceFiles, 0);
 	}
 	
 	/** Helper method to write out a full XML file. */
