@@ -430,7 +430,15 @@ public final class SimpleGUI implements ComponentListener, Listener {
            "models/examples/tutorial/farmer.als",
            "models/util/boolean.als", "models/util/graph.als", "models/util/integer.als", "models/util/natural.als",
            "models/util/ordering.als", "models/util/relation.als", "models/util/seqrel.als", "models/util/sequence.als",
-           "models/util/sequniv.als", "models/util/ternary.als", "models/util/time.als"
+           "models/util/sequniv.als", "models/util/ternary.als", "models/util/time.als",
+           "models/examples/electrum/toys/railway.ele","models/examples/electrum/toys/life.ele","models/examples/electrum/toys/birthday.ele", // [HASLab] electrum examples
+           "models/examples/electrum/toys/ex1.ele","models/examples/electrum/algorithms/messaging.ele","models/examples/electrum/algorithms/stable_orient_ring.ele",
+           "models/examples/electrum/algorithms/ring.ele","models/examples/electrum/algorithms/span_tree.ele","models/examples/electrum/algorithms/peterson.ele",
+           "models/examples/electrum/algorithms/stable_mutex_ring.ele","models/examples/electrum/algorithms/dijkstra.ele","models/examples/electrum/puzzles/hanoi.ele",
+           "models/examples/electrum/puzzles/hanoi.thm","models/examples/electrum/puzzles/farmer.thm","models/examples/electrum/puzzles/farmer.ele",
+           "models/examples/electrum/systems/hotel.ele","models/examples/electrum/systems/views.ele","models/examples/electrum/systems/javatypes_soundness.ele",
+           "models/examples/electrum/systems/lift_spl.ele","models/examples/electrum/case_studies/train.ele","models/examples/electrum/case_studies/train.thm",
+           "models/examples/electrum/case_studies/firewire.ele"
            );
         // Record the locations
         System.setProperty("alloy.theme0", alloyHome() + fs + "models");
