@@ -131,14 +131,14 @@ public final class SimpleCLI {
         }
         
         private String outcome() {
-    		StringBuilder sb = new StringBuilder("outcome ");
-    		sb.append("(cmd "+(cmd_type?"check":"run")+") ");
+    		StringBuilder sb = new StringBuilder("OUTCOME (");
+    		sb.append("(cmd "+(cmd_type?"Check":"Run")+") ");
     		sb.append("(index "+cmd_index+") ");
     		sb.append("(label "+cmd_name+") ");
     		sb.append("(scope "+overall+") ");
     		sb.append("(ms "+solve_time+") ");
     		sb.append("(outcome "+(outcome?"SAT":"UNSAT")+") ");
-    		sb.append("(asexpect "+expected+")\n");
+    		sb.append("(as_expected "+expected+"))\n");
     		if (clargs.hasOption('o') && solution != null) {
     			StringWriter wr = new StringWriter();
 				try {
