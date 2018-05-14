@@ -302,13 +302,20 @@ final class BoundsComputer {
                  }
                  ub.addAll(upper);
               }
-               Relation r = sol.addRel(s.label+"."+f.label, null, ub,f);
+  		 	  Relation r = sol.addRel(s.label + "." + f.label, null, ub, f);
 
-               // [HASLab] avoid collapse of var one sigs
-               sol.addField(f, isOne&&!isVar ? sol.a2k(s).product(r) : r);
+			  // [HASLab] avoid collapse of var one sigs
+			  sol.addField(f, isOne&&!isVar ? sol.a2k(s).product(r) : r);
 
            }
         }
+        // [HASLab] Add possible symbolic bounds
+        for(Sig s:sigs) {
+        	sol.addSymbolicBound(s);
+            for(Field f:s.getFields())
+    		 	sol.addSymbolicBound(f);
+        }
+
         // Add any additional SIZE constraints
         for(Sig s:sigs) if (!s.builtin) {
             Expression exp = sol.a2k(s);

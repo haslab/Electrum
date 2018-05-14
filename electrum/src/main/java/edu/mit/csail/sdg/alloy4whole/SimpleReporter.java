@@ -388,7 +388,7 @@ final class SimpleReporter extends A4Reporter {
     // [HASLab] print all states
     private static void writeXML(A4Reporter rep, Module mod, String filename, A4Solution sol, Map<String,String> sources) throws Exception { // [HASLab]
         sol.writeXML(rep, filename, mod.getAllFunc(), sources, -1); // [HASLab] -1 means all states will be written
-        if ("yes".equals(System.getProperty("debug"))) validate(filename);
+//        if ("yes".equals(System.getProperty("debug"))) validate(filename);
     }
 
     private int warn=0;

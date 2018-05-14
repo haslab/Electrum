@@ -100,6 +100,7 @@ import edu.mit.csail.sdg.alloy4compiler.ast.Func;
 import edu.mit.csail.sdg.alloy4compiler.ast.Sig;
 import edu.mit.csail.sdg.alloy4compiler.ast.Sig.Field;
 import edu.mit.csail.sdg.alloy4compiler.ast.Sig.PrimSig;
+import edu.mit.csail.sdg.alloy4compiler.ast.Sig.SubsetSig;
 import edu.mit.csail.sdg.alloy4compiler.ast.Type;
 import edu.mit.csail.sdg.alloy4compiler.translator.A4Options.SatSolver;
 
@@ -297,13 +298,14 @@ public final class A4Solution {
 		int sym = (expected==1 ? 0 : opt.symmetry);
 
 		ExtendedOptions varOptions = new ExtendedOptions(); // [HASLab] extended options
+		varOptions.setReporter(new SLF4JReporter()); // [HASLab] reporter
 		varOptions.setRunTemporal(true); // [HASLab] extended options
 		varOptions.setNoOverflow(opt.noOverflow);
 		varOptions.setMaxTraceLength(maxTracelength); // [HASLab] propagate options
 		varOptions.setMinTraceLength(minTracelength); // [HASLab] propagate options
 		if (opt.decomposed > 0) { // [HASLab] propagate options
 			varOptions.setRunDecomposed(true);
-			varOptions.setDecomposedMode(DMode.HYBRID);
+			varOptions.setDecomposedMode(DMode.PARALLEL);
 			if (opt.decomposed > 1) // if 1, let default
 				varOptions.setThreads(opt.decomposed);
 		} else {
@@ -480,11 +482,13 @@ public final class A4Solution {
 		if (solved) throw new ErrorFatal("Cannot add a Kodkod relation since solve() has completed.");
 		Relation rel;
 		if (expr instanceof  Field){
-			if (((Field) expr).isVariable != null){rel = VarRelation.nary(label, upper.arity());} // [HASLab]
+			Field f = (Field) expr;
+			if (f.isVariable != null){rel = VarRelation.nary(label, upper.arity());} // [HASLab]
 			else{rel = Relation.nary(label, upper.arity());}
 		}  else {
 			if (expr instanceof  Sig){
-				if (((Sig) expr).isVariable != null){rel = VarRelation.nary(label, upper.arity());} // [HASLab]
+				Sig s = (Sig) expr;
+				if (s.isVariable != null){rel = VarRelation.nary(label, upper.arity());} // [HASLab]
 				else{rel = Relation.nary(label, upper.arity());}
 			}else{
 				rel = Relation.nary(label, upper.arity());
@@ -1083,13 +1087,10 @@ public final class A4Solution {
 		if (/*solver.options().solver()==SATFactory.ZChaffMincost ||*/ !solver.options().solver().incremental() && !solver.options().decomposed()) { // [HASLab] decomposed is incremental
 			if (sol==null) sol = solver.solve(fgoal, bounds);
 		} else { // [HASLab] kodkod 2.0+
-
-			rep.debug("eff: "+fgoal.toString());
-			rep.debug("eff: "+bounds.toString());
-			rep.debug("eff: "+solver.options().toString());
 			PardinusBounds b;
-			if (solver.options().decomposed())
+			if (solver.options().decomposed()) {
 				b = new PardinusBounds(bounds,true); // [HASLab] support for decomposed
+			}
 			else b = bounds;
 			kEnumerator = new Peeker<Solution>(solver.solveAll(fgoal, b));
 			if (sol==null) sol = kEnumerator.next();
@@ -1357,6 +1358,36 @@ public final class A4Solution {
 	public void writeXML(A4Reporter rep, PrintWriter writer, Iterable<Func> macros, Map<String,String> sourceFiles, int state) throws Err {
 		A4SolutionWriter.writeInstance(rep, this, writer, macros, sourceFiles, state);
 		if (writer.checkError()) throw new ErrorFatal("Error writing the solution XML file.");
+	}
+	
+	// [HASLab]
+	protected void addSymbolicBound(Sig s) {
+		if (s.builtin || s.isTopLevel() || s instanceof PrimSig) return;
+		Expression ke = Expression.NONE; // [HASLab]
+		if (s instanceof PrimSig) ke = a2k.get(((PrimSig) s).parent); // [HASLab]
+		else
+			for (Sig ss : ((SubsetSig) s).parents)
+				ke = ke.union(a2k.get(ss));
+		if (ke != Expression.NONE && ke != null)
+			bounds.bound((Relation) a2k.get(s), ke);
+	}
+	
+	// [HASLab]
+	protected void addSymbolicBound(Field f) {
+		boolean isOne = f.sig.isOne!=null;
+        boolean isVar = f.sig.isVariable!=null;
+        Type t = isOne&&!isVar ? Sig.UNIV.type().join(f.type()) : f.type();
+        Expression ub = null;
+        for(List<PrimSig> p:t.fold()) {
+        	Expression upper=null;
+           for(PrimSig b:p) {
+              Expression tmp = a2k(b);
+              if (upper==null) upper=tmp; else upper=upper.product(tmp);
+           }
+           if (ub==null) ub = upper; else ub = ub.union(upper);
+        }
+		bounds.bound((Relation) a2k.get(f), ub);
+
 	}
 	
 }
