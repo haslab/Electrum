@@ -305,7 +305,7 @@ public final class A4Solution {
 		varOptions.setMinTraceLength(minTracelength); // [HASLab] propagate options
 		if (opt.decomposed > 0) { // [HASLab] propagate options
 			varOptions.setRunDecomposed(true);
-			varOptions.setDecomposedMode(DMode.PARALLEL);
+			varOptions.setDecomposedMode(DMode.HYBRID);
 			if (opt.decomposed > 1) // if 1, let default
 				varOptions.setThreads(opt.decomposed);
 		} else {
@@ -1363,17 +1363,30 @@ public final class A4Solution {
 	// [HASLab]
 	protected void addSymbolicBound(Sig s) {
 		if (s.builtin || s.isTopLevel() || s instanceof PrimSig) return;
+		Relation r = (Relation) a2k.get(s);
+		if (bounds.lowerBound(r).size() == bounds.upperBound(r).size())
+			return;
 		Expression ke = Expression.NONE; // [HASLab]
 		if (s instanceof PrimSig) ke = a2k.get(((PrimSig) s).parent); // [HASLab]
 		else
 			for (Sig ss : ((SubsetSig) s).parents)
 				ke = ke.union(a2k.get(ss));
 		if (ke != Expression.NONE && ke != null)
-			bounds.bound((Relation) a2k.get(s), ke);
+			bounds.bound(r, ke);
 	}
 	
 	// [HASLab]
 	protected void addSymbolicBound(Field f) {
+		Relation r;
+		Expression e = a2k.get(f);
+		if (e instanceof Relation) r = (Relation) e;
+		else if (e instanceof BinaryExpression &&  // singleton sig, collapsed relation
+				((BinaryExpression) e).op() == ExprOperator.PRODUCT &&
+				((BinaryExpression) e).right() instanceof Relation)
+			r = (Relation) ((BinaryExpression) e).right();
+		else throw new UnsupportedOperationException();
+		if (bounds.lowerBound(r).size() == bounds.upperBound(r).size())
+			return;
 		boolean isOne = f.sig.isOne!=null;
         boolean isVar = f.sig.isVariable!=null;
         Type t = isOne&&!isVar ? Sig.UNIV.type().join(f.type()) : f.type();
@@ -1386,8 +1399,7 @@ public final class A4Solution {
            }
            if (ub==null) ub = upper; else ub = ub.union(upper);
         }
-		bounds.bound((Relation) a2k.get(f), ub);
-
+		bounds.bound(r, ub);
 	}
 	
 }
