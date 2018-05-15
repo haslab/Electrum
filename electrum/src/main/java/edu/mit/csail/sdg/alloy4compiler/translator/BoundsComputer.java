@@ -34,6 +34,7 @@ import kodkod.instance.Universe;
 import edu.mit.csail.sdg.alloy4.A4Reporter;
 import edu.mit.csail.sdg.alloy4.Err;
 import edu.mit.csail.sdg.alloy4.Pos;
+import edu.mit.csail.sdg.alloy4.Version;
 import edu.mit.csail.sdg.alloy4compiler.ast.Sig.Field;
 import edu.mit.csail.sdg.alloy4compiler.ast.Sig.PrimSig;
 import edu.mit.csail.sdg.alloy4compiler.ast.Sig.SubsetSig;
@@ -310,11 +311,12 @@ final class BoundsComputer {
            }
         }
         // [HASLab] Add possible symbolic bounds
-        for(Sig s:sigs) {
-        	sol.addSymbolicBound(s);
-            for(Field f:s.getFields())
-    		 	sol.addSymbolicBound(f);
-        }
+        if (Version.experimental)
+	        for(Sig s:sigs) {
+	        	sol.addSymbolicBound(s);
+	            for(Field f:s.getFields())
+	    		 	sol.addSymbolicBound(f);
+	        }
 
         // Add any additional SIZE constraints
         for(Sig s:sigs) if (!s.builtin) {
