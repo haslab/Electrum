@@ -59,6 +59,7 @@ public final class SimpleCLI {
         private boolean cmd_type;
         private boolean expected;
         private int overall;
+        private String filename;
         private A4Solution solution;
         
         public SimpleReporter() throws IOException { }
@@ -101,6 +102,7 @@ public final class SimpleCLI {
             cmd_name = cmd.label;
             cmd_type = cmd.check;
             overall = cmd.overall;
+            filename = ((A4Solution) solution).getOriginalFilename();
             this.solution = (A4Solution) solution;
             StringBuilder sb = new StringBuilder();
             sb.append(cmd.check ? "   Counterexample found. " : "   Instance found. ");
@@ -120,6 +122,7 @@ public final class SimpleCLI {
             cmd_name = cmd.label;
             cmd_type = cmd.check;
             overall = cmd.overall;
+            filename = ((A4Solution) solution).getOriginalFilename();
             this.solution = null;
             StringBuilder sb = new StringBuilder();
             sb.append(cmd.check ? "   No counterexample found." : "   No instance found.");
@@ -132,7 +135,8 @@ public final class SimpleCLI {
         
         private String outcome() {
     		StringBuilder sb = new StringBuilder("OUTCOME (");
-    		sb.append("(cmd "+(cmd_type?"Check":"Run")+") ");
+    		sb.append("(cmd "+(cmd_type?"check":"run")+") ");
+    		sb.append("(file "+filename+"))\n");
     		sb.append("(index "+cmd_index+") ");
     		sb.append("(label "+cmd_name+") ");
     		sb.append("(scope "+overall+") ");
