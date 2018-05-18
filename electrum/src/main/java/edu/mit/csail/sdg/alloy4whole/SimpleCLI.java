@@ -48,6 +48,7 @@ import edu.mit.csail.sdg.alloy4compiler.translator.TranslateAlloyToKodkod;
 
 public final class SimpleCLI {
 
+	static private A4Options options;
 
     private static final class SimpleReporter extends A4Reporter {
         private Logger LOGGER = LoggerFactory.getLogger(A4Reporter.class);
@@ -142,6 +143,7 @@ public final class SimpleCLI {
     		sb.append("(label "+cmd_name+") ");
     		sb.append("(scope "+overall+") ");
     		sb.append("(outcome "+(outcome?"SAT":"UNSAT")+") ");
+    		sb.append("(engine "+options.solver.toString()+")");
     		sb.append("(as_expected "+expected+"))\n");
     		if (clargs.hasOption('o') && solution != null) {
     			StringWriter wr = new StringWriter();
@@ -231,7 +233,7 @@ public final class SimpleCLI {
 				rep.info("Parsing " + filename + ".\n");
 				Module world = CompUtil.parseEverything_fromFile(rep, null, filename);
 				List<Command> cmds = world.getAllCommands();
-				A4Options options = new A4Options();
+				options = new A4Options();
 				options.originalFilename = filename;
 				options.solver = A4Options.SatSolver.MiniSatJNI;
 				if (clargs.hasOption("SAT4J"))
