@@ -96,7 +96,7 @@ class OurSyntaxDocument extends DefaultStyledDocument {
 		"disjoint", "else", "enum", "exactly", "exh", "exhaustive", "expect", "extends", "fact", "for", "fun", "iden",
 		"iff", "implies", "in", "Int", "int", "let", "lone", "module", "no", "none", "not", "one", "open", "or", "part",
 		"partition", "pred", "private", "run", "seq", "set", "sig", "some", "String", "sum", "this", "univ", 
-		"eventually", "always", "after", "once", "historically", "since", "previous", "until", "release", "Time" // [HASLab] temporal keywords
+		"eventually", "always", "after", "once", "historically", "since", "trigger", "previous", "until", "release", "Time" // [HASLab] temporal keywords
 	};
 
 	/** Returns true if array[start .. start+len-1] matches one of the reserved keyword. */

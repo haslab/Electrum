@@ -66,7 +66,7 @@ public final class Command extends Browsable {
 	// [HASLab]
 	public final int maxtime;
 	
-	/** The minimus trace length (1 or higher) (Or -1 if it was not specified). */
+	/** The minimum trace length (1 or higher) (Or -1 if it was not specified). */
 	// [HASLab]
 	public final int mintime;
 

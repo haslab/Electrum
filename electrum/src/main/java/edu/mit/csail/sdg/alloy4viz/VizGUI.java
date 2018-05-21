@@ -1,5 +1,5 @@
 /* Alloy Analyzer 4 -- Copyright (c) 2006-2009, Felix Chang
- * Electrum -- Copyright (c) 2014-present, Nuno Macedo
+ * Electrum -- Copyright (c) 2015-present, Nuno Macedo
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files
  * (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify,
@@ -39,7 +39,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.prefs.Preferences;
-import java.util.regex.Pattern;
 
 import javax.swing.Box;
 import javax.swing.Icon;
@@ -687,7 +686,7 @@ public final class VizGUI implements ComponentListener {
 	   /** Load the XML instance. */
 	   // [HASLab] considers particular state
 	   public void loadXML(final String fileName, boolean forcefully, int state) {
-  	 	  final String xmlFileName = Util.canon(temporize(fileName,state) + ".xml"); // [HASLab] state
+  	 	  final String xmlFileName = Util.canon(Util.temporize(fileName,state) + ".xml"); // [HASLab] state
 	      File f = new File(xmlFileName);
 	      if (forcefully || !xmlFileName.equals(this.xmlFileName)) {
 	         AlloyInstance myInstance;
@@ -988,7 +987,7 @@ public final class VizGUI implements ComponentListener {
 	      } else if (enumerator==null) {
 	         OurDialog.alert("Cannot display the next solution since the analysis engine is not loaded with the visualizer.");
 	      } else {
- 			 final String xmlFileName = Util.canon(temporize(this.xmlFileName,0) + ".xml"); // [HASLab] get xml for current state
+ 			 final String xmlFileName = Util.canon(Util.temporize(this.xmlFileName,0) + ".xml"); // [HASLab] get xml for current state
 			 try { enumerator.compute(xmlFileName); } catch(Throwable ex) { OurDialog.alert(ex.getMessage()); }
 	      }
 	      return null;
@@ -1103,7 +1102,7 @@ public final class VizGUI implements ComponentListener {
 			});
 			rightTime.addActionListener(new ActionListener() {
 				public final void actionPerformed(ActionEvent e) {
-					if (comboTime.getSelectedIndex() == getVizState().getOriginalInstance().originalA4.getLastTrace())
+					if (comboTime.getSelectedIndex() == getVizState().getOriginalInstance().originalA4.getLastState())
 						comboTime.setSelectedIndex(backindex);
 					else {
 						int curIndex = comboTime.getSelectedIndex();
@@ -1116,8 +1115,8 @@ public final class VizGUI implements ComponentListener {
 			});
 			comboTime.addActionListener(new ActionListener() {
 				public final void actionPerformed(ActionEvent e) {
-					int loop = getVizState().getOriginalInstance().originalA4.getBackLoop();
-					int leng = getVizState().getOriginalInstance().originalA4.getLastTrace();
+					int loop = getVizState().getOriginalInstance().originalA4.getLoopState();
+					int leng = getVizState().getOriginalInstance().originalA4.getLastState();
 					
 					leftTime.setEnabled(comboTime.getSelectedIndex() > 0);
 					rightTime.setEnabled(comboTime.getSelectedIndex() < comboTime.getItemCount() - 1 || backindex != -1);
@@ -1169,13 +1168,13 @@ public final class VizGUI implements ComponentListener {
 		 */
 		// [HASLab]
 		private final void repopulateTemporalPanel() {
-			int last = getVizState().getOriginalInstance().originalA4.getLastTrace();
+			int last = getVizState().getOriginalInstance().originalA4.getLastState();
 			final String[] atomnames = this.createTimeAtoms(last+1);
 			comboTime.removeAllItems();
 			for (String s : atomnames)
 				comboTime.addItem(s);
 			
-			backindex = getVizState().getOriginalInstance().originalA4.getBackLoop();
+			backindex = getVizState().getOriginalInstance().originalA4.getLoopState();
 		
 			leftTime.setEnabled(false);
 			rightTime.setEnabled(atomnames.length > 1 || backindex == 0);
@@ -1192,20 +1191,6 @@ public final class VizGUI implements ComponentListener {
 			for (int i = 0; i < n; i++)
 				times[i] = "Time " + i;
 			return times;
-		}
-
-		/** 
-		 * Determines the name of the xml file for a particular state of the trace.
-		 * 
-		 * @param file the original name of the file
-		 * @param state the particular state to be retrieved
-		 * @return the file with the representation of the state
-		 */
-		// [HASLab]
-		private static String temporize(String file, int state) {
-			String[] spl = file.split(Pattern.quote("_"));
-			String dfilename = spl[0] + "_" + state;
-			return dfilename;
 		}
 
 		/** Paints the label of the loop and last states differently.*/

@@ -195,7 +195,7 @@ public final class WorkerEngine {
                      x = sub2main.readObject();
                   } catch(Throwable ex) {
                      sub.destroy(); Util.close(sub2main);
-                     synchronized(WorkerEngine.class) { if (latest_sub != sub) return; callback.fail(); return; } // [HASLab]
+                     synchronized(WorkerEngine.class) { if (latest_sub != sub) return; callback.fail(); return; }
                   }
                   synchronized(WorkerEngine.class) {
                      if (latest_sub != sub) return; if (x==null) {callback.done(); return;} else callback.callback(x);

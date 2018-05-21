@@ -269,10 +269,6 @@ public class A4Preferences {
    /** True if Alloy Analyzer should not report models that overflow. */
    public static final BooleanPref NoOverflow = new BooleanPref("NoOverflow", "Prevent overflows", true);
 
-   /** True if Alloy Analyzer is to run in decomposed mode. */
-   // [HASLab]
-   public static final BooleanPref Decomposed = new BooleanPref("Decomposed", "Decomposed strategy", true);
-
    /** The latest X coordinate of the Alloy Analyzer's main window. */
    public static final IntPref AnalyzerX = new IntPref("AnalyzerX", 0, -1, 65535);
 
@@ -315,16 +311,28 @@ public class A4Preferences {
    /** The skolem depth. */
    public static final IntChoicePref SkolemDepth = new IntChoicePref("SkolemDepth3", "Skolem depth", Arrays.asList(0, 1, 2, 3, 4), 1);
 
-   /** The unsat core minimization strategy. */
+   /** True if Alloy Analyzer is to run in decomposed mode. */
    private static final String[] coreMinimizationLabels = new String[] {
       "Slow", "Slow (guarantees local minimum)",
       "Medium", "Medium",
       "Fast", "Fast (initial unsat core)"
    };
-   public static final IntChoicePref CoreMinimization = new IntChoicePref("CoreMinimization", "Unsat core minimization",
+   public static final IntChoicePref CoreMinimization= new IntChoicePref("CoreMinimization", "Unsat core minimization",
          Arrays.asList(0, 1, 2), 2) {
       @Override public Object renderValueShort(Integer value) { return coreMinimizationLabels[value*2]; }
       @Override public Object renderValueLong(Integer value)  { return coreMinimizationLabels[value*2+1]; }
+   };
+   
+   /** The unsat core minimization strategy. */
+   private static final String[] decompLabels = new String[] {
+      "Off", "Amalgamated",
+      "Hybrid", "Hybrid",
+      "Parallel", "Purely parallel"
+   };
+   public static final IntChoicePref Decomposed = new IntChoicePref("Decomposed", "Decomposed strategy",
+         Arrays.asList(0, 1, 2), 2) {
+      @Override public Object renderValueShort(Integer value) { return decompLabels[value*2]; }
+      @Override public Object renderValueLong(Integer value)  { return decompLabels[value*2+1]; }
    };
 
    private static final String[] coreGranularityLabels = new String[] {

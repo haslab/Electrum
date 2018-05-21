@@ -42,7 +42,7 @@ import kodkod.util.nodes.PrettyPrinter;
  * <p> Requirements: atoms must be String objects (since we cannot possibly
  * output a Java source code that can re-generate arbitrary Java objects).
  * 
- * @modified nmm
+ * @modified: Nuno Macedo // [HASLab] temporal solving
  */
 
 public final class TranslateKodkodToJava implements VoidVisitor {
@@ -58,18 +58,18 @@ public final class TranslateKodkodToJava implements VoidVisitor {
 			public Integer visit(Variable x)              { return 1; }
 			public Integer visit(ConstantExpression x)    { return 1; }
 			public Integer visit(NotFormula x)            { return 1 + x.formula().accept(this); }
-			public Integer visit(UnaryTempFormula x)      { return 1 + x.formula().accept(this); } // pt.uminho.haslab: temporal nodes
+			public Integer visit(UnaryTempFormula x)      { return 1 + x.formula().accept(this); } // [HASLab] temporal nodes
 			public Integer visit(IntToExprCast x)         { return 1 + x.intExpr().accept(this); }
 			public Integer visit(Decl x)                  { return 1 + x.expression().accept(this); }
 			public Integer visit(ExprToIntCast x)         { return 1 + x.expression().accept(this); }
 			public Integer visit(UnaryExpression x)       { return 1 + x.expression().accept(this); }
-			public Integer visit(TempExpression x)        { return 1 + x.expression().accept(this); } // pt.uminho.haslab: temporal nodes
+			public Integer visit(TempExpression x)        { return 1 + x.expression().accept(this); } // [HASLab] temporal nodes
 			public Integer visit(UnaryIntExpression x)    { return 1 + x.intExpr().accept(this); }
 			public Integer visit(MultiplicityFormula x)   { return 1 + x.expression().accept(this); }
 			public Integer visit(BinaryExpression x)      { return 1 + max(x.left().accept(this), x.right().accept(this)); }
 			public Integer visit(ComparisonFormula x)     { return 1 + max(x.left().accept(this), x.right().accept(this)); }
 			public Integer visit(BinaryFormula x)         { return 1 + max(x.left().accept(this), x.right().accept(this)); }
-			public Integer visit(BinaryTempFormula x)     { return 1 + max(x.left().accept(this), x.right().accept(this)); } // pt.uminho.haslab: temporal nodes
+			public Integer visit(BinaryTempFormula x)     { return 1 + max(x.left().accept(this), x.right().accept(this)); } // [HASLab] temporal nodes
 			public Integer visit(BinaryIntExpression x)   { return 1 + max(x.left().accept(this), x.right().accept(this)); }
 			public Integer visit(IntComparisonFormula x)  { return 1 + max(x.left().accept(this), x.right().accept(this)); }
 			public Integer visit(IfExpression x)          { return 1 + max(x.condition().accept(this), x.thenExpr().accept(this), x.elseExpr().accept(this)); }
@@ -610,8 +610,8 @@ public final class TranslateKodkodToJava implements VoidVisitor {
 		file.printf(");%n");
 	}
 
-	@Override
-	// pt.uminho.haslab: temporal nodes
+	/** {@inheritDoc} */
+	// [HASLab] temporal nodes
 	public void visit(UnaryTempFormula temporalFormula) {
 		String newname = makename(temporalFormula);
 		if (newname == null) return;
@@ -627,8 +627,8 @@ public final class TranslateKodkodToJava implements VoidVisitor {
 		}
 	}
 
-	@Override
-	// pt.uminho.haslab: temporal nodes
+	/** {@inheritDoc} */
+	// [HASLab] temporal nodes
 	public void visit(BinaryTempFormula temporalFormula) {
 		String newname=makename(temporalFormula); if (newname==null) return;
 		String left=make(temporalFormula.left());
@@ -637,12 +637,13 @@ public final class TranslateKodkodToJava implements VoidVisitor {
 			case RELEASE: file.printf("Expression %s=%s.release(%s);%n", newname, left, right); break;
 			case UNTIL: file.printf("Expression %s=%s.until(%s);%n", newname, left, right); break;
 			case SINCE: file.printf("Expression %s=%s.since(%s);%n", newname, left, right); break;
+			case TRIGGER: file.printf("Expression %s=%s.trigger(%s);%n", newname, left, right); break;
 			default: throw new RuntimeException("Unknown temporal kodkod operator \""+temporalFormula.op()+"\" encountered");
 		}
 	}
 
-	@Override
-	// pt.uminho.haslab: temporal nodes
+	/** {@inheritDoc} */
+	// [HASLab] temporal nodes
 	public void visit(TempExpression temporalExpr) {
 		String newname=makename(temporalExpr); if (newname==null) return;
 		String sub=make(temporalExpr.expression());

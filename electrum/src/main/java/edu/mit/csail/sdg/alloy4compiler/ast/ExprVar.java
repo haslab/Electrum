@@ -30,9 +30,6 @@ import edu.mit.csail.sdg.alloy4.Pos;
 
 public final class ExprVar extends ExprHasName {
 
-    // [HASLab]
-	public final boolean isPost;
-
 	/** {@inheritDoc} */
     @Override public void toString(StringBuilder out, int indent) {
         if (indent<0) {
@@ -44,16 +41,8 @@ public final class ExprVar extends ExprHasName {
     }
 
     /** Constructs an ExprVar object */
-    // [HASLab]
     private ExprVar(Pos pos, String label, Type type) {
         super(pos, label, type);
-        this.isPost = false;
-    }
-    
-    // [HASLab]
-    private ExprVar(Pos pos, String label, Type type, boolean post) {
-        super(pos, label, type);
-        this.isPost = post;
     }
 
     /** Constructs an ExprVar variable with the EMPTY type
@@ -64,11 +53,6 @@ public final class ExprVar extends ExprHasName {
         return new ExprVar(pos, label, Type.EMPTY);
     }
     
-    // [HASLab]
-    public static ExprVar make(Pos pos, String label, boolean post) {
-        return new ExprVar(pos, label, Type.EMPTY, post);
-    }
-
     /** Constructs an ExprVar variable with the given type
      * @param pos - the original position in the source file (can be null if unknown)
      * @param label - the label for this variable (it is only used for pretty-printing and does not have to be unique)

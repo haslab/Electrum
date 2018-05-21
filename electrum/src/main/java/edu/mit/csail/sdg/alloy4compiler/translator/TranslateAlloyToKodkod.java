@@ -591,17 +591,17 @@ public final class TranslateAlloyToKodkod extends VisitReturn<Object> {
             case EXACTLYOF: case SOMEOF: case LONEOF: case ONEOF: case SETOF: return cset(x.sub);
             case NOOP: return visitThis(x.sub);
             case NOT:  return k2pos( cform(x.sub).not() , x );
-            case AFTER:  	   return k2pos( cform(x.sub).next() , x ); // [HASLab]
-            case ALWAYS:  	   return k2pos( cform(x.sub).always() , x ); // [HASLab]
-            case EVENTUALLY:   return k2pos( cform(x.sub).eventually() , x ); // [HASLab]
-            case PREVIOUS:     return k2pos( cform(x.sub).previous() , x ); // [HASLab]
+            case AFTER:  	   return k2pos( cform(x.sub).next() , x );         // [HASLab]
+            case ALWAYS:  	   return k2pos( cform(x.sub).always() , x );       // [HASLab]
+            case EVENTUALLY:   return k2pos( cform(x.sub).eventually() , x );   // [HASLab]
+            case PREVIOUS:     return k2pos( cform(x.sub).previous() , x );     // [HASLab]
             case HISTORICALLY: return k2pos( cform(x.sub).historically() , x ); // [HASLab]
-            case ONCE:  	   return k2pos( cform(x.sub).once() , x ); // [HASLab]
-            case PRIME:return cset(x.sub).prime(); // [HASLab]
+            case ONCE:  	   return k2pos( cform(x.sub).once() , x );         // [HASLab]
             case SOME: return k2pos( cset(x.sub).some() , x);
             case LONE: return k2pos( cset(x.sub).lone() , x);
             case ONE:  return k2pos( cset(x.sub).one() , x);
             case NO:   return k2pos( cset(x.sub).no() , x);
+            case PRIME:       return cset(x.sub).prime();                       // [HASLab]
             case TRANSPOSE:   return cset(x.sub).transpose();
             case CARDINALITY: return cset(x.sub).count();
             case CAST2SIGINT: return cint(x.sub).toExpression();
@@ -726,7 +726,7 @@ public final class TranslateAlloyToKodkod extends VisitReturn<Object> {
         if (x.op == ExprList.Op.TOTALORDER) {
             Expression elem = cset(x.args.get(0)), first = cset(x.args.get(1)), next = cset(x.args.get(2));
             if (elem instanceof Relation && first instanceof Relation && next instanceof Relation) {
-                Relation lst = frame.addRel(((Relation) elem).name() + "_last", null, frame.query(true, (Relation)elem, false),null); // [HASLab]
+                Relation lst = frame.addRel(((Relation) elem).name() + "_last", null, frame.query(true, (Relation)elem, false),null); // [HASLab] no unnamed rels for electrod
                 totalOrderPredicates.add((Relation)elem); totalOrderPredicates.add((Relation)first); totalOrderPredicates.add(lst); totalOrderPredicates.add((Relation)next);
                 return k2pos(((Relation)next).totalOrder((Relation)elem, (Relation)first, lst), x);
             }
@@ -760,7 +760,7 @@ public final class TranslateAlloyToKodkod extends VisitReturn<Object> {
         Expr a=x.left, b=x.right;
         Expression s, s2, eL, eR; IntExpression i; Formula f; Object objL, objR;
         switch(x.op) {
-            case IMPLIES: f=cform(a).implies(cform(b)); return k2pos(f,x); // [HASLab] changed from !a || b
+            case IMPLIES: f=cform(a).implies(cform(b)); return k2pos(f,x);      // [HASLab] changed from !a || b (why?)
             case IN:       return k2pos(isIn(cset(a), b), x);
             case NOT_IN:  return k2pos(isIn(cset(a),b).not(), x);
             case LT:  i=cint(a);  f=i.lt(cint(b));   return k2pos(f,x);
@@ -773,9 +773,10 @@ public final class TranslateAlloyToKodkod extends VisitReturn<Object> {
             case NOT_GTE: i=cint(a);  f=i.gte(cint(b)).not();  return k2pos(f,x);
             case AND: f=cform(a); f=f.and(cform(b)); return k2pos(f,x);
             case OR:  f=cform(a); f=f.or(cform(b));  return k2pos(f,x);
-            case UNTIL: f=cform(a); f=f.until(cform(b)); return k2pos(f,x); // [HASLab]
+            case UNTIL:   f=cform(a); f=f.until(cform(b)); return k2pos(f,x);   // [HASLab]
             case RELEASE: f=cform(a); f=f.release(cform(b)); return k2pos(f,x); // [HASLab]
-            case SINCE: f=cform(a); f=f.since(cform(b)); return k2pos(f,x); // [HASLab]
+            case SINCE:   f=cform(a); f=f.since(cform(b)); return k2pos(f,x);   // [HASLab]
+            case TRIGGER: f=cform(a); f=f.trigger(cform(b)); return k2pos(f,x); // [HASLab]
             case IFF: f=cform(a); f=f.iff(cform(b)); return k2pos(f,x);
             case PLUSPLUS: s=cset(a); return s.override(cset(b));
             case MUL: i=cint(a); return i.multiply(cint(b));

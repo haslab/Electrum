@@ -263,11 +263,10 @@ public class PreferencesDialog extends JFrame {
 
    protected Component initSolverPane() {
       JPanel p = OurUtil.makeGrid(2, gbc().make(), mkCombo(Solver), mkSlider(SkolemDepth),
-            mkCombo(Unrolls), mkCombo(CoreGranularity), mkSlider(CoreMinimization));
-      int r = 5;
+            mkCombo(Unrolls), mkCombo(CoreGranularity), mkSlider(CoreMinimization), mkSlider(Decomposed)); // [HASLab]
+      int r = 6; // [HASLab]
       addToGrid(p, mkCheckBox(NoOverflow),           gbc().pos(0, r++).gridwidth(2));
       addToGrid(p, mkCheckBox(ImplicitThis),         gbc().pos(0, r++).gridwidth(2));
-      addToGrid(p, mkCheckBox(Decomposed), gbc().pos(0, r++).gridwidth(2));
       addToGrid(p, mkCheckBox(RecordKodkod),         gbc().pos(0, r++).gridwidth(2));
 
       Solver.addChangeListener(new ChangeListener() {

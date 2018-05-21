@@ -1,5 +1,5 @@
 /* Alloy Analyzer 4 -- Copyright (c) 2006-2009, Felix Chang
- * Electrum -- Copyright (c) 2014-present, Nuno Macedo
+ * Electrum -- Copyright (c) 2015-present, Nuno Macedo
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files
  * (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify,
@@ -39,7 +39,7 @@ import edu.mit.csail.sdg.alloy4compiler.ast.Type;
  * This helper class contains helper routines for writing an A4Solution object
  * out as an XML file.
  *
- * @modified: nmm, Eduardo Pessoa (pt.uminho.haslab): write selected time instant, write temporal meta-data.
+ * @modified: Nuno Macedo, Eduardo Pessoa // [HASLab] temporal instances
  * */
 
 public final class A4SolutionWriter {
@@ -87,8 +87,8 @@ public final class A4SolutionWriter {
 
 	/** 
 	 * Write the given Expr and its Type. 
-	 * pt.uminho.haslab: writes a specific time instant. 
 	 */
+	// [HASLab] particular instant
 	private boolean writeExpr(String prefix, Expr expr, int state) throws Err {
 		Type type = expr.type();
 		if (!type.hasTuple())
@@ -100,63 +100,24 @@ public final class A4SolutionWriter {
 			// inside "type"
 			Expr sum = type.toExpr();
 			int lastSize = (-1);
-//			if (sol.type == A4Solution.WritingType.evalToAllStates) { 
-				// pt.uminho.haslab: write separate xmls.
-		          while(true) {
-		             A4TupleSet ts = (A4TupleSet)(sol.eval(expr.minus(sum),state));
-		             int n = ts.size();
-		             if (n<=0) break;
-		             if (lastSize>0 && lastSize<=n) throw new ErrorFatal("An internal error occurred in the evaluator.");
-		             lastSize=n;
-		             Type extra = ts.iterator().next().type();
-		             type = type.merge(extra);
-		             sum = sum.plus(extra.toExpr());
-		          }
-		          // Now, write out the tupleset
-		          A4TupleSet ts = (A4TupleSet)(sol.eval(expr,state));
-		          for(A4Tuple t: ts) {
-		             if (prefix.length()>0) { out.print(prefix); prefix=""; }
-		             out.print("   <tuple>");
-		             for(int i=0; i<t.arity(); i++) Util.encodeXMLs(out, " <atom label=\"", t.atom(i), "\"/>");
-		             out.print(" </tuple>\n");
-		          }
-//			} else { // pt.uminho.haslab: write single xml.
-//				while (true) {
-//					A4TupleSet ts = (A4TupleSet) (sol.eval(expr.minus(sum), state));
-//					int n = ts.size();
-//					if (n <= 0)
-//						break;
-//					if (lastSize > 0 && lastSize <= n)
-//						throw new ErrorFatal("An internal error occurred in the evaluator.");
-//					lastSize = n;
-//					Type extra = ts.iterator().next().type();
-//					type = type.merge(extra);
-//					sum = sum.plus(extra.toExpr());
-//				}
-//				// Now, write out the tupleset
-//				A4TupleSet ts = (A4TupleSet) (sol.eval(expr, state));
-//				// pessoa: a tupleset initialised to add into the control structure GatherTemporalAtoms.
-//				sol.temporalAtoms.initTupleSet();
-//				for (A4Tuple t : ts) {
-//					if (prefix.length() > 0) {
-//						out.print(prefix);
-//						prefix = "";
-//					}
-//					out.print("   <tuple>");
-//					// pessoa: a tuple initialised to add into the control structure GatherTemporalAtoms.
-//					sol.temporalAtoms.initTuple();
-//					for (int j = 0; j < t.arity(); j++) {
-//						// pessoa: a atom is added into the tuple previously created						
-//						sol.temporalAtoms.addAtomInTuple(t.atom(j));
-//						Util.encodeXMLs(out, " <atom label=\"", t.atom(j), "\"/>");
-//					}
-//					out.print(" </tuple>\n");
-//					// pessoa: the tuple is added into a tupleSet
-//					sol.temporalAtoms.addAtomInTupleSet();
-//				}
-//				// pessoa: the expression here explored is added into the control structure
-//				sol.temporalAtoms.addTupleSetToExprx(expr);
-//			}
+	        while(true) {
+	           A4TupleSet ts = (A4TupleSet)(sol.eval(expr.minus(sum),state)); // [HASLab]
+	           int n = ts.size();
+	           if (n<=0) break;
+	           if (lastSize>0 && lastSize<=n) throw new ErrorFatal("An internal error occurred in the evaluator.");
+	           lastSize=n;
+	           Type extra = ts.iterator().next().type();
+	           type = type.merge(extra);
+	           sum = sum.plus(extra.toExpr());
+	        }
+	        // Now, write out the tupleset
+	        A4TupleSet ts = (A4TupleSet)(sol.eval(expr,state)); // [HASLab]
+	        for(A4Tuple t: ts) {
+	           if (prefix.length()>0) { out.print(prefix); prefix=""; }
+	           out.print("   <tuple>");
+	           for(int i=0; i<t.arity(); i++) Util.encodeXMLs(out, " <atom label=\"", t.atom(i), "\"/>");
+	           out.print(" </tuple>\n");
+	        }
 		}
 	
 		// Now, write out the type
@@ -173,8 +134,8 @@ public final class A4SolutionWriter {
 
 	/** 
 	 * Write the given Sig.
-	 * pt.uminho.haslab: writes a specific time instant. 
 	 */
+	// [HASLab] particular instant
 	private A4TupleSet writeSig(final Sig x, int state) throws Err {
 		A4TupleSet ts = null, ts2 = null;
 		if (x == Sig.NONE)
@@ -183,7 +144,7 @@ public final class A4SolutionWriter {
 			return null; // When writing the metamodel, skip the metamodel sigs!
 		if (x instanceof PrimSig)
 			for (final PrimSig sub : children((PrimSig) x)) {
-				A4TupleSet ts3 = writeSig(sub, state); // pt.uminho.haslab: specific instant.
+				A4TupleSet ts3 = writeSig(sub, state); // [HASLab]
 				if (ts2 == null)
 					ts2 = ts3;
 				else
@@ -217,22 +178,10 @@ public final class A4SolutionWriter {
 		out.print("\">\n");
 		try {
 			if (sol != null && x != Sig.UNIV && x != Sig.SIGINT && x != Sig.SEQIDX) {
-//				if (sol.type == A4Solution.WritingType.evalToAllStates) { // [HASLab] write separate xmls.
-					ts = (A4TupleSet) (sol.eval(x, state));
+				ts = (A4TupleSet) (sol.eval(x, state));
 
-					for (A4Tuple t : ts.minus(ts2)) 
-						Util.encodeXMLs(out, "   <atom label=\"", t.toString(), "\"/>\n");
-//				} else { // pt.uminho.haslab: write single xml.
-//					sol.temporalAtoms.initTuple();
-//					sol.temporalAtoms.initTupleSet();
-//					ts = (A4TupleSet) (sol.eval(x, state));
-//					for (A4Tuple t : ts.minus(ts2)) {
-//						sol.temporalAtoms.addAtomInTuple(t.atom(0));
-//						Util.encodeXMLs(out, "   <atom label=\"", t.atom(0), "\"/>\n");
-//					}
-//					sol.temporalAtoms.addAtomInTupleSet();
-//					sol.temporalAtoms.addTupleSetToExprx(x);
-//				}
+				for (A4Tuple t : ts.minus(ts2)) 
+					Util.encodeXMLs(out, "   <atom label=\"", t.toString(), "\"/>\n");
 			}
 		} catch (Throwable ex) {
 			throw new ErrorFatal("Error evaluating sig " + x.label, ex);
@@ -242,14 +191,14 @@ public final class A4SolutionWriter {
 				Util.encodeXMLs(out, "   <type ID=\"", map(p), "\"/>\n");
 		out.print("</sig>\n");
 		for (Field field : x.getFields())
-			writeField(field, state); // pt.uminho.haslab: write specific instant.
+			writeField(field, state); // [HASLab]
 		return ts;
 	}
 
 	/** 
 	 * Write the given Field. 
-	 * pt.uminho.haslab: writes a specific time instant. 
 	 */
+	// [HASLab] particular instant
 	private void writeField(Field x, int state) throws Err {
 		try {
 			if (sol == null && x.isMeta != null)
@@ -262,13 +211,13 @@ public final class A4SolutionWriter {
 				rep.write(x);
 			Util.encodeXMLs(out, "\n<field label=\"", x.label, "\" ID=\"", map(x), "\" parentID=\"", map(x.sig));
 			if (x.isVariable != null)
-				out.print("\" var=\"yes"); // pt.uminho.haslab: mark field as var.
+				out.print("\" var=\"yes"); // [HASLab]
 			if (x.isPrivate != null)
 				out.print("\" private=\"yes");
 			if (x.isMeta != null)
 				out.print("\" meta=\"yes");
 			out.print("\">\n");
-			writeExpr("", x, state); // pt.uminho.haslab: write specific instant.
+			writeExpr("", x, state); // [HASLab]
 			out.print("</field>\n");
 		} catch (Throwable ex) {
 			throw new ErrorFatal("Error evaluating field " + x.sig.label + "." + x.label, ex);
@@ -277,8 +226,8 @@ public final class A4SolutionWriter {
 
     /** 
      * Write the given Skolem.
-	 * pt.uminho.haslab: writes a specific time instant. 
  	 */
+	// [HASLab] particular instant
 	private void writeSkolem(ExprVar x, int state) throws Err {
 		try {
 			if (sol == null)
@@ -287,7 +236,7 @@ public final class A4SolutionWriter {
 				return; // we do not allow "none" in the XML file's type declarations
 			StringBuilder sb = new StringBuilder();
 			Util.encodeXMLs(sb, "\n<skolem label=\"", x.label, "\" ID=\"", map(x), "\">\n");
-			if (writeExpr(sb.toString(), x, state)) {
+			if (writeExpr(sb.toString(), x, state)) { // [HASLab]
 				out.print("</skolem>\n");
 			}
 		} catch (Throwable ex) {
@@ -307,6 +256,7 @@ public final class A4SolutionWriter {
 		this.rep = rep;
 		this.out = out;
 		this.sol = sol;
+		
 		for (Sig s : sigs)
 			if (s instanceof PrimSig && ((PrimSig) s).parent == Sig.UNIV)
 				toplevels.add((PrimSig) s);
@@ -366,7 +316,7 @@ public final class A4SolutionWriter {
 			throw new ErrorAPI("This solution is unsatisfiable.");
 		try {
 			// [HASLab] if state < 0, write every instance in the xml
-			int i1 = 0,i2 = sol.getLastTrace();
+			int i1 = 0,i2 = sol.getLastState();
 			if (state >= 0)
 				i1 = i2 = state;
 
@@ -379,14 +329,14 @@ public final class A4SolutionWriter {
 				out.print("\" maxseq=\""); out.print(sol.getMaxSeq());
 				out.print("\" command=\""); Util.encodeXML(out, sol.getOriginalCommand());
 				out.print("\" filename=\""); Util.encodeXML(out, sol.getOriginalFilename());
-				out.print("\" tracelength=\""); out.print(sol.getLastTrace()); // [HASLab] the trace length of the instance
-				out.print("\" backloop=\""); out.print(sol.getBackLoop()); // [HASLab] the back loop of the instance
+				out.print("\" tracelength=\""); out.print(sol.getLastState()); // [HASLab] the trace length of the instance
+				out.print("\" backloop=\""); out.print(sol.getLoopState()); // [HASLab] the back loop of the instance
 				out.print("\">\n\n");
 			}
 			// [HASLab] write all relevant instances.
 			for (int i = i1; i <= i2; i ++)
 			new A4SolutionWriter(rep, sol, sol.getAllReachableSigs(), sol.getBitwidth(), sol.getMaxSeq(),
-					sol.getLastTrace(), sol.getBackLoop(),
+					sol.getLastState(), sol.getLoopState(),
 					sol.getOriginalCommand(), sol.getOriginalFilename(), out, extraSkolems, i, state < 0);  
 			if (sources != null)
 				for (Map.Entry<String, String> e : sources.entrySet()) {
@@ -405,7 +355,6 @@ public final class A4SolutionWriter {
 	
 	/**
 	 * Write the metamodel as &lt;instance&gt;..&lt;/instance&gt; in XML format.
-	 * pt.uminho.haslab: writes instant 0.
 	 */
 	public static void writeMetamodel(ConstList<Sig> sigs, String originalFilename, PrintWriter out)
 			throws Err {

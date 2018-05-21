@@ -23,15 +23,17 @@ import edu.mit.csail.sdg.alloy4.Pos;
 
 /** Immutable; this declaration binds a list of names to an expression. 
  * 
- * @modified: nmm
+ * @modified Nuno Macedo // [HASLab] temporal model finding
  */
 
 public final class Decl {
-	
-    public final Pos isVar; // pt.uminho.haslab: variable declarations for variable fields
 
     /** If nonnull, then this decl is private (and this.isPrivate is the location of the "private" keyword) */
     public final Pos isPrivate;
+
+    /** Nonnull if this sig is a Variable. */
+    // [HASLab]
+    public final Pos isVar;
 
     /** If nonnull, then each name is disjoint (and this.disjoint is the location of the "disjoint" keyword) */
     public final Pos disjoint;
@@ -60,10 +62,10 @@ public final class Decl {
     }
 
     /** This constructs a declaration; the list of names must not be empty. */
-    // pt.uminho.haslab: extended with variable declarations for fields
+    // [HASLab]: extended with variable declarations for fields
     public Decl(Pos isVar, Pos isPrivate, Pos disjoint, Pos disjoint2, List<? extends ExprHasName> names, Expr expr) {
        if (names.size()==0) throw new NullPointerException();
-       this.isVar = isVar; //pt.uminho.haslab: variable declaration
+       this.isVar = isVar; // [HASLab]
        this.isPrivate = isPrivate;
        this.disjoint = (names.size()>1 ? disjoint : null);
        this.disjoint2 = disjoint2;

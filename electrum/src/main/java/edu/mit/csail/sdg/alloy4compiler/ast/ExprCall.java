@@ -1,4 +1,5 @@
 /* Alloy Analyzer 4 -- Copyright (c) 2006-2009, Felix Chang
+ * Electrum -- Copyright (c) 2015-present, Nuno Macedo
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files
  * (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify,
@@ -35,6 +36,8 @@ import edu.mit.csail.sdg.alloy4compiler.ast.Sig.Field;
 /** Immutable; represents a call.
  *
  * <p> <b>Invariant:</b>  type!=EMPTY => (all x:args | x.mult==0)
+ * 
+ * @modified Eduardo Pessoa, Nuno Macedo // [HASLab] temporal model finding
  */
 
 public final class ExprCall extends Expr {
@@ -96,7 +99,7 @@ public final class ExprCall extends Expr {
         @Override public Type visit(ExprBinary x) throws Err {
             switch(x.op) {
               case IMPLIES: case GT: case GTE: case LT: case LTE: case IFF: case EQUALS: case IN: case OR: case AND:
-              case RELEASE: case UNTIL: case SINCE: // [HASLab]
+              case RELEASE: case UNTIL: case SINCE: case TRIGGER: // [HASLab]
               case NOT_LT: case NOT_GT: case NOT_LTE: case NOT_GTE: case NOT_IN: case NOT_EQUALS:
                   return Type.FORMULA;
               case MUL: case DIV: case REM: case SHL: case SHR: case SHA:

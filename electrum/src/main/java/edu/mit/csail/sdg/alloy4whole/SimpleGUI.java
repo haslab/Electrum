@@ -980,7 +980,7 @@ public final class SimpleGUI implements ComponentListener, Listener {
         opt.unrolls = Version.experimental ? Unrolls.get() : (-1);
         opt.skolemDepth = SkolemDepth.get();
         opt.coreMinimization = CoreMinimization.get();
-        if(Decomposed.get()) opt.decomposed = 1; else opt.decomposed = 0; // [HASLab]
+        opt.decomposed = Decomposed.get(); // [HASLab]
         opt.coreGranularity = CoreGranularity.get();
         opt.originalFilename = Util.canon(text.get().getFilename());
         opt.solver = Solver.get();
@@ -1194,7 +1194,8 @@ public final class SimpleGUI implements ComponentListener, Listener {
 
             if (Version.experimental) {
               addToMenu(optmenu, Unrolls);
-              addToMenu(optmenu, ImplicitThis, NoOverflow, Decomposed);
+              addToMenu(optmenu, Decomposed); // [HASLab]
+              addToMenu(optmenu, ImplicitThis, NoOverflow);
             }
 
         } finally {

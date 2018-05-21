@@ -1,5 +1,5 @@
 /* Alloy Analyzer 4 -- Copyright (c) 2006-2009, Felix Chang
- * Electrum -- Copyright (c) 2014-present, Nuno Macedo
+ * Electrum -- Copyright (c) 2015-present, Nuno Macedo
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files
  * (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify,
@@ -17,16 +17,13 @@
 package edu.mit.csail.sdg.alloy4compiler.translator;
 
 import java.io.Serializable;
-import java.util.prefs.Preferences;
 
 import edu.mit.csail.sdg.alloy4.ErrorAPI;
 import edu.mit.csail.sdg.alloy4.SafeList;
-import edu.mit.csail.sdg.alloy4.Util;
 
 /** Mutable; this class encapsulates the customizable options of the Alloy-to-Kodkod translator. 
  * 
- * @modified: Nuno Macedo, Eduardo Pessoa // [HASLab] temporal model finding
- * @modified: Nuno Macedo // [HASLab] decomposed model finding
+ * @modified: Nuno Macedo // [HASLab] decomposed, temporal model finding
 */
 
 public final class A4Options implements Serializable {
@@ -123,8 +120,10 @@ public final class A4Options implements Serializable {
         public static final SatSolver CNF = new SatSolver("cnf", "Output CNF to file", null, null, true);
         /** Outputs the raw Kodkod file only */
         public static final SatSolver KK = new SatSolver("kodkod", "Output Kodkod to file", null, null, true);
+        /** Electrod through NuSMV */
         // [HASLab]
         public static final SatSolver ElectrodS = new SatSolver("electrodS", "Electrod/NuSMV", null, null, true);
+        /** Electrod through nuXmv */
         // [HASLab]
         public static final SatSolver ElectrodX = new SatSolver("electrodX", "Electrod/nuXmv", null, null, true);
     }
@@ -192,6 +191,9 @@ public final class A4Options implements Serializable {
     /** This option constrols how deep we unroll loops and unroll recursive predicate/function/macros (negative means it's disallowed) */
     public int unrolls = (-1);
 
+    /** This option specifies the decomposition (0=Off 1=Hybrid 2=Parallel)
+     * <p> Default value is off.
+     */
 	// [HASLab]
     public int decomposed = 0;
 	

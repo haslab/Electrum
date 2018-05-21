@@ -1,4 +1,5 @@
 /* Alloy Analyzer 4 -- Copyright (c) 2006-2009, Felix Chang
+ * Electrum -- Copyright (c) 2015-present, Nuno Macedo
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files
  * (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify,
@@ -37,6 +38,8 @@ import edu.mit.csail.sdg.alloy4compiler.ast.Type.ProductType;
 /** Immutable; represents a unary expression of the form "(OP subexpression)"
  *
  * <p> <b>Invariant:</b>  type!=EMPTY => sub.mult==0
+ * 
+ * @modified Eduardo Pessoa, Nuno Macedo // [HASLab] temporal model finding
  */
 
 public final class ExprUnary extends Expr {
