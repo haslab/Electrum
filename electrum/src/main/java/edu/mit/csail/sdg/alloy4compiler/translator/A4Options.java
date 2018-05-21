@@ -122,10 +122,10 @@ public final class A4Options implements Serializable {
         public static final SatSolver KK = new SatSolver("kodkod", "Output Kodkod to file", null, null, true);
         /** Electrod through NuSMV */
         // [HASLab]
-        public static final SatSolver ElectrodS = new SatSolver("electrodS", "Electrod/NuSMV", null, null, true);
+		public static final SatSolver ElectrodS = new SatSolver("electrodS", "Electrod_NuSMV", null, null, true);
         /** Electrod through nuXmv */
         // [HASLab]
-        public static final SatSolver ElectrodX = new SatSolver("electrodX", "Electrod/nuXmv", null, null, true);
+        public static final SatSolver ElectrodX = new SatSolver("electrodX", "Electrod_nuXmv", null, null, true);
     }
 
     /** This ensures the class can be serialized reliably. */
