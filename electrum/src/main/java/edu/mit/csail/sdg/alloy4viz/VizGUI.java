@@ -1063,10 +1063,7 @@ public final class VizGUI implements ComponentListener {
 		private JComboBox<Object> comboTime;
 
 		/** Trace navigation buttons. */
-		private JButton leftTime;
-
-		/** Trace navigation buttons. */
-		private JButton rightTime;
+		private JButton leftTime, rightTime;
 
 		/** Index of the back loop, or -1 if none. */
 		// [HASLab]

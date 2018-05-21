@@ -29,7 +29,7 @@ import java.util.Set;
  *
  * <p><b>Thread Safety:</b> Can be called only by the AWT event thread.
  * 
- * @modified: Nuno Macedo // [HASLab] temporal model finding
+ * @modified: Nuno Macedo // [HASLab] temporal instances
  */
 
 public final class StaticProjector {

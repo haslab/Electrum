@@ -22,7 +22,7 @@ import edu.mit.csail.sdg.alloy4.Util;
  *
  * <p><b>Thread Safety:</b> Can be called only by the AWT event thread.
  * 
- * @modified: Nuno Macedo // [HASLab] temporal model finding
+ * @modified: Nuno Macedo // [HASLab] temporal instances
  */
 
 public final class AlloyType extends AlloyNodeElement {
@@ -43,7 +43,7 @@ public final class AlloyType extends AlloyNodeElement {
    public static final AlloyType SET=new AlloyType("set", false, false, false, false, false, false, false); // [HASLab]
 
    /** Constructs an AlloyType object with that name. */
-   // [HASLab]
+   // [HASLab] variable info
    public AlloyType(String name, boolean isOne, boolean isAbstract, boolean isBuiltin, boolean isPrivate, boolean isMeta, boolean isEnum, boolean isVar) {
       super(name);
       this.isOne = isOne;
