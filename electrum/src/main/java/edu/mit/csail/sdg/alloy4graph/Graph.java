@@ -1,4 +1,5 @@
 /* Alloy Analyzer 4 -- Copyright (c) 2006-2009, Felix Chang
+ * Electrum -- Copyright (c) 2015-present, Nuno Macedo
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files
  * (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify,
@@ -36,6 +37,8 @@ import edu.mit.csail.sdg.alloy4.Util;
 /** Mutable; represents a graph.
  *
  * <p><b>Thread Safety:</b> Can be called only by the AWT event thread.
+ * 
+ * @modified Nuno Macedo // [HASLab] ordered nodes
  */
 
 public final strictfp class Graph {
@@ -217,16 +220,18 @@ public final strictfp class Graph {
          bins.get(grBIN[x.pos()]).remove(x);
          for(GraphNode n:grIN.get(x.pos()))  grOUT.get(n.pos()).remove(x);
          for(GraphNode n:grOUT.get(x.pos())) grIN.get(n.pos()).remove(x);
-         List<GraphNode> aux = new ArrayList<>(grIN.get(x.pos())); // [HASLab]
-         aux.addAll(grOUT.get(x.pos())); // [HASLab]
-         aux.sort(new Comparator<GraphNode>() { // [HASLab]
+         // [HASLab] hack to get nodes sorted lexicographically in each layer
+         // can't fast join since read-only
+//       Iterable<GraphNode> aux = Util.fastJoin(grIN.get(x.pos()), );
+         List<GraphNode> aux = new ArrayList<>(grIN.get(x.pos())); 
+         aux.addAll(grOUT.get(x.pos()));
+         aux.sort(new Comparator<GraphNode>() {
 			@Override
 			public int compare(GraphNode o1, GraphNode o2) {
-				return -	o1.uuid.toString().compareTo(o2.uuid.toString());
+				return -o1.uuid.toString().compareTo(o2.uuid.toString());
 			}
-    		 });
-//         Iterable<GraphNode> aux = Util.fastJoin(grIN.get(x.pos()), ); // [HASLab]
-         for(GraphNode n:aux) { // [HASLab]
+         });
+         for(GraphNode n:aux) {
             int ni=n.pos(), out=grOUT.get(ni).size(), in=grIN.get(ni).size();
             int b=(out==0)?0:(in==0?(2*num):(out-in+num));
             if (grBIN[ni]!=b) { bins.get(grBIN[ni]).remove(n); grBIN[ni]=b; bins.get(b).add(n); }
