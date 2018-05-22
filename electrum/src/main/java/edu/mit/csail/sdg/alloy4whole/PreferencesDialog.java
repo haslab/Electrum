@@ -32,10 +32,15 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 import javax.swing.AbstractAction;
 import javax.swing.AbstractListModel;
@@ -183,8 +188,12 @@ public class PreferencesDialog extends JFrame {
       }
       if (!loadLibrary("minisatprover")) satChoices.remove(SatSolver.MiniSatProverJNI);
       if (!loadLibrary("lingeling")) satChoices.remove(SatSolver.LingelingJNI);
+      if (!loadLibrary("plingeling")) satChoices.remove(SatSolver.PLingelingJNI);
       if (!loadLibrary("glucose")) satChoices.remove(SatSolver.GlucoseJNI);
       if (!loadLibrary("cryptominisat")) satChoices.remove(SatSolver.CryptoMiniSatJNI);
+      if (!staticLibrary("electrod")) {satChoices.remove(SatSolver.ElectrodS);satChoices.remove(SatSolver.ElectrodX);}
+      if (!staticLibrary("NuSMV")) satChoices.remove(SatSolver.ElectrodS);
+      if (!staticLibrary("nuXmv")) satChoices.remove(SatSolver.ElectrodX);
       SatSolver now = Solver.get();
       if (!satChoices.contains(now)) {
           now=SatSolver.LingelingJNI;
@@ -220,6 +229,20 @@ public class PreferencesDialog extends JFrame {
        else System.out.println("Failed to load: " + libName);
        return loaded;
    }
+  
+   // [HASLab]
+   private static boolean staticLibrary(String name) { 
+	   final String[] dirs = System.getProperty("java.library.path").split(System.getProperty("path.separator"));
+       for(int i = dirs.length-1; i >= 0; i--) {
+          final File file = new File(dirs[i]+File.separator+name);
+          if (file.canExecute())
+        	  return true;
+       }
+	   boolean cp = Stream.of(System.getenv("PATH").split(Pattern.quote(File.pathSeparator)))
+		        .map(Paths::get).anyMatch(path -> Files.exists(path.resolve(name)));
+       
+       return cp;
+	}
 
    private static boolean _loadLibrary(String library) {
       try { System.loadLibrary(library);      return true; } catch(UnsatisfiedLinkError ex) { }

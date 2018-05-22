@@ -116,16 +116,16 @@ public final class A4Options implements Serializable {
         public static final SatSolver CryptoMiniSatJNI = new SatSolver("cryptominisat(jni)", "CryptoMiniSat", null, null, true);
         /** SAT4J using native Java */
         public static final SatSolver SAT4J = new SatSolver("sat4j", "SAT4J", null, null, true);
+        /** Electrod through NuSMV */
+        // [HASLab]
+        public static final SatSolver ElectrodS = new SatSolver("electrodS", "Electrod_NuSMV", null, null, true);
+        /** Electrod through nuXmv */
+        // [HASLab]
+        public static final SatSolver ElectrodX = new SatSolver("electrodX", "Electrod_nuXmv", null, null, true);
         /** Outputs the raw CNF file only */
         public static final SatSolver CNF = new SatSolver("cnf", "Output CNF to file", null, null, true);
         /** Outputs the raw Kodkod file only */
         public static final SatSolver KK = new SatSolver("kodkod", "Output Kodkod to file", null, null, true);
-        /** Electrod through NuSMV */
-        // [HASLab]
-		public static final SatSolver ElectrodS = new SatSolver("electrodS", "Electrod_NuSMV", null, null, true);
-        /** Electrod through nuXmv */
-        // [HASLab]
-        public static final SatSolver ElectrodX = new SatSolver("electrodX", "Electrod_nuXmv", null, null, true);
     }
 
     /** This ensures the class can be serialized reliably. */
