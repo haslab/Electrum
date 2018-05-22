@@ -37,11 +37,11 @@ public final class Version {
    public static int buildNumber() { return Integer.MAX_VALUE; }
 
    /** Returns the Alloy version string. */
-   public static String version() { return "4.2.?"; }
+   public static String version() { return "4.2"; }
 
    /** Returns the Electrum version string. */
    // [HASLab]
-   public static String eleVersion() { return "1.1.?"; }
+   public static String eleVersion() { return "1.1"; }
 
    /** Returns the build date. */
    public static String buildDate() { return "unknown"; }
