@@ -10,11 +10,11 @@ This extension to the Alloy Analyzer by [INESC TEC](https://www.inesctec.pt/en) 
 
 `$ java -jar electrum-1.1.jar`
 
-This will launch Electrum's/Alloy Analyzer's simple GUI, which is packaged with several examples. The file can also by run from the command-line, just check
+This will launch Electrum's/Alloy Analyzer's simple GUI, which is packaged with several examples. The file can also by run from the command-line, for more information run
 
 `$ java -jar electrum-1.1.jar --help`
 
-To perform analyses on an unbounded time horizon, one needs to install the [Electrod](https://github.com/grayswandyr/electrod/) program as well as [NuSMV](http://nusmv.fbk.eu/) or [nuXmv](https://nuxmv.fbk.eu/).
+To perform analyses on an unbounded time horizon, one needs to have installed [Electrod](https://github.com/grayswandyr/electrod/) program, as well as [NuSMV](http://nusmv.fbk.eu/) or [nuXmv](https://nuxmv.fbk.eu/).
 
 ## Building Electrum Analyzer
 
@@ -31,17 +31,9 @@ The Electrum Analyzer requires Java 7 and can be built using Maven. The script w
 
 ## Prototype: Electrum with actions
 
-An [extension of Electrum](https://github.com/haslab/Electrum/releases/tag/v1.0-actions), with actions, is currently under study. 
+An [extension of Electrum](https://github.com/haslab/Electrum/releases/tag/v1.0-actions), with actions, is currently under study. Check out the [paper](https://hal.archives-ouvertes.fr/hal-01774920/document) with the preliminary proposition.
 
 If you wish to build it, repeat the steps above, just replacing `-b master` in the first line by `-b actions`.
-
-## Collaborators
-- Nuno Macedo, HASLab, INESC TEC & Universidade do Minho, Portugal
-- Julien Brunel, ONERA/DTIS & Université fédérale de Toulouse, France
-- David Chemouil, ONERA/DTIS & Université fédérale de Toulouse, France
-- Alcino Cunha, HASLab, INESC TEC & Universidade do Minho, Portugal
-- Denis Kuperberg, TU Munich, Germany
-- Eduardo Pessoa, HASLab, INESC TEC & Universidade do Minho, Portugal
 
 ## ERTMS Case Study
 Our response to the ABZ 2018 call for case study submissions, the ERTMS system, can be found [here](https://github.com/haslab/Electrum/wiki/ERTMS). Or access directly the:
@@ -52,6 +44,14 @@ Our response to the ABZ 2018 call for case study submissions, the ERTMS system, 
 ## License
 
 Electrum is open-source and available under the [MIT license](electrum/LICENSE), as is the Alloy Analyzer. However, it utilizes several third-party packages whose code may be distributed under a different license (see the various [LICENSE files](electrum/LICENSES) in the distribution for details), including [Kodod](https://github.com/emina/kodkod) and its extension [Pardinus](https://github.com/haslab/Pardinus), and the underlying solvers ([SAT4J](http://www.sat4j.org), [MiniSat](http://minisat.se), [Glucose/Syrup](http://www.labri.fr/perso/lsimon/glucose/), [(P)Lingeling](http://fmv.jku.at/lingeling/), [Yices](http://yices.csl.sri.com), [zChaff](https://www.princeton.edu/~chaff/zchaff.html), [CryptoMiniSat](https://www.msoos.org/cryptominisat5/) and [Electrod](https://github.com/grayswandyr/electrod/). [CUP](http://www2.cs.tum.edu/projects/cup/) and [JFlex](http://jflex.de/) are also used to generate the parser. 
+
+## Collaborators
+- Nuno Macedo, HASLab, INESC TEC & Universidade do Minho, Portugal
+- Julien Brunel, ONERA/DTIS & Université fédérale de Toulouse, France
+- David Chemouil, ONERA/DTIS & Université fédérale de Toulouse, France
+- Alcino Cunha, HASLab, INESC TEC & Universidade do Minho, Portugal
+- Denis Kuperberg, TU Munich, Germany
+- Eduardo Pessoa, HASLab, INESC TEC & Universidade do Minho, Portugal
 
 ## History
 ### Electrum [1.1](https://github.com/haslab/Electrum/releases/tag/v1.1) (May 2018) 
