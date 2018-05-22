@@ -22,7 +22,7 @@ To perform analyses on an unbounded time horizon, one needs to have installed [E
 
 ## Building Electrum Analyzer
 
-The Electrum Analyzer requires Java 7 and can be built using Maven. The script will also build Kodkod/Pardinus.
+The Electrum Analyzer requires Java 8 and can be built using Maven. The script will also build Kodkod/Pardinus.
 
 * Clone the Electrum repository, as well as Pardinus' as a submodule 
 

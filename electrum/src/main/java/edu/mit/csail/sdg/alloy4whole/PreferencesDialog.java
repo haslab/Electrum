@@ -243,7 +243,7 @@ public class PreferencesDialog extends JFrame {
           }
        }
 	   // check if in system path
-	   for (String str : System.getenv("PATH").split(Pattern.quote(File.pathSeparator))) {
+	   for (String str : (System.getenv("PATH")+":/usr/local/bin").split(Pattern.quote(File.pathSeparator))) {
 		   Path pth = Paths.get(str);
 		   if (Files.exists(pth.resolve(name))) {
               System.out.println("Loaded: " + name);
