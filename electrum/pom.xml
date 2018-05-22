@@ -1,5 +1,4 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>pt.uminho.haslab.electrum</groupId>
 	<artifactId>electrum</artifactId>
@@ -14,6 +13,16 @@
 			</activation>
 			<build>
 				<plugins>
+					<plugin>
+						<artifactId>maven-jar-plugin</artifactId>
+						<version>3.0.2</version>
+						<executions>
+							<execution>
+								<id>default-jar</id>
+								<phase>none</phase>
+							</execution>
+						</executions>
+					</plugin>
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-assembly-plugin</artifactId>
@@ -61,6 +70,16 @@
 			<build>
 				<plugins>
 					<plugin>
+						<artifactId>maven-jar-plugin</artifactId>
+						<version>3.0.2</version>
+						<executions>
+							<execution>
+								<id>default-jar</id>
+								<phase>none</phase>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-assembly-plugin</artifactId>
 						<configuration>
@@ -99,34 +118,28 @@
 				</plugins>
 			</build>
 		</profile>
-		
-        <profile>
-            <id>dev</id>
-            <activation>
-                <activeByDefault>false</activeByDefault>
-            </activation>
-
-            <dependencies>
-                <dependency>
-                    <groupId>com.github.vbmacher</groupId>
-                    <artifactId>java-cup</artifactId>
-				    <version>11b</version>
-                </dependency>
+		<profile>
+			<id>dev</id>
+			<activation>
+				<activeByDefault>false</activeByDefault>
+			</activation>
+			<dependencies>
 				<dependency>
-				    <groupId>de.jflex</groupId>
-				    <artifactId>jflex</artifactId>
-				    <version>1.6.0</version>
+					<groupId>com.github.vbmacher</groupId>
+					<artifactId>java-cup</artifactId>
+					<version>11b</version>
 				</dependency>
-            </dependencies>
-
-        </profile>
+				<dependency>
+					<groupId>de.jflex</groupId>
+					<artifactId>jflex</artifactId>
+					<version>1.6.0</version>
+				</dependency>
+			</dependencies>
+		</profile>
 	</profiles>
-
-
 	<properties>
 		<logback-version>1.1.7</logback-version>
 	</properties>
-
 	<dependencies>
 		<dependency>
 			<groupId>pt.uminho.haslab.pardinus</groupId>
@@ -165,6 +178,4 @@
 			<scope>compile</scope>
 		</dependency>
 	</dependencies>
-	
-
 </project>
