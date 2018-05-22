@@ -210,7 +210,7 @@ public final class SimpleCLI {
     
     public static void main(String[] args) throws Exception {
     		// if no cli args, just launch gui
-    		if (args.length == 0)
+            if (args.length == 0)
     			SimpleGUI.main(args);
     		else {
 	    		try {
