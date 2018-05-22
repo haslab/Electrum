@@ -35,7 +35,7 @@ The Electrum Analyzer requires Java 7 and can be built using Maven. The script w
 
 ## Prototype: Electrum with actions
 
-An [extension of Electrum](https://github.com/haslab/Electrum/releases/tag/v1.0-actions), with actions, is currently under study. Check out the [paper](https://hal.archives-ouvertes.fr/hal-01774920/document) with the preliminary proposition.
+An [extension of Electrum](https://github.com/haslab/Electrum/releases/tag/v1.0-actions), with actions, is currently under study. Check out the [paper](https://doi.org/10.1007/978-3-319-91271-4_30) with the preliminary proposition.
 
 If you wish to build it, repeat the steps above, just replacing `-b master` in the first line by `-b actions`.
 
