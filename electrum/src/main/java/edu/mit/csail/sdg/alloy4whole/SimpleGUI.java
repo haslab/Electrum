@@ -182,6 +182,8 @@ import edu.mit.csail.sdg.alloy4whole.SimpleReporter.SimpleTask2;
 
 public final class SimpleGUI implements ComponentListener, Listener {
 
+	MacUtil macUtil;
+	
     /** The latest welcome screen; each time we update the welcome screen, we increment this number. */
 //    private static final int welcomeLevel = 2;
 
@@ -707,7 +709,7 @@ public final class SimpleGUI implements ComponentListener, Listener {
     }
 
     /** This method performs File->Quit. */
-    private Runner doQuit() {
+    public Runner doQuit() {
         if (!wrap) if (text.closeAll()) {
             try { WorkerEngine.stop(); } finally { System.exit(0); }
         }
@@ -816,7 +818,7 @@ public final class SimpleGUI implements ComponentListener, Listener {
     }
 
     /** This method performs Edit->Preferences. */
-    private Runner doPreferences() {
+    public Runner doPreferences() {
         if (wrap) return wrapMe();
         prefDialog.setVisible(true);
         return null;
@@ -1245,7 +1247,7 @@ public final class SimpleGUI implements ComponentListener, Listener {
     //===============================================================================================================//
 
     /** This method displays the about box. */
-    private Runner doAbout() {
+    public Runner doAbout() {
         if (wrap) return wrapMe();
         OurDialog.showmsg("About Alloy Analyzer " + Version.version() + " (Electrum Analyzer "+Version.eleVersion()+")", // [HASLab]
               OurUtil.loadIcon("images/logo.gif"),
@@ -1571,13 +1573,8 @@ public final class SimpleGUI implements ComponentListener, Listener {
            System.setProperty("apple.laf.useScreenMenuBar","true");
         }
         if (Util.onMac()) {
-           Application.getApplication().addPreferencesMenuItem();
-           Application.getApplication().addAboutMenuItem();
-           Application.getApplication().addApplicationListener(new ApplicationAdapter() {
-              @Override public void handleAbout(ApplicationEvent ae)       { doAbout(); }
-              @Override public void handlePreferences(ApplicationEvent ae) { doPreferences(); }
-              @Override public void handleQuit(ApplicationEvent arg0)      { doQuit(); }
-           });
+            macUtil = new MacUtil();
+            macUtil.tryAddMenus(this);
         }
 
         doLookAndFeel();
@@ -1762,7 +1759,7 @@ public final class SimpleGUI implements ComponentListener, Listener {
         // If on Mac, then register an application listener
         try {
             wrap = true;
-            if (Util.onMac()) MacUtil.registerApplicationListener(doShow(), doAbout(), doOpenFile(""), doQuit());
+            if (Util.onMac()) macUtil.registerApplicationListener(doShow(), doAbout(), doOpenFile(""), doQuit());
         } finally {
             wrap = false;
         }
