@@ -223,10 +223,9 @@ public final strictfp class Graph {
          // [HASLab] hack to get nodes sorted lexicographically in each layer
          // can't fast join since read-only
 //       Iterable<GraphNode> aux = Util.fastJoin(grIN.get(x.pos()), );
-         List<GraphNode> aux = new ArrayList<>(grIN.get(x.pos())); 
+         List<GraphNode> aux = new ArrayList<GraphNode>(grIN.get(x.pos())); 
          aux.addAll(grOUT.get(x.pos()));
          aux.sort(new Comparator<GraphNode>() {
-			@Override
 			public int compare(GraphNode o1, GraphNode o2) {
 				return -o1.uuid.toString().compareTo(o2.uuid.toString());
 			}

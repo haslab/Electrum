@@ -980,7 +980,7 @@ public final class SimpleGUI implements ComponentListener, Listener {
         opt.unrolls = Version.experimental ? Unrolls.get() : (-1);
         opt.skolemDepth = SkolemDepth.get();
         opt.coreMinimization = CoreMinimization.get();
-        opt.decomposed = Decomposed.get(); // [HASLab]
+        opt.decomposed_mode = Decomposed.get(); // [HASLab]
         opt.coreGranularity = CoreGranularity.get();
         opt.originalFilename = Util.canon(text.get().getFilename());
         opt.solver = Solver.get();

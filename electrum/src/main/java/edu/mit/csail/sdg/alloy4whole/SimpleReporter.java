@@ -545,7 +545,6 @@ final class SimpleReporter extends A4Reporter {
 			GenerateXmlsFiles.kkSRC = kkSRC;
 		}
 
-		@Override
 		public void run() {
 			try {
 				for (int i = 0; i <= a4Solution.getLastState(); i++) {

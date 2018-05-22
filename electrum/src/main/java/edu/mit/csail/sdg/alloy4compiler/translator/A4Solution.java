@@ -299,12 +299,14 @@ public final class A4Solution {
 		varOptions.setNoOverflow(opt.noOverflow);
 		varOptions.setMaxTraceLength(maxTracelength); // [HASLab] propagate options
 		varOptions.setMinTraceLength(minTracelength); // [HASLab] propagate options
-		if (opt.decomposed > 0) { // [HASLab] propagate options
+		if (opt.decomposed_mode > 0) { // [HASLab] propagate options
 			varOptions.setRunDecomposed(true);
-			if (opt.decomposed == 1)
+			if (opt.decomposed_mode == 1)
 				varOptions.setDecomposedMode(DMode.HYBRID);
 			else
 				varOptions.setDecomposedMode(DMode.PARALLEL);
+			if (opt.decomposed_threads > 0)
+				varOptions.setThreads(opt.decomposed_threads);
 		} else {
 			varOptions.setRunDecomposed(false);
 		}

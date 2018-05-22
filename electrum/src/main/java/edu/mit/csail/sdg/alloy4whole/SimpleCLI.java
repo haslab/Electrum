@@ -249,12 +249,11 @@ public final class SimpleCLI {
 					options.solver = A4Options.SatSolver.ElectrodX;
 	
 				if (clargs.hasOption("decomposed"))
+					options.decomposed_mode = 1;
 					if (clargs.getOptionValue("decomposed") != null)
-						options.decomposed = Integer.valueOf(clargs.getOptionValue("decomposed"));
-					else
-						options.decomposed = 1;
+						options.decomposed_threads = Integer.valueOf(clargs.getOptionValue("decomposed"));
 				else
-					options.decomposed = 0;
+					options.decomposed_mode = 0;
 				int i0=0, i1=cmds.size();
 				if (clargs.hasOption("command")) {
 					i0 = Integer.valueOf(clargs.getOptionValue("command"));
