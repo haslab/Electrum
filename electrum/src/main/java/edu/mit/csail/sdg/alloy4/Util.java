@@ -544,9 +544,12 @@ public final class Util {
 	*/
    // [HASLab]
    public static String temporize(String file, int state) {
-      String[] spl = file.split(Pattern.quote("_"));
-	  String dfilename = spl[0] + "_" + state;
-	  return dfilename;
+	  int fi = file.lastIndexOf(File.separator);
+	  String p = file.substring(0, fi);
+	  String f = file.substring(fi,file.length());
+      String[] spl = f.split(Pattern.quote("_"));
+      String dfilename = spl[0] + "_" + state;
+	  return p+dfilename;
    }
 
 }
