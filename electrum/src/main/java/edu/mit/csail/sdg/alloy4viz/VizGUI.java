@@ -361,7 +361,7 @@ public final class VizGUI implements ComponentListener {
 	      this.enumerator = enumerator;
 	      this.standalone = standalone;
 	      this.evaluator = evaluator;
-	      this.frame = makeWindow ? new JFrame("Alloy Visualizer") : null;
+	      this.frame = makeWindow ? new JFrame("Alloy (Electrum) Visualizer") : null; // [HASLab]
 
 	      // Figure out the desired x, y, width, and height
 	      int screenWidth=OurUtil.getScreenWidth(), screenHeight=OurUtil.getScreenHeight();
@@ -716,7 +716,7 @@ public final class VizGUI implements ComponentListener {
 	      windowmenu.setEnabled(true);
 	      if (frame!=null) {
 	         frame.setVisible(true);
-	         frame.setTitle("Alloy Visualizer "+Version.version()+" loading... Please wait...");
+	         frame.setTitle("Alloy Visualizer "+Version.version() + " (Electrum Analyzer "+Version.eleVersion()+")"+" loading... Please wait..."); // [HASLab]
 	         OurUtil.show(frame);
 	      }
 	      updateDisplay();
