@@ -35,7 +35,7 @@ The Electrum Analyzer requires Java 7 and can be built using Maven. The script w
 
 ## Prototype: Electrum with actions
 
-An [extension of Electrum](https://github.com/haslab/Electrum/releases/tag/v1.0-actions), with actions, is currently under study. Check out the [paper](https://hal.archives-ouvertes.fr/hal-01774920/document) with the preliminary proposition.
+An [extension of Electrum](https://github.com/haslab/Electrum/releases/tag/v1.0-actions), with actions, is currently under study. Check out the [paper](https://doi.org/10.1007/978-3-319-91271-4_30) with the preliminary proposition.
 
 If you wish to build it, repeat the steps above, just replacing `-b master` in the first line by `-b actions`.
 
@@ -59,29 +59,27 @@ Electrum is open-source and available under the [MIT license](electrum/LICENSE),
 
 ## History
 ### Electrum [1.1](https://github.com/haslab/Electrum/releases/tag/v1.1) (May 2018) 
-<!--- ASE 18 submission, ABZ 18 attendance -->
+<!--- ASE18 submission, ABZ18 attendance -->
 - Initial support for symbolic bound extraction
 - Repository of examples
 - Many enhancements and bug fixes
 
 ### Electrum [1.0](https://github.com/haslab/Electrum/releases/tag/v1.0) (January 2018) 
-<!--- FM,ABZ 18 submissions, Alloy Workshop attendance -->
-- First stable public release
+<!--- FM18,ABZ18 submissions, AlloyWorkshop attendance -->
+- First stable public release (accompanying the ABZ'18 [submission](https://doi.org/10.1007/978-3-319-91271-4_21))
 - Common interface for temporal relational model finding problems through Pardinus
 - Bounded and unbounded model checking of Electrum models
 - Uniform visualisation of trace instances
 - Support for a decomposed solving strategy
-- Accompanied the ABZ'18 [submission](https://doi.org/10.1007/978-3-319-91271-4_21)
-
 
 ### Electrum [0.2](https://github.com/haslab/Electrum/releases/tag/v0.2) (November 2016) 
-<!--- FSE 16 attendance -->
+<!--- FSE16 attendance -->
 - Direct embedding into a temporal extension to Kodkod ([Pardinus](https://github.com/haslab/Pardinus))
 - Visualizer natively supports temporal solutions
 
 ### Electrum [0.1](https://github.com/haslab/Electrum/releases/tag/v0.1) (March 2016) 
-<!--- FSE 16 submission -->
-- First release accompanying the FSE'16 [submission](http://dx.doi.org/10.1145/2950290.2950318)
+<!--- FSE16 submission -->
+- First release (accompanying the FSE'16 [submission](http://dx.doi.org/10.1145/2950290.2950318))
 - Bounded model checking of Electrum models
 - Electrum models expanded into Alloy models
 - Expanded Alloy models returned to the visualizer
