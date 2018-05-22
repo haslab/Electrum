@@ -36,7 +36,7 @@
 									<descriptorRefs>
 										<descriptorRef>jar-with-dependencies</descriptorRef>
 									</descriptorRefs>
-									<finalName>${project.artifactId}-${project.version}-gui</finalName>
+									<finalName>${project.artifactId}-gui</finalName>
 									<appendAssemblyId>false</appendAssemblyId>
 								</configuration>
 							</execution>
@@ -82,7 +82,7 @@
 									<descriptorRefs>
 										<descriptorRef>jar-with-dependencies</descriptorRef>
 									</descriptorRefs>
-									<finalName>${project.artifactId}-${project.version}</finalName>
+									<finalName>${project.artifactId}</finalName>
 									<appendAssemblyId>false</appendAssemblyId>
 								</configuration>
 							</execution>
