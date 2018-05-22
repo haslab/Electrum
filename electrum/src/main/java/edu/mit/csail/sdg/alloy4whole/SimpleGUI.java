@@ -1759,11 +1759,15 @@ public final class SimpleGUI implements ComponentListener, Listener {
         // If on Mac, then register an application listener
         try {
             wrap = true;
-            if (Util.onMac()) macUtil.registerApplicationListener(doShow(), doAbout(), doOpenFile(""), doQuit());
+            if (Util.onMac()) {
+                macUtil.registerApplicationListener(doShow(), doAbout(), doOpenFile(""), doQuit());
+            }
+        } catch (Throwable t) {
+            System.out.println("Mac classes not there");
         } finally {
             wrap = false;
         }
-
+        
         // Add the new JNI location to the java.library.path
         try {
             System.setProperty("java.library.path", binary);
