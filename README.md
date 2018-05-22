@@ -4,6 +4,10 @@ This extension to the Alloy Analyzer by [INESC TEC](https://www.inesctec.pt/en) 
 
 [Alloy](http://alloy.mit.edu/) is a simple structural modeling language based on first-order logic developed at the [Software Design Group](http://sdg.csail.mit.edu/). Its Analyzer can generate instances of invariants, simulate the execution of operations, and check user-specified properties of a model.
 
+## Getting started
+
+The best way to get started with Electrum is to download the executable ``jar`` (see [Running](#running)) and follow the [tutorial](https://github.com/haslab/Electrum/wiki/Tutorial). A repository of examples with familiar Alloy examples converted into Electrum is also available [here](electrum/src/main/resources/models/examples/electrum).
+
 ## Running
 
 [Download](https://github.com/haslab/Electrum/releases/tag/v1.1) the executable ``jar`` (or [build](#building-electrum-analyzer) it) and launch it simply as
