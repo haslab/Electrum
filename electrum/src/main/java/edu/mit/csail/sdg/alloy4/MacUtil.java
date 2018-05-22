@@ -78,7 +78,7 @@ public final class MacUtil {
       app.addApplicationListener(listener);
    }
    
-   public void addMenus(SimpleGUI simpleGUI) {
+   public void addMenus(final SimpleGUI simpleGUI) {
        Application.getApplication().addPreferencesMenuItem();
        Application.getApplication().addAboutMenuItem();
        Application.getApplication().addApplicationListener(new ApplicationAdapter() {
