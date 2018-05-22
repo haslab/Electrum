@@ -41,7 +41,6 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
-import java.util.stream.Stream;
 
 import javax.swing.AbstractAction;
 import javax.swing.AbstractListModel;
@@ -192,6 +191,7 @@ public class PreferencesDialog extends JFrame {
       if (!loadLibrary("plingeling")) satChoices.remove(SatSolver.PLingelingJNI);
       if (!loadLibrary("glucose")) satChoices.remove(SatSolver.GlucoseJNI);
       if (!loadLibrary("cryptominisat")) satChoices.remove(SatSolver.CryptoMiniSatJNI);
+      // [HASLab]
       if (!staticLibrary("electrod")) {satChoices.remove(SatSolver.ElectrodS);satChoices.remove(SatSolver.ElectrodX);}
       if (!staticLibrary("NuSMV")) satChoices.remove(SatSolver.ElectrodS);
       if (!staticLibrary("nuXmv")) satChoices.remove(SatSolver.ElectrodX);
@@ -233,6 +233,7 @@ public class PreferencesDialog extends JFrame {
   
    // [HASLab]
    private static boolean staticLibrary(String name) { 
+	   // check if in java library path
 	   final String[] dirs = System.getProperty("java.library.path").split(System.getProperty("path.separator"));
        for(int i = dirs.length-1; i >= 0; i--) {
           final File file = new File(dirs[i]+File.separator+name);
@@ -241,6 +242,7 @@ public class PreferencesDialog extends JFrame {
         	  return true;
           }
        }
+	   // check if in system path
 	   for (String str : System.getenv("PATH").split(Pattern.quote(File.pathSeparator))) {
 		   Path pth = Paths.get(str);
 		   if (Files.exists(pth.resolve(name))) {
