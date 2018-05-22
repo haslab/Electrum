@@ -34,6 +34,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Hashtable;
@@ -235,13 +236,21 @@ public class PreferencesDialog extends JFrame {
 	   final String[] dirs = System.getProperty("java.library.path").split(System.getProperty("path.separator"));
        for(int i = dirs.length-1; i >= 0; i--) {
           final File file = new File(dirs[i]+File.separator+name);
-          if (file.canExecute())
+          if (file.canExecute()) {
+        	  System.out.println("Loaded: " + name);
         	  return true;
+          }
        }
-	   boolean cp = Stream.of(System.getenv("PATH").split(Pattern.quote(File.pathSeparator)))
-		        .map(Paths::get).anyMatch(path -> Files.exists(path.resolve(name)));
-       
-       return cp;
+	   for (String str : System.getenv("PATH").split(Pattern.quote(File.pathSeparator))) {
+		   Path pth = Paths.get(str);
+		   if (Files.exists(pth.resolve(name))) {
+              System.out.println("Loaded: " + name);
+			  return true;
+		   }
+	   }
+
+	   System.out.println("Failed to load: " + name);
+       return false;
 	}
 
    private static boolean _loadLibrary(String library) {
