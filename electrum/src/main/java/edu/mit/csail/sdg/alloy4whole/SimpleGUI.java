@@ -315,7 +315,7 @@ public final class SimpleGUI implements ComponentListener, Listener {
         if (text==null) return null; // If this was called prior to the "text" being fully initialized
         OurSyntaxWidget t = text.get();
         if (Util.onMac()) frame.getRootPane().putClientProperty("windowModified", Boolean.valueOf(t.modified()));
-        if (t.isFile()) frame.setTitle(t.getFilename()); else frame.setTitle("Alloy Analyzer "+Version.version());
+        if (t.isFile()) frame.setTitle(t.getFilename()); else frame.setTitle("Alloy Analyzer "+Version.version() + " (Electrum Analyzer "+Version.eleVersion()+")"); // [HASLab]
         toolbar.setBorder(new OurBorder(false, false, text.count()<=1, false));
         int c = t.getCaret();
         int y = t.getLineOfOffset(c)+1;
@@ -1247,7 +1247,7 @@ public final class SimpleGUI implements ComponentListener, Listener {
     /** This method displays the about box. */
     private Runner doAbout() {
         if (wrap) return wrapMe();
-        OurDialog.showmsg("About Alloy Analyzer " + Version.version(),
+        OurDialog.showmsg("About Alloy Analyzer " + Version.version() + " (Electrum Analyzer "+Version.eleVersion()+")", // [HASLab]
               OurUtil.loadIcon("images/logo.gif"),
               "Alloy Analyzer " + Version.version(),
               "Build date: " + Version.buildDate(),
@@ -1757,6 +1757,7 @@ public final class SimpleGUI implements ComponentListener, Listener {
 
         // Generate some informative log messages
         log.logBold("Alloy Analyzer "+Version.version()+" (build date: "+Version.buildDate()+")\n\n");
+        log.logBold("Electrum Analyzer "+Version.eleVersion()+" (build date: "+Version.buildDate()+")\n\n"); // [HASLab]
 
         // If on Mac, then register an application listener
         try {
