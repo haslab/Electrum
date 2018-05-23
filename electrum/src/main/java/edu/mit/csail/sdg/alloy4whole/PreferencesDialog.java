@@ -192,9 +192,9 @@ public class PreferencesDialog extends JFrame {
       if (!loadLibrary("glucose")) satChoices.remove(SatSolver.GlucoseJNI);
       if (!loadLibrary("cryptominisat")) satChoices.remove(SatSolver.CryptoMiniSatJNI);
       // [HASLab]
-      if (!staticLibrary("electrod")) {satChoices.remove(SatSolver.ElectrodS);satChoices.remove(SatSolver.ElectrodX);}
-      if (!staticLibrary("NuSMV")) satChoices.remove(SatSolver.ElectrodS);
-      if (!staticLibrary("nuXmv")) satChoices.remove(SatSolver.ElectrodX);
+      if (!staticLibrary("electrod")) {satChoices.remove(SatSolver.electrodS());satChoices.remove(SatSolver.electrodX());}
+      if (!staticLibrary("NuSMV")) satChoices.remove(SatSolver.electrodS());
+      if (!staticLibrary("nuXmv")) satChoices.remove(SatSolver.electrodX());
       SatSolver now = Solver.get();
       if (!satChoices.contains(now)) {
           now=SatSolver.LingelingJNI;

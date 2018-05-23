@@ -249,11 +249,9 @@ public final class SimpleCLI {
 				else if (clargs.hasOption("glucose"))
 					options.solver = A4Options.SatSolver.GlucoseJNI;
 				else if (clargs.hasOption("NuSMV"))
-					options.solver = A4Options.SatSolver.ElectrodS;
-				else if (clargs.hasOption("NuSMV"))
-					options.solver = A4Options.SatSolver.ElectrodS;
+					options.solver = A4Options.SatSolver.electrodS(clargs.hasOption("so")?clargs.getOptionValue("so").split(","):new String[0]);
 				else if (clargs.hasOption("nuXmv"))
-					options.solver = A4Options.SatSolver.ElectrodX;
+					options.solver = A4Options.SatSolver.electrodX(clargs.hasOption("so")?clargs.getOptionValue("so").split(","):new String[0]);
 	
 				if (clargs.hasOption("decomposed"))
 					options.decomposed_mode = 1;

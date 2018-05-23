@@ -313,7 +313,19 @@ public final class A4Solution {
 		}
 //		solver.options().setFlatten(false); // added for now, since multiplication and division circuit takes forever to flatten // [HASLab] kodkod 2.0+
 		// [HASLab] pushed solver creation further below as solver choice is needed for initialization
-		if (opt.solver.external()!=null) {
+		if (opt.solver.toString().equals("Electrod_NuSMV")) { // [HASLab]
+			String[] nopts = new String[opt.solver.options().length+2];
+			System.arraycopy(opt.solver.options(), 0, nopts, 2, opt.solver.options().length);
+			nopts[0] = "-t"; nopts[1] = "NuSMV";
+			varOptions.setSolver(SATFactory.electrod(nopts));
+			varOptions.setRunUnbounded(true);
+		} else if (opt.solver.toString().equals("Electrod_nuXmv")) { // [HASLab]
+			String[] nopts = new String[opt.solver.options().length+2];
+			System.arraycopy(opt.solver.options(), 0, nopts, 2, opt.solver.options().length);
+			nopts[0] = "-t"; nopts[1] = "nuXmv";
+			varOptions.setSolver(SATFactory.electrod(nopts));
+			varOptions.setRunUnbounded(true);
+		} else if (opt.solver.external()!=null) {
 			String ext = opt.solver.external();
 			if (opt.solverDirectory.length()>0 && ext.indexOf(File.separatorChar)<0) ext=opt.solverDirectory+File.separatorChar+ext;
 			try {
@@ -337,12 +349,6 @@ public final class A4Solution {
             varOptions.setSolver(SATFactory.MiniSatProver);
             varOptions.setLogTranslation(2);
             varOptions.setCoreGranularity(opt.coreGranularity);
-		} else if (opt.solver.equals(A4Options.SatSolver.ElectrodS)) { // [HASLab]
-			varOptions.setSolver(SATFactory.electrodS());
-			varOptions.setRunUnbounded(true);
-		} else if (opt.solver.equals(A4Options.SatSolver.ElectrodX)) { // [HASLab]
-			varOptions.setSolver(SATFactory.electrodX());
-			varOptions.setRunUnbounded(true);
 		} else {
 			varOptions.setSolver(SATFactory.DefaultSAT4J); // Even for "KK" and "CNF", we choose SAT4J here; later, just before solving, we'll change it to a Write2CNF solver
 		}
