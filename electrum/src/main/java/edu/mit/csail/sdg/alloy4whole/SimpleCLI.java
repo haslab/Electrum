@@ -46,21 +46,23 @@ import edu.mit.csail.sdg.alloy4compiler.parser.CompUtil;
 import edu.mit.csail.sdg.alloy4compiler.translator.A4Options;
 import edu.mit.csail.sdg.alloy4compiler.translator.A4Solution;
 import edu.mit.csail.sdg.alloy4compiler.translator.TranslateAlloyToKodkod;
+import java_cup.lalr_state;
 
 public final class SimpleCLI {
 
 	static private A4Options options;
+    private static long start_time=0;
 
     private static final class SimpleReporter extends A4Reporter {
         private Logger LOGGER = LoggerFactory.getLogger(A4Reporter.class);
 
         private int cmd_index;
         private boolean outcome;
-        private long solve_time;
         private String cmd_name;
         private boolean cmd_type;
         private boolean expected;
         private int overall;
+        private long total_time;
         private String filename;
         private A4Solution solution;
         
@@ -99,7 +101,7 @@ public final class SimpleCLI {
             if (!(command instanceof Command)) return;
             Command cmd = (Command)command;
             outcome = true;
-            solve_time = solvingTime;
+            total_time = System.currentTimeMillis() - start_time;
             expected = cmd.expects==1;
             cmd_name = cmd.label;
             cmd_type = cmd.check;
@@ -119,7 +121,7 @@ public final class SimpleCLI {
             if (!(command instanceof Command)) return;
             Command cmd = (Command)command;
             outcome = false;
-            solve_time = solvingTime;
+            total_time = System.currentTimeMillis() - start_time;
             expected = cmd.expects==0;
             cmd_name = cmd.label;
             cmd_type = cmd.check;
@@ -139,12 +141,12 @@ public final class SimpleCLI {
     		StringBuilder sb = new StringBuilder("OUTCOME (");
     		sb.append("(file "+filename+") ");
     		sb.append("(index "+cmd_index+") ");
-    		sb.append("(ms "+solve_time+") ");
+    		sb.append("(ms "+total_time+") ");
     		sb.append("(cmd "+(cmd_type?"check":"run")+") ");
     		sb.append("(label "+cmd_name+") ");
     		sb.append("(scope "+overall+") ");
     		sb.append("(outcome "+(outcome?"SAT":"UNSAT")+") ");
-    		sb.append("(engine "+options.solver.toString()+")");
+    		sb.append("(engine "+options.solver.toString()+") ");
     		sb.append("(as_expected "+expected+"))\n");
     		if (clargs.hasOption('o') && solution != null) {
     			StringWriter wr = new StringWriter();
@@ -192,7 +194,13 @@ public final class SimpleCLI {
     				.hasArg(false)
     				.required(false)
     				.desc("print full output if SAT").build());
-       		
+
+       		options.addOption(Option.builder("so")
+    				.longOpt("solver-options")
+    				.hasArg(true)
+    				.required(false)
+    				.desc("additional solver-specific options").build());
+
     		OptionGroup g = new OptionGroup();
     		g.addOption(Option.builder("x").longOpt("nuXmv").hasArg(false).desc("select nuXmv unbounded solver").build());
     		g.addOption(Option.builder("m").longOpt("miniSAT").hasArg(false).desc("select miniSAT bounded solver").build());
@@ -266,6 +274,7 @@ public final class SimpleCLI {
 					rep.cmd_index(i);
 					rep.info("Executing \"" + c + "\"\n");
 					options.skolemDepth = 2;
+					start_time = System.currentTimeMillis();
 					TranslateAlloyToKodkod.execute_commandFromBook(rep, world.getAllReachableSigs(), c, options);
 				}
 				System.exit(0);

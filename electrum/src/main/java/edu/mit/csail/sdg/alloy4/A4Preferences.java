@@ -323,17 +323,29 @@ public class A4Preferences {
       @Override public Object renderValueLong(Integer value)  { return coreMinimizationLabels[value*2+1]; }
    };
    
-   /** The unsat core minimization strategy. */
-   private static final String[] decompLabels = new String[] {
-      "Off", "Amalgamated",
-      "Hybrid", "Hybrid",
-      "Parallel", "Purely parallel"
-   };
-   public static final IntChoicePref Decomposed = new IntChoicePref("Decomposed", "Decomposed strategy",
-         Arrays.asList(0, 1, 2), 2) {
-      @Override public Object renderValueShort(Integer value) { return decompLabels[value*2]; }
-      @Override public Object renderValueLong(Integer value)  { return decompLabels[value*2+1]; }
-   };
+   // [HASLab]
+   public static final ChoicePref<Decomposed> DecomposedPref = new ChoicePref<Decomposed>("Decomposed", Decomposed.values(),
+		   Decomposed.OFF) {
+	      @Override protected String serialize(Decomposed value) { return value.id; }
+	   };
+
+   // [HASLab]
+   public enum Decomposed {
+      /** Level 0. */  OFF("0", "off"),
+      /** Level 1. */  HYBRID("1", "hybrid"),
+      /** Level 2. */  PARALLEL("2", "parallel");
+      /** Returns true if it is greater than or equal to "other". */
+      public boolean geq(Decomposed other) { return ordinal() >= other.ordinal(); }
+      /** This is a unique String for this value; it should be kept consistent in future versions. */
+      private final String id;
+      /** This is the label that the toString() method will return. */
+      private final String label;
+      /** Constructs a new Verbosity value with the given id and label. */
+      private Decomposed(String id, String label) { this.id=id; this.label=label; }
+      /** Given an id, return the enum value corresponding to it (if there's no match, then return DEFAULT). */
+      /** Returns the human-readable label for this enum value. */
+	      @Override public final String toString() { return label; }
+	   }
 
    private static final String[] coreGranularityLabels = new String[] {
       "Top-level", "Top-level conjuncts only",

@@ -244,7 +244,15 @@ final class SimpleReporter extends A4Reporter {
     /** {@inheritDoc} */
     @Override public void solve(final int primaryVars, final int totalVars, final int clauses) {
         minimized=0;
-        cb("solve", ""+totalVars+" vars. "+primaryVars+" primary vars. "+clauses+" clauses. "+(System.currentTimeMillis()-lastTime)+"ms.\n");
+        StringBuilder sb = new StringBuilder(); // [HASLab]
+        if (totalVars >= 0)
+        	sb.append(""+totalVars+" vars. ");
+        if (primaryVars >= 0)
+        	sb.append(primaryVars+" primary vars. ");
+        if (clauses > 0)
+        	sb.append(clauses+" clauses. ");
+        sb.append((System.currentTimeMillis()-lastTime)+"ms.\n");
+        cb("solve", sb.toString());
         lastTime = System.currentTimeMillis();
     }
     

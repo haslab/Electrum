@@ -27,7 +27,7 @@ import static edu.mit.csail.sdg.alloy4.A4Preferences.CoreMinimization;
 import static edu.mit.csail.sdg.alloy4.A4Preferences.FontName;
 import static edu.mit.csail.sdg.alloy4.A4Preferences.FontSize;
 import static edu.mit.csail.sdg.alloy4.A4Preferences.ImplicitThis;
-import static edu.mit.csail.sdg.alloy4.A4Preferences.Decomposed;
+import static edu.mit.csail.sdg.alloy4.A4Preferences.DecomposedPref;
 import static edu.mit.csail.sdg.alloy4.A4Preferences.LAF;
 import static edu.mit.csail.sdg.alloy4.A4Preferences.Model0;
 import static edu.mit.csail.sdg.alloy4.A4Preferences.Model1;
@@ -982,7 +982,7 @@ public final class SimpleGUI implements ComponentListener, Listener {
         opt.unrolls = Version.experimental ? Unrolls.get() : (-1);
         opt.skolemDepth = SkolemDepth.get();
         opt.coreMinimization = CoreMinimization.get();
-        opt.decomposed_mode = Decomposed.get(); // [HASLab]
+        opt.decomposed_mode = DecomposedPref.get().ordinal(); // [HASLab]
         opt.coreGranularity = CoreGranularity.get();
         opt.originalFilename = Util.canon(text.get().getFilename());
         opt.solver = Solver.get();
@@ -1196,7 +1196,7 @@ public final class SimpleGUI implements ComponentListener, Listener {
 
             if (Version.experimental) {
               addToMenu(optmenu, Unrolls);
-              addToMenu(optmenu, Decomposed); // [HASLab]
+              addToMenu(optmenu, DecomposedPref); // [HASLab]
               addToMenu(optmenu, ImplicitThis, NoOverflow);
             }
 

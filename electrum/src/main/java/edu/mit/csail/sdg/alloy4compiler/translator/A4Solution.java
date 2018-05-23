@@ -1020,6 +1020,7 @@ public final class A4Solution {
 		final boolean solved[] = new boolean[]{true};
 		// [HASLab] sl4j reporter
 		solver.options().setReporter(new SLF4JReporter() { // Set up a reporter to catch the type+pos of skolems
+			boolean config_done = !solver.options().decomposed();
 			@Override public void skolemizing(Decl decl, Relation skolem, List<Decl> predecl) {
 				try {
 					Type t=kv2typepos(decl.variable()).a;
@@ -1033,13 +1034,21 @@ public final class A4Solution {
 				} catch(Throwable ex) { } // Exception here is not fatal
 			}
 			@Override public void solvingCNF(int primaryVars, int vars, int clauses) {
+				if (!config_done) return;
 				if (solved[0]) return; else solved[0]=true; // initially solved[0] is true, so we won't report the # of vars/clauses
 				if (rep!=null) rep.solve(primaryVars, vars, clauses);
 			}
-			@Override public void reportConfigs(int configs) { // [HASLab] propagate found configs
-				rep.configs(configs);
+			@Override public void reportConfigs(int configs, int primaryVars, int vars, int clauses) { // [HASLab] propagate found configs
+				if (config_done) return;
+				config_done = true;
+				if (rep!=null) {
+					rep.solve(primaryVars, vars, clauses);
+					if (configs >= 50)
+						rep.configs(configs);
+				}
 			}
 		});
+		solver.options().configOptions().setReporter(solver.options().reporter()); // [HASLab]
 		// [HASLab] TODO: how to handle non-temporal examples?
 //		if (!opt.solver.equals(SatSolver.CNF) && !opt.solver.equals(SatSolver.KK) && tryBookExamples && !isTemporal) { // try book examples
 //			A4Reporter r = "yes".equals(System.getProperty("debug")) ? rep : null;
@@ -1083,6 +1092,7 @@ public final class A4Solution {
 		final TemporalInstance inst = (TemporalInstance) sol.instance(); // [HASLab]
 		// To ensure no more output during SolutionEnumeration
 		solver.options().setReporter(oldReporter);
+		solver.options().configOptions().setReporter(oldReporter); // [HASLab]
 		// If unsatisfiable, then retrieve the unsat core if desired
 		if (inst==null && solver.options().solver()==SATFactory.MiniSatProver) {
 			try {
