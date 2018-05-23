@@ -46,7 +46,6 @@ import edu.mit.csail.sdg.alloy4compiler.parser.CompUtil;
 import edu.mit.csail.sdg.alloy4compiler.translator.A4Options;
 import edu.mit.csail.sdg.alloy4compiler.translator.A4Solution;
 import edu.mit.csail.sdg.alloy4compiler.translator.TranslateAlloyToKodkod;
-import java_cup.lalr_state;
 
 public final class SimpleCLI {
 
@@ -87,8 +86,8 @@ public final class SimpleCLI {
 
         @Override public void bound(String msg) { debug(msg); }
 
-        @Override public void translate(String solver, int bitwidth, int maxseq, int skolemDepth, int symmetry) {
-        		debug("Solver="+solver+" Bitwidth="+bitwidth+" MaxSeq="+maxseq+" Symmetry="+(symmetry>0 ? (""+symmetry) : "OFF")+"\n");
+        @Override public void translate(String solver, String mode, int bitwidth, int maxseq, int skolemDepth, int symmetry) {
+        		debug("Solver="+solver+" Mode="+mode+" Bitwidth="+bitwidth+" MaxSeq="+maxseq+" Symmetry="+(symmetry>0 ? (""+symmetry) : "OFF")+"\n");
         }
 
         @Override public void solve(int primaryVars, int totalVars, int clauses) {

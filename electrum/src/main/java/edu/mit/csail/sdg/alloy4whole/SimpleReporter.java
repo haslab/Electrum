@@ -234,9 +234,10 @@ final class SimpleReporter extends A4Reporter {
     @Override public void debug(final String msg) { cb("debug", msg.trim()); }
 
     /** {@inheritDoc} */
-    @Override public void translate(String solver, int bitwidth, int maxseq, int skolemDepth, int symmetry) {
+    // [HASLab] solving strategy
+    @Override public void translate(String solver, String strat, int bitwidth, int maxseq, int skolemDepth, int symmetry) {
         lastTime = System.currentTimeMillis();
-        cb("translate", "Solver="+solver+" Bitwidth="+bitwidth+" MaxSeq="+maxseq
+        cb("translate", "Solver="+solver+" Mode="+strat+" Bitwidth="+bitwidth+" MaxSeq="+maxseq
         + (skolemDepth==0?"":" SkolemDepth="+skolemDepth)
         + " Symmetry="+(symmetry>0 ? (""+symmetry) : "OFF")+'\n');
     }
@@ -251,6 +252,8 @@ final class SimpleReporter extends A4Reporter {
         	sb.append(primaryVars+" primary vars. ");
         if (clauses > 0)
         	sb.append(clauses+" clauses. ");
+        if (sb.length()==0)
+        	sb.append("Not translation information available.");
         sb.append((System.currentTimeMillis()-lastTime)+"ms.\n");
         cb("solve", sb.toString());
         lastTime = System.currentTimeMillis();

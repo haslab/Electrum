@@ -301,7 +301,7 @@ public final class TranslateAlloyToKodkod extends VisitReturn<Object> {
             sim.partial = null;
             A4Reporter rep2 = new A4Reporter(rep) {
                 private boolean first = true;
-                public void translate(String solver, int bitwidth, int maxseq, int skolemDepth, int symmetry) { if (first) super.translate(solver, bitwidth, maxseq, skolemDepth, symmetry); first=false; }
+                public void translate(String solver, String mode, int bitwidth, int maxseq, int skolemDepth, int symmetry) { if (first) super.translate(solver, mode, bitwidth, maxseq, skolemDepth, symmetry); first=false; } // [HASLab]
                 public void resultSAT(Object command, long solvingTime, Object solution) { }
                 public void resultUNSAT(Object command, long solvingTime, Object solution) { }
             };
