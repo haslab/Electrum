@@ -253,7 +253,7 @@ final class SimpleReporter extends A4Reporter {
         if (clauses > 0)
         	sb.append(clauses+" clauses. ");
         if (sb.length()==0)
-        	sb.append("Not translation information available.");
+        	sb.append("No translation information available.");
         sb.append((System.currentTimeMillis()-lastTime)+"ms.\n");
         cb("solve", sb.toString());
         lastTime = System.currentTimeMillis();

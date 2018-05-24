@@ -313,13 +313,13 @@ public final class A4Solution {
 		}
 //		solver.options().setFlatten(false); // added for now, since multiplication and division circuit takes forever to flatten // [HASLab] kodkod 2.0+
 		// [HASLab] pushed solver creation further below as solver choice is needed for initialization
-		if (opt.solver.toString().equals("Electrod_NuSMV")) { // [HASLab]
+		if (opt.solver.id().equals(A4Options.SatSolver.ElectrodS.id())) { // [HASLab]
 			String[] nopts = new String[opt.solver.options().length+2];
 			System.arraycopy(opt.solver.options(), 0, nopts, 2, opt.solver.options().length);
 			nopts[0] = "-t"; nopts[1] = "NuSMV";
 			varOptions.setSolver(SATFactory.electrod(nopts));
 			varOptions.setRunUnbounded(true);
-		} else if (opt.solver.toString().equals("Electrod_nuXmv")) { // [HASLab]
+		} else if (opt.solver.id().equals(A4Options.SatSolver.ElectrodX.id())) { // [HASLab]
 			String[] nopts = new String[opt.solver.options().length+2];
 			System.arraycopy(opt.solver.options(), 0, nopts, 2, opt.solver.options().length);
 			nopts[0] = "-t"; nopts[1] = "nuXmv";
