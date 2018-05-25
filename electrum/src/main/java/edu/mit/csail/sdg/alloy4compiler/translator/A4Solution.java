@@ -1324,14 +1324,17 @@ public final class A4Solution {
 	// [HASLab]
 	protected void addSymbolicBound(Sig s) {
 		if (s.builtin || s.isTopLevel() || s instanceof PrimSig) return;
-		Relation r = (Relation) a2k.get(s);
+		Relation r;
+		Expression e = a2k.get(s);
+		if (!(e instanceof Relation)) return; // happens with sigs defined by equality
+		else r = (Relation) e;
 		if (bounds.lowerBound(r).size() == bounds.upperBound(r).size())
 			return;
-		Expression ke = Expression.NONE; // [HASLab]
-		if (s instanceof PrimSig) ke = a2k.get(((PrimSig) s).parent); // [HASLab]
+		Expression ke = Expression.NONE; 
+		if (s instanceof PrimSig) ke = a2k.get(((PrimSig) s).parent);
 		else
 			for (Sig ss : ((SubsetSig) s).parents)
-				ke = ke.union(a2k.get(ss));
+				ke = ke.union(a2k.get(ss));	
 		if (ke != Expression.NONE && ke != null)
 			bounds.bound(r, ke);
 	}
