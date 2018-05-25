@@ -274,6 +274,7 @@ public final class SimpleCLI {
 					start_time = System.currentTimeMillis();
 					TranslateAlloyToKodkod.execute_commandFromBook(rep, world.getAllReachableSigs(), c, options);
 				}
+				rep.info("Shutting down.");
 				System.exit(0);
 			} catch (Throwable ex) {
 				rep.info("An error occurred.");
