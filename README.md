@@ -1,10 +1,6 @@
 # Electrum Analyzer
 
-<<<<<<< HEAD
-This extension to the Alloy Analyzer by the [Institute for Systems and Computer Engineering, Technology and Science](https://www.inesctec.pt/en) and the [French Aerospace Lab](https://www.onera.fr/en) provides an analyzer for Electrum models, a temporal extension to the Alloy modeling language.
-=======
 This extension to the Alloy Analyzer by [INESC TEC](https://www.inesctec.pt/en) (the Institute for Systems and Computer Engineering, Technology and Science) and [ONERA](https://www.onera.fr/en) (the French aerospace research center) provides an analyzer for Electrum models, a temporal extension to the Alloy modeling language. The Analyzer provides both bounded and unbounded model checking procedures.
->>>>>>> master
 
 [Alloy](http://alloy.mit.edu/) is a simple structural modeling language based on first-order logic developed at the [Software Design Group](http://sdg.csail.mit.edu/). Its Analyzer can generate instances of invariants, simulate the execution of operations, and check user-specified properties of a model.
 
@@ -33,11 +29,7 @@ The Electrum Analyzer requires Java 8 and can be built using Maven. The script w
   `$ git clone -b master --recursive https://github.com/haslab/Electrum`  
   `$ cd Electrum`
 
-<<<<<<< HEAD
-* Run the Maven script to generate a self containable executable under `electrum/target`. This will compile Electrum and Pardinus, as well as the underlying native libraries (see respective installation [notes](https://github.com/haslab/Pardinus)).
-=======
 * Run the Maven script to generate a self containable executable under `electrum/target`. This will compile Electrum and Pardinus, and pack the available native libraries.
->>>>>>> master
 
  `$  mvn clean package -DskipTests`
 
@@ -47,15 +39,11 @@ An [extension of Electrum](https://github.com/haslab/Electrum/releases/tag/v1.0-
 
 If you wish to build it, repeat the steps above, just replacing `-b master` in the first line by `-b actions`.
 
-<<<<<<< HEAD
-[Download](https://github.com/nmacedo/Electrum/releases/tag/v1.0) the executable ``jar`` (or [build](#building-electrum) it) and launch it simply as
-=======
 ## ERTMS Case Study
 Our response to the ABZ 2018 call for case study submissions, the ERTMS system, can be found [here](https://github.com/haslab/Electrum/wiki/ERTMS). Or access directly the:
 * Electrum [model](http://haslab.github.io/Electrum/ertms.ele) and [theme](http://haslab.github.io/Electrum/ertms.thm)
 * Alloy [model](http://haslab.github.io/Electrum/ertms.als) and [theme](http://haslab.github.io/Electrum/ertms_als.thm)
 * Accepted [paper](http://haslab.github.io/Electrum/ertms.pdf) describing its development
->>>>>>> master
 
 ## License
 
