@@ -301,7 +301,7 @@ public final class TranslateAlloyToKodkod extends VisitReturn<Object> {
             sim.partial = null;
             A4Reporter rep2 = new A4Reporter(rep) {
                 private boolean first = true;
-                public void translate(String solver, int bitwidth, int maxseq, int skolemDepth, int symmetry) { if (first) super.translate(solver, bitwidth, maxseq, skolemDepth, symmetry); first=false; }
+                public void translate(String solver, String mode, int bitwidth, int maxseq, int skolemDepth, int symmetry) { if (first) super.translate(solver, mode, bitwidth, maxseq, skolemDepth, symmetry); first=false; } // [HASLab]
                 public void resultSAT(Object command, long solvingTime, Object solution) { }
                 public void resultUNSAT(Object command, long solvingTime, Object solution) { }
             };
@@ -591,17 +591,17 @@ public final class TranslateAlloyToKodkod extends VisitReturn<Object> {
             case EXACTLYOF: case SOMEOF: case LONEOF: case ONEOF: case SETOF: return cset(x.sub);
             case NOOP: return visitThis(x.sub);
             case NOT:  return k2pos( cform(x.sub).not() , x );
-            case AFTER:  	   return k2pos( cform(x.sub).next() , x ); // [HASLab]
-            case ALWAYS:  	   return k2pos( cform(x.sub).always() , x ); // [HASLab]
-            case EVENTUALLY:   return k2pos( cform(x.sub).eventually() , x ); // [HASLab]
-            case PREVIOUS:     return k2pos( cform(x.sub).previous() , x ); // [HASLab]
+            case AFTER:  	   return k2pos( cform(x.sub).next() , x );         // [HASLab]
+            case ALWAYS:  	   return k2pos( cform(x.sub).always() , x );       // [HASLab]
+            case EVENTUALLY:   return k2pos( cform(x.sub).eventually() , x );   // [HASLab]
+            case PREVIOUS:     return k2pos( cform(x.sub).previous() , x );     // [HASLab]
             case HISTORICALLY: return k2pos( cform(x.sub).historically() , x ); // [HASLab]
-            case ONCE:  	   return k2pos( cform(x.sub).once() , x ); // [HASLab]
-            case PRIME:return cset(x.sub).prime(); // [HASLab]
+            case ONCE:  	   return k2pos( cform(x.sub).once() , x );         // [HASLab]
             case SOME: return k2pos( cset(x.sub).some() , x);
             case LONE: return k2pos( cset(x.sub).lone() , x);
             case ONE:  return k2pos( cset(x.sub).one() , x);
             case NO:   return k2pos( cset(x.sub).no() , x);
+            case PRIME:       return cset(x.sub).prime();                       // [HASLab]
             case TRANSPOSE:   return cset(x.sub).transpose();
             case CARDINALITY: return cset(x.sub).count();
             case CAST2SIGINT: return cint(x.sub).toExpression();
@@ -739,7 +739,7 @@ public final class TranslateAlloyToKodkod extends VisitReturn<Object> {
             return k2pos(f3.and(f4).and(f5).forAll(e.oneOf(elem)).and(f1).and(f2), x);
         }
         // This says  no(a&b) and no((a+b)&c) and no((a+b+c)&d)...
-        // Emperically this seems to be more efficient than "no(a&b) and no(a&c) and no(b&c)"
+        // Empirically this seems to be more efficient than "no(a&b) and no(a&c) and no(b&c)"
         Formula answer = null;
         Expression a = null;
         for(Expr arg:x.args) {
@@ -760,7 +760,7 @@ public final class TranslateAlloyToKodkod extends VisitReturn<Object> {
         Expr a=x.left, b=x.right;
         Expression s, s2, eL, eR; IntExpression i; Formula f; Object objL, objR;
         switch(x.op) {
-            case IMPLIES: f=cform(a).implies(cform(b)); return k2pos(f,x); // [HASLab] changed from !a || b
+            case IMPLIES: f=cform(a).implies(cform(b)); return k2pos(f,x);      // [HASLab] changed from !a || b (why?)
             case IN:       return k2pos(isIn(cset(a), b), x);
             case NOT_IN:  return k2pos(isIn(cset(a),b).not(), x);
             case LT:  i=cint(a);  f=i.lt(cint(b));   return k2pos(f,x);
@@ -773,9 +773,10 @@ public final class TranslateAlloyToKodkod extends VisitReturn<Object> {
             case NOT_GTE: i=cint(a);  f=i.gte(cint(b)).not();  return k2pos(f,x);
             case AND: f=cform(a); f=f.and(cform(b)); return k2pos(f,x);
             case OR:  f=cform(a); f=f.or(cform(b));  return k2pos(f,x);
-            case UNTIL: f=cform(a); f=f.until(cform(b)); return k2pos(f,x); // [HASLab]
+            case UNTIL:   f=cform(a); f=f.until(cform(b)); return k2pos(f,x);   // [HASLab]
             case RELEASE: f=cform(a); f=f.release(cform(b)); return k2pos(f,x); // [HASLab]
-            case SINCE: f=cform(a); f=f.since(cform(b)); return k2pos(f,x); // [HASLab]
+            case SINCE:   f=cform(a); f=f.since(cform(b)); return k2pos(f,x);   // [HASLab]
+            case TRIGGER: f=cform(a); f=f.trigger(cform(b)); return k2pos(f,x); // [HASLab]
             case IFF: f=cform(a); f=f.iff(cform(b)); return k2pos(f,x);
             case PLUSPLUS: s=cset(a); return s.override(cset(b));
             case MUL: i=cint(a); return i.multiply(cint(b));
@@ -931,19 +932,17 @@ public final class TranslateAlloyToKodkod extends VisitReturn<Object> {
         return ans;
     }
 
-    public Decls am(final Expression a, Decls d, int i, Variable v) {
-        kodkod.ast.Decl ddd;
+    private Decls am(final Expression a, Decls d, int i, Variable v) {
+        Expression colType;
         if (a.arity() == 1) {
             assert i == 1; 
-            ddd = v.oneOf(a);
+            colType = a;
         } else {
-            ddd = v.oneOf(a.project(IntConstant.constant(i - 1)));
+            // colType = a.project(IntConstant.constant(i - 1))); //UNSOUND
+            colType = Relation.UNIV;
         }
-        if (d == null)
-            d = ddd;
-        else
-            d = ddd.and(d);
-        return d;
+        return (d == null) ? v.oneOf(colType)
+                           : d.and(v.oneOf(colType));
     }
 
     /*===========================*/

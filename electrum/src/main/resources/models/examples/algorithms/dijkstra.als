@@ -34,50 +34,50 @@ pred IsFree [s: State, m: Mutex] {
 
 pred IsStalled [s: State, p: Process] { some p.(s.waits) }
 
-pred GrabMutex [s: State, p: Process, m: Mutex, s': State] {
+pred GrabMutex [s: State, p: Process, m: Mutex, s1: State] {
    // a process can only act if it is not
    // waiting for a mutex
    !s.IsStalled[p]
    // can only grab a mutex we do not yet hold
    m !in p.(s.holds)
    // mutexes are grabbed in order
-   all m': p.(s.holds) | mo/lt[m',m]
+   all m1: p.(s.holds) | mo/lt[m1,m]
    s.IsFree[m] => {
       // if the mutex is free, we now hold it,
       // and do not become stalled
-      p.(s'.holds) = p.(s.holds) + m
-      no p.(s'.waits)
+      p.(s1.holds) = p.(s.holds) + m
+      no p.(s1.waits)
    } else {
     // if the mutex was not free,
     // we still hold the same mutexes we held,
     // and are now waiting on the mutex
     // that we tried to grab.
-    p.(s'.holds) = p.(s.holds)
-    p.(s'.waits) = m
+    p.(s1.holds) = p.(s.holds)
+    p.(s1.waits) = m
   }
   all otherProc: Process - p | {
-     otherProc.(s'.holds) = otherProc.(s.holds)
-     otherProc.(s'.waits) = otherProc.(s.waits)
+     otherProc.(s1.holds) = otherProc.(s.holds)
+     otherProc.(s1.waits) = otherProc.(s.waits)
   }
 }
 
-pred ReleaseMutex [s: State, p: Process, m: Mutex, s': State] {
+pred ReleaseMutex [s: State, p: Process, m: Mutex, s1: State] {
    !s.IsStalled[p]
    m in p.(s.holds)
-   p.(s'.holds) = p.(s.holds) - m
-   no p.(s'.waits)
+   p.(s1.holds) = p.(s.holds) - m
+   no p.(s1.waits)
    no m.~(s.waits) => {
-      no m.~(s'.holds)
-      no m.~(s'.waits)
+      no m.~(s1.holds)
+      no m.~(s1.waits)
    } else {
       some lucky: m.~(s.waits) | {
-        m.~(s'.waits) = m.~(s.waits) - lucky
-        m.~(s'.holds) = lucky
+        m.~(s1.waits) = m.~(s.waits) - lucky
+        m.~(s1.holds) = lucky
       }
    }
   all mu: Mutex - m {
-    mu.~(s'.waits) = mu.~(s.waits)
-    mu.~(s'.holds)= mu.~(s.holds)
+    mu.~(s1.waits) = mu.~(s.waits)
+    mu.~(s1.holds)= mu.~(s.holds)
   }
 }
 

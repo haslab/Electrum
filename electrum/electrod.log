@@ -1,0 +1,612 @@
+[DEBUG] CWD = /Users/nmm/DocuProcessing file: Untitled_1-Run_run-1-2017-10-30-13-45-1666531626/Untitled_1-Run_run-1-2017-10-30-13-45-16665[INFO] Parsing doneElapsed (wall-clock) time: 44.823ms
+
+After raw_to_elo =
+        Int##next : const«2» {} 
+        String : const«1» {} 
+        iden : const«2» {(A$0 A$0) (A$1 A$1) (A$2 A$2) (B$0 B$0) (B$1 B$1) 
+                            (B$2 B$2) (ordering##Ord$0 ordering##Ord$0)} 
+        ints : const«1» {} 
+        ordering##Ord : const«1» {ordering##Ord$0} 
+        ordering##Ord#First : const«2» {(ordering##Ord$0 A$0) 
+                                           (ordering##Ord$0 A$1) 
+                                           (ordering##Ord$0 A$2)} 
+        ordering##Ord#Next : const«3» {(ordering##Ord$0 A$0 A$0) 
+                                          (ordering##Ord$0 A$0 A$1) 
+                                          (ordering##Ord$0 A$0 A$2) 
+                                          (ordering##Ord$0 A$1 A$0) 
+                                          (ordering##Ord$0 A$1 A$1) 
+                                          (ordering##Ord$0 A$1 A$2) 
+                                          (ordering##Ord$0 A$2 A$0) 
+                                          (ordering##Ord$0 A$2 A$1) 
+                                          (ordering##Ord$0 A$2 A$2)} 
+        seq##Int : const«1» {} 
+        this##A : var«1» {A$0 A$1 A$2} 
+        this##B : var«1» {} {B$0 B$1 B$2} 
+        univ : const«1» {A$0 A$1 A$2 B$0 B$1 B$2 ordering##Ord$0}
+        inst
+          
+        invariant
+          
+        run
+          (always (one ordering##Ord))
+            (always (ordering##Ord#First in (ordering##Ord -> this##A)))
+            (always
+              (ordering##Ord#Next in (ordering##Ord -> (this##A -> this##A))))
+            (always
+              (((all v2/0 : this##A
+                  {((((v2/0 = (ordering##Ord.ordering##Ord#First)) or
+                       (one ((ordering##Ord.ordering##Ord#Next).v2/0)))
+                      and
+                      ((v2/0 =
+                         (this##A -
+                           ((ordering##Ord.ordering##Ord#Next).this##A)))
+                        or (one (v2/0.(ordering##Ord.ordering##Ord#Next)))))
+                     and
+                     (not
+                       (v2/0 in (v2/0.(^(ordering##Ord.ordering##Ord#Next))))))
+                  })
+                 and
+                 (this##A in
+                   ((ordering##Ord.ordering##Ord#First).(*(ordering##Ord.ordering##Ord#Next)))))
+                and
+                (no
+                  ((ordering##Ord.ordering##Ord#Next).(ordering##Ord.ordering##Ord#First)))))
+            (always (not (this##B = this##B')))(String = String)
+            (ordering##Ord#Next = ordering##Ord#Next)(this##B = this##B)
+            (ordering##Ord = ordering##Ord)
+            (ordering##Ord#First = ordering##Ord#First)(this##A = this##A)
+            (seq##Int = seq##Int)(Int##next = Int##next)
+
+[DEBUG] Simplify1.visit_Quant <-- (one one/1 : ordering##Ord {true})
+[DEBUG] Simplify1.visit_Quant <-- (some one/1 : ordering##Ord
+                                    {(all one/2 : ordering##Ord
+                                       {(one/1 = one/2)})
+                                    })
+[DEBUG] Simplify1.visit_Quant <-- (all one/2 : ordering##Ord
+                                    {(one/1 = one/2)})
+[DEBUG] Simplify1.visit_Quant --> (all one/2 : ordering##Ord
+                                    {(one/1 = one/2)})
+[DEBUG] Simplify1.visit_Quant --> (some one/1 : ordering##Ord
+                                    {(all one/2 : ordering##Ord
+                                       {(one/1 = one/2)})
+                                    })
+[DEBUG] Simplify1.visit_Quant <-- (all v2/0 : this##A
+                                    {((((v2/0 =
+                                          (ordering##Ord.ordering##Ord#First))
+                                         or
+                                         (one
+                                           ((ordering##Ord.ordering##Ord#Next).v2/0)))
+                                        and
+                                        ((v2/0 =
+                                           (this##A -
+                                             ((ordering##Ord.ordering##Ord#Next).this##A)))
+                                          or
+                                          (one
+                                            (v2/0.(ordering##Ord.ordering##Ord#Next)))))
+                                       and
+                                       (not
+                                         (v2/0 in
+                                           (v2/0.(^(ordering##Ord.ordering##Ord#Next))))))
+                                    })
+[DEBUG] Simplify1.visit_Quant <-- (one one/3 :
+                                    ((ordering##Ord.ordering##Ord#Next).v2/0)
+                                    {true})
+[DEBUG] Simplify1.visit_Quant <-- (some one/3 :
+                                    ((ordering##Ord.ordering##Ord#Next).v2/0)
+                                    {(all one/4 :
+                                       ((ordering##Ord.ordering##Ord#Next).v2/0)
+                                       {(one/3 = one/4)})
+                                    })
+[DEBUG] Simplify1.visit_Quant <-- (all one/4 :
+                                    ((ordering##Ord.ordering##Ord#Next).v2/0)
+                                    {(one/3 = one/4)})
+[DEBUG] Simplify1.visit_Quant --> (all one/4 :
+                                    ((ordering##Ord.ordering##Ord#Next).v2/0)
+                                    {(one/3 = one/4)})
+[DEBUG] Simplify1.visit_Quant --> (some one/3 :
+                                    ((ordering##Ord.ordering##Ord#Next).v2/0)
+                                    {(all one/4 :
+                                       ((ordering##Ord.ordering##Ord#Next).v2/0)
+                                       {(one/3 = one/4)})
+                                    })
+[DEBUG] Simplify1.visit_Quant <-- (one one/5 :
+                                    (v2/0.(ordering##Ord.ordering##Ord#Next))
+                                    {true})
+[DEBUG] Simplify1.visit_Quant <-- (some one/5 :
+                                    (v2/0.(ordering##Ord.ordering##Ord#Next))
+                                    {(all one/6 :
+                                       (v2/0.(ordering##Ord.ordering##Ord#Next))
+                                       {(one/5 = one/6)})
+                                    })
+[DEBUG] Simplify1.visit_Quant <-- (all one/6 :
+                                    (v2/0.(ordering##Ord.ordering##Ord#Next))
+                                    {(one/5 = one/6)})
+[DEBUG] Simplify1.visit_Quant --> (all one/6 :
+                                    (v2/0.(ordering##Ord.ordering##Ord#Next))
+                                    {(one/5 = one/6)})
+[DEBUG] Simplify1.visit_Quant --> (some one/5 :
+                                    (v2/0.(ordering##Ord.ordering##Ord#Next))
+                                    {(all one/6 :
+                                       (v2/0.(ordering##Ord.ordering##Ord#Next))
+                                       {(one/5 = one/6)})
+                                    })
+[DEBUG] Simplify1.visit_Quant --> (all v2/0 : this##A
+                                    {((((v2/0 =
+                                          (ordering##Ord.ordering##Ord#First))
+                                         or
+                                         (some one/3 :
+                                           ((ordering##Ord.ordering##Ord#Next).v2/0)
+                                           {(all one/4 :
+                                              ((ordering##Ord.ordering##Ord#Next).v2/0)
+                                              {(one/3 = one/4)})
+                                           }))
+                                        and
+                                        ((v2/0 =
+                                           (this##A -
+                                             ((ordering##Ord.ordering##Ord#Next).this##A)))
+                                          or
+                                          (some one/5 :
+                                            (v2/0.(ordering##Ord.ordering##Ord#Next))
+                                            {(all one/6 :
+                                               (v2/0.(ordering##Ord.ordering##Ord#Next))
+                                               {(one/5 = one/6)})
+                                            })))
+                                       and
+                                       (not
+                                         (v2/0 in
+                                           (v2/0.(^(ordering##Ord.ordering##Ord#Next))))))
+                                    })
+[DEBUG] After simplify1 =
+        Int##next : const«2» {} 
+        String : const«1» {} 
+        iden : const«2» {(A$0 A$0) (A$1 A$1) (A$2 A$2) (B$0 B$0) (B$1 B$1) 
+                            (B$2 B$2) (ordering##Ord$0 ordering##Ord$0)} 
+        ints : const«1» {} 
+        ordering##Ord : const«1» {ordering##Ord$0} 
+        ordering##Ord#First : const«2» {(ordering##Ord$0 A$0) 
+                                           (ordering##Ord$0 A$1) 
+                                           (ordering##Ord$0 A$2)} 
+        ordering##Ord#Next : const«3» {(ordering##Ord$0 A$0 A$0) 
+                                          (ordering##Ord$0 A$0 A$1) 
+                                          (ordering##Ord$0 A$0 A$2) 
+                                          (ordering##Ord$0 A$1 A$0) 
+                                          (ordering##Ord$0 A$1 A$1) 
+                                          (ordering##Ord$0 A$1 A$2) 
+                                          (ordering##Ord$0 A$2 A$0) 
+                                          (ordering##Ord$0 A$2 A$1) 
+                                          (ordering##Ord$0 A$2 A$2)} 
+        seq##Int : const«1» {} 
+        this##A : var«1» {A$0 A$1 A$2} 
+        this##B : var«1» {} {B$0 B$1 B$2} 
+        univ : const«1» {A$0 A$1 A$2 B$0 B$1 B$2 ordering##Ord$0}
+        inst
+          
+        invariant
+          
+        run
+          (always
+            (some one/1 : ordering##Ord
+              {(all one/2 : ordering##Ord {(one/1 = one/2)})}))
+            (always (ordering##Ord#First in (ordering##Ord -> this##A)))
+            (always
+              (ordering##Ord#Next in (ordering##Ord -> (this##A -> this##A))))
+            (always
+              (((all v2/0 : this##A
+                  {((((v2/0 = (ordering##Ord.ordering##Ord#First)) or
+                       (some one/3 :
+                         ((ordering##Ord.ordering##Ord#Next).v2/0)
+                         {(all one/4 :
+                            ((ordering##Ord.ordering##Ord#Next).v2/0)
+                            {(one/3 = one/4)})
+                         }))
+                      and
+                      ((v2/0 =
+                         (this##A -
+                           ((ordering##Ord.ordering##Ord#Next).this##A)))
+                        or
+                        (some one/5 :
+                          (v2/0.(ordering##Ord.ordering##Ord#Next))
+                          {(all one/6 :
+                             (v2/0.(ordering##Ord.ordering##Ord#Next))
+                             {(one/5 = one/6)})
+                          })))
+                     and
+                     (not
+                       (v2/0 in (v2/0.(^(ordering##Ord.ordering##Ord#Next))))))
+                  })
+                 and
+                 (this##A in
+                   ((ordering##Ord.ordering##Ord#First).(*(ordering##Ord.ordering##Ord#Next)))))
+                and
+                (((ordering##Ord.ordering##Ord#Next).(ordering##Ord.ordering##Ord#First))
+                  in none)))(always (not (this##B = this##B')))
+            (String = String)(ordering##Ord#Next = ordering##Ord#Next)
+            (this##B = this##B)(ordering##Ord = ordering##Ord)
+            (ordering##Ord#First = ordering##Ord#First)(this##A = this##A)
+            (seq##Int = seq##Int)(Int##next = Int##next)
+
+[INFO] Simplification done
+[DEBUG] Elo_to_model1.run: after instance update:
+        Int##next : const«2» {} 
+        String : const«1» {} 
+        iden : const«2» {(A$0 A$0) (A$1 A$1) (A$2 A$2) (B$0 B$0) (B$1 B$1) 
+                            (B$2 B$2) (ordering##Ord$0 ordering##Ord$0)} 
+        ints : const«1» {} 
+        ordering##Ord : const«1» {ordering##Ord$0} 
+        ordering##Ord#First : const«2» {(ordering##Ord$0 A$0) 
+                                           (ordering##Ord$0 A$1) 
+                                           (ordering##Ord$0 A$2)} 
+        ordering##Ord#Next : const«3» {(ordering##Ord$0 A$0 A$0) 
+                                          (ordering##Ord$0 A$0 A$1) 
+                                          (ordering##Ord$0 A$0 A$2) 
+                                          (ordering##Ord$0 A$1 A$0) 
+                                          (ordering##Ord$0 A$1 A$1) 
+                                          (ordering##Ord$0 A$1 A$2) 
+                                          (ordering##Ord$0 A$2 A$0) 
+                                          (ordering##Ord$0 A$2 A$1) 
+                                          (ordering##Ord$0 A$2 A$2)} 
+        seq##Int : const«1» {} 
+        this##A : var«1» {A$0 A$1 A$2} 
+        this##B : var«1» {} {B$0 B$1 B$2} 
+        univ : const«1» {A$0 A$1 A$2 B$0 B$1 B$2 ordering##Ord$0}
+        inst
+          
+        invariant
+          
+        run
+          (always
+            (some one/1 : ordering##Ord
+              {(all one/2 : ordering##Ord {(one/1 = one/2)})}))
+            (always (ordering##Ord#First in (ordering##Ord -> this##A)))
+            (always
+              (ordering##Ord#Next in (ordering##Ord -> (this##A -> this##A))))
+            (always
+              (((all v2/0 : this##A
+                  {((((v2/0 = (ordering##Ord.ordering##Ord#First)) or
+                       (some one/3 :
+                         ((ordering##Ord.ordering##Ord#Next).v2/0)
+                         {(all one/4 :
+                            ((ordering##Ord.ordering##Ord#Next).v2/0)
+                            {(one/3 = one/4)})
+                         }))
+                      and
+                      ((v2/0 =
+                         (this##A -
+                           ((ordering##Ord.ordering##Ord#Next).this##A)))
+                        or
+                        (some one/5 :
+                          (v2/0.(ordering##Ord.ordering##Ord#Next))
+                          {(all one/6 :
+                             (v2/0.(ordering##Ord.ordering##Ord#Next))
+                             {(one/5 = one/6)})
+                          })))
+                     and
+                     (not
+                       (v2/0 in (v2/0.(^(ordering##Ord.ordering##Ord#Next))))))
+                  })
+                 and
+                 (this##A in
+                   ((ordering##Ord.ordering##Ord#First).(*(ordering##Ord.ordering##Ord#Next)))))
+                and
+                (((ordering##Ord.ordering##Ord#Next).(ordering##Ord.ordering##Ord#First))
+                  in none)))(always (not (this##B = this##B')))
+            (String = String)(ordering##Ord#Next = ordering##Ord#Next)
+            (this##B = this##B)(ordering##Ord = ordering##Ord)
+            (ordering##Ord#First = ordering##Ord#First)(this##A = this##A)
+            (seq##Int = seq##Int)(Int##next = Int##next)
+[DEBUG] Color of formula (always
+                           (some one/1 : ordering##Ord
+                             {(all one/2 : ordering##Ord {(one/1 = one/2)})})) : Invar
+
+[DEBUG] Color of formula (always
+                           (ordering##Ord#First in
+                             (ordering##Ord -> this##A))) : Invar
+
+[DEBUG] Color of formula (always
+                           (ordering##Ord#Next in
+                             (ordering##Ord -> (this##A -> this##A)))) : Invar
+
+[DEBUG] Color of formula (always
+                           (((all v2/0 : this##A
+                               {((((v2/0 =
+                                     (ordering##Ord.ordering##Ord#First))
+                                    or
+                                    (some one/3 :
+                                      ((ordering##Ord.ordering##Ord#Next).v2/0)
+                                      {(all one/4 :
+                                         ((ordering##Ord.ordering##Ord#Next).v2/0)
+                                         {(one/3 = one/4)})
+                                      }))
+                                   and
+                                   ((v2/0 =
+                                      (this##A -
+                                        ((ordering##Ord.ordering##Ord#Next).this##A)))
+                                     or
+                                     (some one/5 :
+                                       (v2/0.(ordering##Ord.ordering##Ord#Next))
+                                       {(all one/6 :
+                                          (v2/0.(ordering##Ord.ordering##Ord#Next))
+                                          {(one/5 = one/6)})
+                                       })))
+                                  and
+                                  (not
+                                    (v2/0 in
+                                      (v2/0.(^(ordering##Ord.ordering##Ord#Next))))))
+                               })
+                              and
+                              (this##A in
+                                ((ordering##Ord.ordering##Ord#First).
+                                  (*(ordering##Ord.ordering##Ord#Next)))))
+                             and
+                             (((ordering##Ord.ordering##Ord#Next).(ordering##Ord.ordering##Ord#First))
+                               in none))) : Invar
+
+[DEBUG] Color of formula (always (not (this##B = this##B'))) : Temporal
+
+[DEBUG] Color of formula (String = String) : Static_prop
+
+[DEBUG] Color of formula (ordering##Ord#Next = ordering##Ord#Next) : Static_prop
+
+[DEBUG] Color of formula (this##B = this##B) : Init
+
+[DEBUG] Color of formula (ordering##Ord = ordering##Ord) : Static_prop
+
+[DEBUG] Color of formula (ordering##Ord#First = ordering##Ord#First) : Static_prop
+
+[DEBUG] Color of formula (this##A = this##A) : Init
+
+[DEBUG] Color of formula (seq##Int = seq##Int) : Static_prop
+
+[DEBUG] Color of formula (Int##next = Int##next) : Static_prop
+
+[DEBUG] Detected invariants : {(some one/1 : ordering##Ord
+                                 {(all one/2 : ordering##Ord
+                                    {(one/1 = one/2)})
+                                 });
+                               (ordering##Ord#First in
+                                 (ordering##Ord -> this##A));
+                               (ordering##Ord#Next in
+                                 (ordering##Ord -> (this##A -> this##A)));
+                               (((all v2/0 : this##A
+                                   {((((v2/0 =
+                                         (ordering##Ord.ordering##Ord#First))
+                                        or
+                                        (some one/3 :
+                                          ((ordering##Ord.ordering##Ord#Next).v2/0)
+                                          {(all one/4 :
+                                             ((ordering##Ord.ordering##Ord#Next).v2/0)
+                                             {(one/3 = one/4)})
+                                          }))
+                                       and
+                                       ((v2/0 =
+                                          (this##A -
+                                            ((ordering##Ord.ordering##Ord#Next).this##A)))
+                                         or
+                                         (some one/5 :
+                                           (v2/0.(ordering##Ord.ordering##Ord#Next))
+                                           {(all one/6 :
+                                              (v2/0.(ordering##Ord.ordering##Ord#Next))
+                                              {(one/5 = one/6)})
+                                           })))
+                                      and
+                                      (not
+                                        (v2/0 in
+                                          (v2/0.(^(ordering##Ord.ordering##Ord#Next))))))
+                                   })
+                                  and
+                                  (this##A in
+                                    ((ordering##Ord.ordering##Ord#First).
+                                      (*(ordering##Ord.ordering##Ord#Next)))))
+                                 and
+                                 (((ordering##Ord.ordering##Ord#Next).
+                                    (ordering##Ord.ordering##Ord#First))
+                                   in none));
+                               (String = String);
+                               (ordering##Ord#Next = ordering##Ord#Next);
+                               (ordering##Ord = ordering##Ord);
+                               (ordering##Ord#First = ordering##Ord#First);
+                               (seq##Int = seq##Int);
+                               (Int##next = Int##next)
+                              }
+[DEBUG] Elo property : (((this##B = this##B) and
+                          (always (not (this##B = this##B'))))
+                         implies (not (this##A = this##A)))
+[DEBUG] build_Join <-- [[ordering##Ord . ordering##Ord#First]](A$2) 
+[DEBUG] build_Join [[ordering##Ord . ordering##Ord#First]](A$2) --> TRUE
+[DEBUG] build_Join <-- [[(ordering##Ord.ordering##Ord#Next) . this##A]](A$2) 
+[DEBUG] build_Join <-- [[ordering##Ord . ordering##Ord#Next]]((A$2 A$1)) 
+[DEBUG] build_Join [[ordering##Ord . ordering##Ord#Next]]((A$2 A$1)) --> TRUE
+[DEBUG] build_Join [[(ordering##Ord.ordering##Ord#Next) . this##A]](A$2) --> 
+        TRUE
+[DEBUG] Elo_to_LTL1.build_TClos <-- (ordering##Ord.ordering##Ord#Next)
+[DEBUG] Elo_to_LTL1.build_TClos: sup((ordering##Ord.ordering##Ord#Next)) = 
+        {(A$0 A$0) (A$0 A$1) (A$0 A$2) (A$1 A$0) (A$1 A$1) (A$1 A$2) 
+          (A$2 A$0) (A$2 A$1) (A$2 A$2)}
+[DEBUG] compute_tc_length: arity of relation : 2
+
+[DEBUG] compute_domain_codomain: ar({(A$0 A$0) (A$0 A$1) (A$0 A$2) (A$1 A$0) 
+                                      (A$1 A$1) (A$1 A$2) (A$2 A$0) 
+                                      (A$2 A$1) (A$2 A$2)}) = 2; returning: 
+        ((A$2, A$2, A$2, A$1, A$1, A$1, A$0, A$0, A$0), 
+         (A$2, A$1, A$0, A$2, A$1, A$0, A$2, A$1, A$0))
+[DEBUG] compute_tc_length: inter (A$2, A$2, A$2, A$1, A$1, A$1, A$0, A$0, 
+                                  A$0) (A$2, A$1, A$0, A$2, A$1, A$0, A$2, 
+                                        A$1, A$0) = (A$0, A$2, A$1)
+
+[DEBUG] compute_tc_length: first_elt_in_core = true
+
+[DEBUG] compute_tc_length: last_elt_in_core = true
+
+[DEBUG] borne de TC: (2)
+[DEBUG] terme de TC avec carrés itératifs : (((ordering##Ord.ordering##Ord#Next)
+                                                 +
+                                                 ((ordering##Ord.ordering##Ord#Next).
+                                                   (ordering##Ord.ordering##Ord#Next))))
+[DEBUG] build_Join <-- [[v2/0 . (^(ordering##Ord.ordering##Ord#Next))]](A$2) 
+[DEBUG] Elo_to_LTL1.bounds_prim_exp(TClos):
+        must((^(ordering##Ord.ordering##Ord#Next))) = {(A$0 A$0) (A$0 A$1) 
+                                                        (A$0 A$2) (A$1 A$0) 
+                                                        (A$1 A$1) (A$1 A$2) 
+                                                        (A$2 A$0) (A$2 A$1) 
+                                                        (A$2 A$2)}
+        may((^(ordering##Ord.ordering##Ord#Next))) = {}
+[DEBUG] build_Join <-- [[ordering##Ord . ordering##Ord#Next]]((A$2 A$2)) 
+[DEBUG] build_Join [[ordering##Ord . ordering##Ord#Next]]((A$2 A$2)) --> TRUE
+[DEBUG] build_Join [[v2/0 . (^(ordering##Ord.ordering##Ord#Next))]](A$2) --> 
+        TRUE
+[DEBUG] build_Join <-- [[(ordering##Ord.ordering##Ord#First) . (*(ordering##Ord.ordering##Ord#Next))]](A$0) 
+[DEBUG] Elo_to_LTL1.bounds_prim_exp(TClos):
+        must((*(ordering##Ord.ordering##Ord#Next))) = {(A$0 A$0) (A$0 A$1) 
+                                                        (A$0 A$2) (A$1 A$0) 
+                                                        (A$1 A$1) (A$1 A$2) 
+                                                        (A$2 A$0) (A$2 A$1) 
+                                                        (A$2 A$2) (B$0 B$0) 
+                                                        (B$1 B$1) (B$2 B$2) 
+                                                        (ordering##Ord$0
+                                                         ordering##Ord$0)}
+        may((*(ordering##Ord.ordering##Ord#Next))) = {}
+[DEBUG] build_Join <-- [[ordering##Ord . ordering##Ord#First]](A$1) 
+[DEBUG] build_Join [[ordering##Ord . ordering##Ord#First]](A$1) --> TRUE
+[DEBUG] Elo_to_LTL1.build_TClos <-- (ordering##Ord.ordering##Ord#Next)
+[DEBUG] Elo_to_LTL1.build_TClos: sup((ordering##Ord.ordering##Ord#Next)) = 
+        {(A$0 A$0) (A$0 A$1) (A$0 A$2) (A$1 A$0) (A$1 A$1) (A$1 A$2) 
+          (A$2 A$0) (A$2 A$1) (A$2 A$2)}
+[DEBUG] compute_tc_length: arity of relation : 2
+
+[DEBUG] compute_domain_codomain: ar({(A$0 A$0) (A$0 A$1) (A$0 A$2) (A$1 A$0) 
+                                      (A$1 A$1) (A$1 A$2) (A$2 A$0) 
+                                      (A$2 A$1) (A$2 A$2)}) = 2; returning: 
+        ((A$2, A$2, A$2, A$1, A$1, A$1, A$0, A$0, A$0), 
+         (A$2, A$1, A$0, A$2, A$1, A$0, A$2, A$1, A$0))
+[DEBU[INFO] Analysis yields:
+--no trace--
+[INFO] Total allocated memory: 0.005GB
+                            A$0) (A$2, A$1, A$0, A$2, A$1, A$0, A$2, 
+                                        A$1, A$0) = (A$0, A$2, A$1)
+
+[DE[INFO] Analysis done in 46.331ms
+[INFO] Analysis yields:
+--no trace--
+[INFO] Total allocated memory: 0.005GB
+ borne de TC: (2)
+[DEBUG] terme de TC avec carrés itératifs : (((ordering##Ord.ordering##Ord#Next)
+                                                 +
+                                                 ((ordering##Ord.ordering##Ord#Next).
+                                                  [INFO] Analysis done in 45.526ms
+[INFO] Analysis yields:
+--no trace--
+[INFO] Total allocated memory: 0.005GB
+)) 
+[DEBUG] build_Join [[ordering##Ord . ordering##Ord#Next]]((A$1 A$0)) --> TRUE
+[DEBUG] build_Join [[(ordering##Ord.ordering##Ord#First) . (*(ordering##Ord.ordering##Ord#Next))]](A$0) --> 
+        TRUE
+[DEBUG] build_Join <-- [[(ordering##Ord.ordering##Ord#First) . (*(ordering##Ord.ordering##Ord#Next))]](A$1) 
+[DEBUG] Elo_to_LTL1.bounds_prim_exp(TClos):
+        must((*(ordering##Ord.ordering##Ord#Next))) = {(A$0 A$0) (A$0 A$1) 
+                                                        (A$0 A$2) (A$1 A$0) 
+                                                        (A$1 A$1) (A$1 A$2) 
+                                                        (A$2 A$0) (A$2 A$1) 
+                                                        (A$2 A$2) (B$0 B$0) 
+                                                        (B$1 B$1) (B$2 B$2) 
+                                                        (ordering##Ord$0
+                                                         ordering##Ord$0)}
+        may((*(ordering##Ord.ordering##Ord#Next))) = {}
+[DEBUG] build_Join <-- [[ordering##Ord . ordering##Ord#First]](A$1) 
+[DEBUG] build_Join [[ordering##Ord . ordering##Ord#First]](A$1) --> TRUE
+[DEBUG] build_Join [[(ordering##Ord.ordering##Ord#First) . (*(ordering##Ord.ordering##Ord#Next))]](A$1) --> 
+        TRUE
+[DEBUG] build_Join <-- [[(ordering##Ord.ordering##Ord#First) . (*(ordering##Ord.ordering##Ord#Next))]](A$2) 
+[DEBUG] Elo_to_LTL1.bounds_prim_exp(TClos):
+        must((*(ordering##Ord.ordering##Ord#Next))) = {(A$0 A$0) (A$0 A$1) 
+                                                        (A$0 A$2) (A$1 A$0) 
+                                                        (A$1 A$1) (A$1 A$2) 
+                                                        (A$2 A$0) (A$2 A$1) 
+                                                        (A$2 A$2) (B$0 B$0) 
+                                                        (B$1 B$1) (B$2 B$2) 
+                                                        (ordering##Ord$0
+                                                         ordering##Ord$0)}
+        may((*(ordering##Ord.ordering##Ord#Next))) = {}
+[DEBUG] build_Join <-- [[ordering##Ord . ordering##Ord#First]](A$1) 
+[DEBUG] build_Join [[ordering##Ord . ordering##Ord#First]](A$1) --> TRUE
+[DEBUG] Elo_to_LTL1.build_TClos <-- (ordering##Ord.ordering##Ord#Next)
+[DEBUG] Elo_to_LTL1.build_TClos: sup((ordering##Ord.ordering##Ord#Next)) = 
+        {(A$0 A$0) (A$0 A$1) (A$0 A$2) (A$1 A$0) (A$1 A$1) (A$1 A$2) 
+          (A$2 A$0) (A$2 A$1) (A$2 A$2)}
+[DEBUG] compute_tc_length: arity of relation : 2
+
+[DEBUG] compute_domain_codomain: ar({(A$0 A$0) (A$0 A$1) (A$0 A$2) (A$1 A$0) 
+                                      (A$1 A$1) (A$1 A$2) (A$2 A$0) 
+                                      (A$2 A$1) (A$2 A$2)}) = 2; returning: 
+        ((A$2, A$2, A$2, A$1, A$1, A$1, A$0, A$0, A$0), 
+         (A$2, A$1, A$0, A$2, A$1, A$0, A$2, A$1, A$0))
+[DEBUG] compute_tc_length: inter (A$2, A$2, A$2, A$1, A$1, A$1, A$0, A$0, 
+                                  A$0) (A$2, A$1, A$0, A$2, A$1, A$0, A$2, 
+                                        A$1, A$0) = (A$0, A$2, A$1)
+
+[DEBUG] compute_tc_length: first_elt_in_core = true
+
+[DEBUG] compute_tc_length: last_elt_in_core = true
+
+[DEBUG] borne de TC: (2)
+[DEBUG] terme de TC avec carrés itératifs : (((ordering##Ord.ordering##Ord#Next)
+                                                 +
+                                                 ((ordering##Ord.ordering##Ord#Next).
+                                                   (ordering##Ord.ordering##Ord#Next))))
+[DEBUG] build_Join <-- [[ordering##Ord . ordering##Ord#Next]]((A$1 A$2)) 
+[DEBUG] build_Join [[ordering##Ord . ordering##Ord#Next]]((A$1 A$2)) --> TRUE
+[DEBUG] build_Join [[(ordering##Ord.ordering##Ord#First) . (*(ordering##Ord.ordering##Ord#Next))]](A$2) --> 
+        TRUE
+[INFO] Conversion done in 3.502ms
+[DEBUG] 
+-- Generated by electrod (C) ONERA 2016-2017
+MODULE main
+JUSTICE TRUE;
+
+
+VAR
+this##B$B$0 : boolean;
+this##B$B$1 : boolean;
+this##B$B$2 : boolean;
+
+INVAR ((this##B$B$0 -> this##B$B$1) | (this##B$B$0 <-> this##B$B$1));
+  
+INVAR ((this##B$B$1 -> this##B$B$2) | (this##B$B$1 <-> this##B$B$2));
+  
+INVAR TRUE;
+  
+INVAR TRUE;
+  
+INVAR TRUE;
+  
+INVAR FALSE;
+  
+INVAR TRUE;
+  
+INVAR TRUE;
+  
+INVAR TRUE;
+  
+INVAR TRUE;
+  
+INVAR TRUE;
+  
+INVAR TRUE;
+  
+LTLSPEC NAME spec :=
+  (((!(this##B$B$0 <-> this##B$B$0) | !(this##B$B$1 <-> this##B$B$1)) |
+      !(this##B$B$2 <-> this##B$B$2)
+   ) |
+     !(G ((!(this##B$B$0 <-> (X this##B$B$0)) |
+             !(this##B$B$1 <-> (X this##B$B$1))
+          ) | !(this##B$B$2 <-> (X this##B$B$2))
+         )
+      )
+  );
+
+[INFO] SMV file (size: 750.000B) generated in 579us
+[INFO] Starting analysis:
+       nuXmv -source /var/folders/0x/9sshy25d7zq30y7nj0sgh7fw0000gn/T/electrod-8a555a.scr /var/folders/0x/9sshy25d7zq30y7nj0sgh7fw0000gn/T/electrod-Untitled_1-Run_run-1-2017-10-30-13-45-1666531626-26247699.elo-11d3d4.smv
+[INFO] Analysis done in 29.993ms
+[INFO] Analysis yields:
+--no trace--
+[INFO] Total allocated memory: 0.006GB

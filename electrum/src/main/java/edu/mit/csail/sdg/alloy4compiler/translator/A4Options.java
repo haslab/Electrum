@@ -1,5 +1,5 @@
 /* Alloy Analyzer 4 -- Copyright (c) 2006-2009, Felix Chang
- * Electrum -- Copyright (c) 2014-present, Nuno Macedo
+ * Electrum -- Copyright (c) 2015-present, Nuno Macedo
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files
  * (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify,
@@ -17,16 +17,13 @@
 package edu.mit.csail.sdg.alloy4compiler.translator;
 
 import java.io.Serializable;
-import java.util.prefs.Preferences;
 
 import edu.mit.csail.sdg.alloy4.ErrorAPI;
 import edu.mit.csail.sdg.alloy4.SafeList;
-import edu.mit.csail.sdg.alloy4.Util;
 
 /** Mutable; this class encapsulates the customizable options of the Alloy-to-Kodkod translator. 
  * 
- * @modified: Nuno Macedo, Eduardo Pessoa // [HASLab] temporal model finding
- * @modified: Nuno Macedo // [HASLab] decomposed model finding
+ * @modified: Nuno Macedo // [HASLab] decomposed, temporal model finding
 */
 
 public final class A4Options implements Serializable {
@@ -100,32 +97,37 @@ public final class A4Options implements Serializable {
             synchronized(SatSolver.class) { for(SatSolver x:values) if (x.id.equals(id)) return x; }
             return SAT4J;
         }
-        /** Saves this value into the Java preference object. */
-        public void set() { Preferences.userNodeForPackage(Util.class).put("SatSolver2",id); }
-        /** Reads the current value of the Java preference object (if it's not set, then return SAT4J). */
-        public static SatSolver get() { return parse(Preferences.userNodeForPackage(Util.class).get("SatSolver2","")); }
         /** BerkMin via pipe */
         public static final SatSolver BerkMinPIPE = new SatSolver("berkmin", "BerkMin", "berkmin", null, true);
         /** Spear via pipe */
         public static final SatSolver SpearPIPE = new SatSolver("spear", "Spear", "spear", new String[]{"--model", "--dimacs"}, true);
-        /** Glucose via JNI */ // [HASLab]
-        public static final SatSolver GlucoseJNI = new SatSolver("glucose", "Glucose", null, null, true);
         /** MiniSat1 via JNI */
         public static final SatSolver MiniSatJNI = new SatSolver("minisat(jni)", "MiniSat", null, null, true);
         /** MiniSatProver1 via JNI */
         public static final SatSolver MiniSatProverJNI = new SatSolver("minisatprover(jni)", "MiniSat with Unsat Core", null, null, true);
-        /** ZChaff via JNI */
-        public static final SatSolver ZChaffJNI = new SatSolver("zchaff(jni)", "ZChaff", null, null, true);
+        ///** ZChaff via JNI */
+        // public static final SatSolver ZChaffJNI = new SatSolver("zchaff(jni)", "ZChaff with mincost", null, null, true);
+        /** Lingeling */
+        public static final SatSolver LingelingJNI = new SatSolver("lingeling(jni)", "Lingeling", null, null, true);
+        public static final SatSolver PLingelingJNI = new SatSolver("plingeling(jni)", "PLingeling", null, null, true);
+        /** Glucose */
+        public static final SatSolver GlucoseJNI = new SatSolver("glucose(jni)", "Glucose", null, null, true);
+        /** CryptoMiniSat */
+        public static final SatSolver CryptoMiniSatJNI = new SatSolver("cryptominisat(jni)", "CryptoMiniSat", null, null, true);
         /** SAT4J using native Java */
         public static final SatSolver SAT4J = new SatSolver("sat4j", "SAT4J", null, null, true);
+        /** Electrod through NuSMV */
+        // [HASLab]
+        public static final SatSolver ElectrodS =  new SatSolver("electrodS", "Electrod/NuSMV", "electrod", null, true); 
+        public static final SatSolver electrodS(String ...args) { return new SatSolver("electrodS", "Electrod_NuSMV", "electrod", args, false); }
+        /** Electrod through nuXmv */
+        // [HASLab]
+        public static final SatSolver ElectrodX =  new SatSolver("electrodX", "Electrod/nuXmv", "electrod", null, true); 
+        public static final SatSolver electrodX(String ...args) { return new SatSolver("electrodX", "Electrod_nuXmv", "electrod", args, false); }
         /** Outputs the raw CNF file only */
         public static final SatSolver CNF = new SatSolver("cnf", "Output CNF to file", null, null, true);
         /** Outputs the raw Kodkod file only */
         public static final SatSolver KK = new SatSolver("kodkod", "Output Kodkod to file", null, null, true);
-        // [HASLab]
-        public static final SatSolver ElectrodS = new SatSolver("electrodS", "Electrod/NuSMV", null, null, true);
-        // [HASLab]
-        public static final SatSolver ElectrodX = new SatSolver("electrodX", "Electrod/nuXmv", null, null, true);
     }
 
     /** This ensures the class can be serialized reliably. */
@@ -133,7 +135,7 @@ public final class A4Options implements Serializable {
 
     /** Constructs an A4Options object with default values for everything. */
     public A4Options() { }
-
+    
     /** This option specifies the amount of symmetry breaking to do (when symmetry breaking isn't explicitly disabled).
      *
      * <p> If a formula is unsatisfiable, then in general, the higher this value,
@@ -155,7 +157,7 @@ public final class A4Options implements Serializable {
      * <p> Default value is set to the fastest current strategy.
      */
     public int coreMinimization = 2;
-    
+
     /** Unsat core granularity, default is 0 (only top-level conjuncts are considered), 3 expands all quantifiers */
     public int coreGranularity = 0;
 
@@ -183,16 +185,25 @@ public final class A4Options implements Serializable {
      * <p> Default value is false.
      */
     public boolean recordKodkod = false;
-    
+
     /** This option specifies whether the solver should report only solutions
      *  that don't cause any overflows. */
     public boolean noOverflow = false;
 
-    /** This option controls how deep we unroll loops and unroll recursive predicate/function/macros (negative means it's disallowed) */
+    /** This option constrols how deep we unroll loops and unroll recursive predicate/function/macros (negative means it's disallowed) */
     public int unrolls = (-1);
 
+    /** This option specifies the decomposition mode (0=Off 1=Hybrid 2=Parallel)
+     * <p> Default value is off.
+     */
 	// [HASLab]
-    public int decomposed = 0;
+    public int decomposed_mode = 0;
+
+    /** This option specifies the number of threads if in decomposed
+     * <p> Default value is off.
+     */
+	// [HASLab]
+    public int decomposed_threads = 4;
 	
     /** This method makes a copy of this Options object. */
     public A4Options dup() {
@@ -208,7 +219,8 @@ public final class A4Options implements Serializable {
         x.recordKodkod = recordKodkod;
         x.noOverflow = noOverflow;
         x.coreGranularity = coreGranularity;
-        x.decomposed = decomposed; // [HASLab]
+        x.decomposed_mode = decomposed_mode; // [HASLab]
+        x.decomposed_threads = decomposed_threads; // [HASLab]
         return x;
     }
 }

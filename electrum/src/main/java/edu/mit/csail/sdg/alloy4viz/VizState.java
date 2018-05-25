@@ -40,7 +40,7 @@ import edu.mit.csail.sdg.alloy4graph.DotStyle;
  *
  * <p><b>Thread Safety:</b> Can be called only by the AWT event thread.
  * 
- * @modified: Nuno Macedo // [HASLab] temporal model finding
+ * @modified: Nuno Macedo // [HASLab] temporal instances
  */
 
 public final class VizState {
@@ -128,9 +128,9 @@ public final class VizState {
       shape.put(set,DotShape.ELLIPSE); nodeColor.put(set,DotColor.BLUE); label.put(set,"");
       edgeColor.put(ext,DotColor.BLACK); weight.put(ext,100); layoutBack.put(ext,true);
       edgeColor.put(in,DotColor.BLACK); weight.put(in,100); layoutBack.put(in,true);
-      for (AlloyType r : currentModel.getTypes()) // [HASLab]
+      for (AlloyType r : currentModel.getTypes()) // [HASLab] paint variable sigs differently
     	  if (r.isVar) nodeStyle.put(r, DotStyle.DASHED);
-      for (AlloyRelation r : currentModel.getRelations()) // [HASLab]
+      for (AlloyRelation r : currentModel.getRelations()) // [HASLab] paint variable fields differently
     	  if (r.isVar) edgeStyle.put(r, DotStyle.DASHED);
       // Done
       cache.clear();

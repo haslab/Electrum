@@ -27,6 +27,7 @@ import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.Serializable;
 import java.lang.Thread.UncaughtExceptionHandler;
+import java.lang.reflect.Field;
 
 /** This class allows you to execute tasks in a subprocess, and receive its outputs via callback.
  *
@@ -98,7 +99,21 @@ public final class WorkerEngine {
    /** This terminates the subprocess, and prevent any further results from reaching the parent's callback handler. */
    public static void stop() {
       synchronized(WorkerEngine.class) {
-         try { if (latest_sub!=null) latest_sub.destroy(); } finally { latest_manager=null; latest_sub=null; }
+         try { if (latest_sub!=null)
+        	 {
+			try {
+				Field f = latest_sub.getClass().getDeclaredField("pid");
+				f.setAccessible(true);
+				System.out.println("Process ID : " + f.get(latest_sub));
+				Runtime.getRuntime().exec("kill -SIGTERM "+f.get(latest_sub));
+
+			} catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException | IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+        	 
+//        	 latest_sub.destroy();
+        	 }} finally { latest_manager=null; latest_sub=null; }
       }
    }
 
@@ -195,7 +210,7 @@ public final class WorkerEngine {
                      x = sub2main.readObject();
                   } catch(Throwable ex) {
                      sub.destroy(); Util.close(sub2main);
-                     synchronized(WorkerEngine.class) { if (latest_sub != sub) return; callback.callback(ex.getMessage()); for (StackTraceElement t : ex.getStackTrace()) callback.callback(t.toString()); callback.fail(); return; }
+                     synchronized(WorkerEngine.class) { if (latest_sub != sub) return; callback.fail(); return; }
                   }
                   synchronized(WorkerEngine.class) {
                      if (latest_sub != sub) return; if (x==null) {callback.done(); return;} else callback.callback(x);

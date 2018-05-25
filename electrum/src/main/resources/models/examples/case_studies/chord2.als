@@ -16,10 +16,10 @@ fact {all i: Id | Id in i.*next}
  * true iff i precedes j in the order starting at from
  */
 pred less_than [from, i,j: Id] {
-  let next' = Id<:next - (Id->from) | j in i.^next'  // if from=j, returns true if # nodes > 1
+  let next1 = Id<:next - (Id->from) | j in i.^next1  // if from=j, returns true if # nodes > 1
   }
 pred less_than_eq [from, i,j: Id] {
-  let next' = Id<:next - (Id->from) | j in i.*next'
+  let next1 = Id<:next - (Id->from) | j in i.*next1
   }
 
 sig Node {id: Id}
@@ -48,7 +48,7 @@ fact {all s: State | all n: s.active | n.(s.data).next = n.(s.data).finger[n.id.
 pred NextCorrect [s: State] {
   all n: s.active {
     -- no intervening node (ie, close enough)
-    no n': s.active - n | less_than [n.id, n'.id, n.(s.data).next.id]
+    no n1: s.active - n | less_than [n.id, n1.id, n.(s.data).next.id]
     -- can reach all other active nodes (ie, far enough)
     -- need this because can't rule out case of next being node itself (because of 1-node ring)
     -- s.active in n.*(s.data.next)
@@ -66,17 +66,17 @@ fun NextCorrect" (s: State) {
   }
 */
 
-pred NextCorrect' [s: State] {
+pred NextCorrect1 [s: State] {
 -- next seems to be correct for 1,2,3 nodes
   all n: s.active | let nd = (s.data)[n] {
-    let next' = Id<:next - (Id -> nd.next.id) {
-      no n' : s.active { n'.id in n.id.^next' }
+    let next1 = Id<:next - (Id -> nd.next.id) {
+      no n1 : s.active { n1.id in n.id.^next1 }
     }}
   }
 
-assert Same1 {all s: State | NextCorrect[s] => NextCorrect'[s]}
+assert Same1 {all s: State | NextCorrect[s] => NextCorrect1[s]}
 //check Same1 for 3 but 1 State -- valid
-assert Same2 {all s: State | s.active = Node => (NextCorrect'[s] => NextCorrect[s])}
+assert Same2 {all s: State | s.active = Node => (NextCorrect1[s] => NextCorrect[s])}
 //check Same2 for 3 but 1 State -- invalid if active condition removed
 
 -- assert NextInFinger {all s: State | all n: s.active | some n.s.data.finger[n.id.next] }
@@ -88,19 +88,19 @@ assert Same2 {all s: State | s.active = Node => (NextCorrect'[s] => NextCorrect[
 pred FingersCorrect [s: State] {
   all nd: s.active.(s.data) | all start:nd.finger.univ |
     nd.finger[start] in s.active &&
-    (no n' : s.active | less_than [start, n'.id, nd.finger[start].id])
+    (no n1 : s.active | less_than [start, n1.id, nd.finger[start].id])
   }
 
-pred FingersCorrect' [s: State] {
+pred FingersCorrect1 [s: State] {
   all n: s.active | let nd = (s.data)[n] | all start: Node.~(nd.finger) {
     nd.finger[start] in s.active &&
-    (let next' = Id<:next - (nd.finger[start].id -> Id) {
-      no n' : s.active - nd.finger[start] {
-        n'.id in start.*next'
+    (let next1 = Id<:next - (nd.finger[start].id -> Id) {
+      no n1 : s.active - nd.finger[start] {
+        n1.id in start.*next1
     }})}
   }
 
-assert SameFC {all s: State | FingersCorrect [s] iff FingersCorrect'[s]}
+assert SameFC {all s: State | FingersCorrect [s] iff FingersCorrect1[s]}
 //check SameFC for 3 but 1 State
 
 pred ShowMeFC {
@@ -113,7 +113,7 @@ pred ShowMeFC {
 fun ClosestPrecedingFinger(s: State) {
   all n: s.active | let nd = n.s.data |
     all i: Id | let cpf = nd.closest_preceding_finger[i] {
-      no n': nd.finger[Id] | less_than (cpf.id, n'.id, i)
+      no n1: nd.finger[Id] | less_than (cpf.id, n1.id, i)
       cpf in nd.finger[Id] + n
       less_than (n.id, cpf.id, i)
     }
@@ -123,7 +123,7 @@ fun ClosestPrecedingFinger(s: State) {
 pred ClosestPrecedingFinger_SAVE [s: State] {
   all n: s.active | let nd = n.(s.data) |
     all i: Id | let cpf = nd.closest_preceding_finger[i] {
-      no n': (nd.finger[Id] + n) - cpf | less_than [cpf.id, n'.id, i]
+      no n1: (nd.finger[Id] + n) - cpf | less_than [cpf.id, n1.id, i]
       cpf in nd.finger[Id] + n
       cpf.id != i || # s.active = 1
       //less_than (n.id, cpf.id, i)
@@ -131,7 +131,7 @@ pred ClosestPrecedingFinger_SAVE [s: State] {
   }
 
 pred CPFBody [s: State, n: Node, nd: NodeData, i: Id, cpf: Node] {
-  no n': (nd.finger[Id] + n) - cpf | less_than [cpf.id, n'.id, i]
+  no n1: (nd.finger[Id] + n) - cpf | less_than [cpf.id, n1.id, i]
   cpf in nd.finger[Id] + n
   cpf.id != i || # s.active = 1
   }
@@ -141,25 +141,25 @@ pred ClosestPrecedingFinger[s: State] {
     some cpf: Node | CPFBody [s,n,nd,i,cpf] => CPFBody [s,n,nd,i,nd.closest_preceding_finger[i]]
   }
 
-pred ClosestPrecedingFinger'[s: State] {
+pred ClosestPrecedingFinger1[s: State] {
   all n: s.active | let nd = (s.data)[n] | all i: Id {
-    let next' = Id<:next - (Id -> i) {
-      nd.next.id in n.id.^next' =>
+    let next1 = Id<:next - (Id -> i) {
+      nd.next.id in n.id.^next1 =>
         // nd.closest_preceding_finger[i] = nd.next,
         (some n1: nd.finger[Id] {
           nd.closest_preceding_finger[i] = n1
           //n1 in nd.finger[Id]
-          n1.id in n.id.^next'
-          no n2: nd.finger[Id] | n2.id in n1.id.^next'
+          n1.id in n.id.^next1
+          no n2: nd.finger[Id] | n2.id in n1.id.^next1
         }) else
       nd.closest_preceding_finger[i] = n
     }}
   }
 
-assert SameCPF {all s: State | FingersCorrect[s] => (ClosestPrecedingFinger [s] iff ClosestPrecedingFinger' [s])}
-assert SameCPF1 {all s: State | FingersCorrect[s] => (ClosestPrecedingFinger [s] => ClosestPrecedingFinger' [s])}
+assert SameCPF {all s: State | FingersCorrect[s] => (ClosestPrecedingFinger [s] iff ClosestPrecedingFinger1 [s])}
+assert SameCPF1 {all s: State | FingersCorrect[s] => (ClosestPrecedingFinger [s] => ClosestPrecedingFinger1 [s])}
 assert SameCPF2 {
-  all s: State | ((s.active = Node && FingersCorrect[s] && ClosestPrecedingFinger' [s])
+  all s: State | ((s.active = Node && FingersCorrect[s] && ClosestPrecedingFinger1 [s])
    => ClosestPrecedingFinger [s]) }
 //check SameCPF for 3 but 1 State
 //check SameCPF1 for 2 but 1 State
@@ -167,7 +167,7 @@ assert SameCPF2 {
 
 pred ShowMeCPF  {
   all s : State | s.active = Node && FingersCorrect[s] &&
-        // not ClosestPrecedingFinger(s) && ClosestPrecedingFinger'(s)
+        // not ClosestPrecedingFinger(s) && ClosestPrecedingFinger1(s)
         ClosestPrecedingFinger[s]
   //all s : State | all nd : s.active.s.data | nd.finger[Id] = Node
   # Node = 2
@@ -193,10 +193,10 @@ assert FPisActive {
 
 //check FPisActive for 3 but 1 State
 
-pred FindPredecessor'[s: State] {
+pred FindPredecessor1[s: State] {
   all n: s.active | let nd = (s.data)[n] | all i: Id {
-    let next' = Id<:next - (nd.next.id -> Id) {
-      one s.active or i in n.id.^next' =>
+    let next1 = Id<:next - (nd.next.id -> Id) {
+      one s.active or i in n.id.^next1 =>
       nd.find_predecessor[i] = n else
       nd.find_predecessor[i] =
       ((s.data)[nd.closest_preceding_finger[i]]).find_predecessor[i]
@@ -204,13 +204,13 @@ pred FindPredecessor'[s: State] {
   }
 
 assert SameFP {all s: State | FingersCorrect[s] && s.active = Node
-  => (FindPredecessor [s] iff FindPredecessor' [s])}
+  => (FindPredecessor [s] iff FindPredecessor1 [s])}
 assert SameFP1 {
   all s: State | FingersCorrect[s] && s.active = Node
-    => (FindPredecessor [s] => FindPredecessor' [s])}
+    => (FindPredecessor [s] => FindPredecessor1 [s])}
 assert SameFP2 {
   all s: State | FingersCorrect[s] && s.active = Node
-    => (FindPredecessor' [s] => FindPredecessor [s])}
+    => (FindPredecessor1 [s] => FindPredecessor [s])}
 //check SameFP for 3 but 1 State
 //check SameFP1 for 3 but 1 State
 //check SameFP2 for 3 but 1 State
@@ -266,7 +266,7 @@ assert FindSuccessorWorks {
     let succ = nd.find_successor [i] |
       FingersCorrect [s]
       => {
-        no n': s.active | less_than [i, n'.id, succ.id]
+        no n1: s.active | less_than [i, n1.id, succ.id]
         succ in s.active
         }
   }

@@ -47,7 +47,7 @@ import edu.mit.csail.sdg.alloy4compiler.translator.A4TupleSet;
  *
  * <p><b>Thread Safety:</b> Can be called only by the AWT event thread.
  * 
- * @modified: Nuno Macedo // [HASLab] temporal model finding
+ * @modified: Nuno Macedo // [HASLab] temporal instances
  */
 
 public final class StaticInstanceReader {
@@ -86,7 +86,7 @@ public final class StaticInstanceReader {
    private final Map<String,AlloyAtom> string2atom = new LinkedHashMap<String,AlloyAtom>();
 
    /** Create a new AlloyType whose label is unambiguous with any existing one. */
-   // [HASLab]
+   // [HASLab] variable info
    private AlloyType makeType(String label, boolean isOne, boolean isAbstract, boolean isBuiltin, boolean isPrivate, boolean isMeta, boolean isEnum, boolean isVar) {
       if (label.startsWith("this/")) label = label.substring(5);
       while(true) {
@@ -107,7 +107,7 @@ public final class StaticInstanceReader {
    }
 
    /** Create a new AlloyRelation whose label is unambiguous with any existing one. */
-   // [HASLab]
+   // [HASLab] variable info
    private AlloyRelation makeRel(String label, boolean isPrivate, boolean isMeta, boolean isVar, List<AlloyType> types) {
       while(label.equals(Sig.UNIV.label) || label.equals(Sig.SIGINT.label) || label.equals(Sig.SEQIDX.label) || label.equals(Sig.STRING.label)) label=label+"'";
       while(true) {
@@ -185,7 +185,7 @@ public final class StaticInstanceReader {
    }
 
    /** Construct an AlloySet or AlloyRelation corresponding to the given expression. */
-   // [HASLab]
+   // [HASLab] variable info
    private void setOrRel(A4Solution sol, String label, Expr expr, boolean isPrivate, boolean isMeta, boolean isVar) throws Err {
       for(List<PrimSig> ps:expr.type().fold()) {
          if (ps.size()==1) {

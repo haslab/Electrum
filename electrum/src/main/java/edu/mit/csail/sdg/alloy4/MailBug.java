@@ -103,7 +103,7 @@ public final class MailBug implements UncaughtExceptionHandler, Runnable {
    private static String prepareCrashReport (Thread thread, Throwable ex, String email, String problem) {
       StringWriter sw = new StringWriter();
       PrintWriter pw = new PrintWriter(sw);
-      pw.printf("Alloy Analyzer %s crash report (Build Date = %s)\n", Version.version(), Version.buildDate());
+      pw.printf("Alloy Analyzer %s (Electrum Analyzer %s) crash report (Build Date = %s)\n", Version.version(), Version.eleVersion(), Version.buildDate());
       pw.printf("\n========================= Email ============================\n%s\n", Util.convertLineBreak(email).trim());
       pw.printf("\n========================= Problem ==========================\n%s\n", Util.convertLineBreak(problem).trim());
       pw.printf("\n========================= Thread Name ======================\n%s\n", thread.getName().trim());

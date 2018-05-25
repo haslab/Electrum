@@ -36,7 +36,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.NoSuchElementException;
-import java.util.prefs.Preferences;
+import java.util.regex.Pattern;
 
 import edu.mit.csail.sdg.alloy4.ConstList.TempList;
 
@@ -44,75 +44,12 @@ import edu.mit.csail.sdg.alloy4.ConstList.TempList;
  *
  * <p><b>Thread Safety:</b>  Safe.
  */
-
+@SuppressWarnings({"unchecked"})
 public final class Util {
 
    /** This constructor is private, since this utility class never needs to be instantiated. */
    private Util() { }
-
-   /** This reads and writes String-valued Java persistent preferences.
-    * <p><b>Thread Safety:</b>  Safe.
-    */
-   public static final class StringPref {
-      /** The id associated with this preference. */
-      private final String id;
-      /** The default value for this preference. */
-      private final String defaultValue;
-      /** Constructs a new StringPref object with the given id. */
-      public StringPref (String id) {this.id=id; this.defaultValue="";}
-      /** Constructs a new StringPref object with the given id and the given default value. */
-      public StringPref (String id, String defaultValue) {this.id=id; this.defaultValue=defaultValue;}
-      /** Sets the value for this preference. */
-      public void set (String value) { Preferences.userNodeForPackage(Util.class).put(id, value); }
-      /** Reads the value for this preference; if not set or is empty, we return the default value. */
-      public String get () {
-         String ans=Preferences.userNodeForPackage(Util.class).get(id, "");
-         return (ans==null || ans.length()==0) ? defaultValue : ans;
-      }
-   }
-
-   /** This reads and writes boolean-valued Java persistent preferences.
-    * <p><b>Thread Safety:</b>  Safe.
-    */
-   public static final class BooleanPref {
-      /** The id associated with this preference. */
-      private final String id;
-      /** Constructurs a new BooleanPref object with the given id. */
-      public BooleanPref (String id) { this.id=id; }
-      /** Sets the value for this preference. */
-      public void set (boolean value) { Preferences.userNodeForPackage(Util.class).put(id, value ? "y" : ""); }
-      /** Reads the value for this preference; if not set, we return false. */
-      public boolean get () { return "y".equals(Preferences.userNodeForPackage(Util.class).get(id, "")); }
-   }
-
-   /** This reads and writes integer-valued Java persistent preferences.
-    * <p><b>Thread Safety:</b>  Safe.
-    */
-   public static final class IntPref {
-      /** The id associated with this preference. */
-      private final String id;
-      /** The minimum value for this preference. */
-      private final int min;
-      /** The maximum value for this preference. */
-      private final int max;
-      /** The default value for this preference. */
-      private final int def;
-      /** If min>n, we return min; else if n>max, we return max; otherwise we return n. */
-      private int bound (int n) { return n<min ? min : (n>max? max : n); }
-      /** Make a new IntPref object with the given id; you must ensure max >= min, but def does not have to be between min..max */
-      public IntPref (String id, int min, int def, int max) {this.id=id; this.min=min; this.def=def; this.max=max;}
-      /** Sets the value for this preference. */
-      public void set (int value) { Preferences.userNodeForPackage(Util.class).putInt(id, bound(value)); }
-      /** Reads the value for this preference; if not set, we return the default value. */
-      public int get () {
-         int n;
-         String t = Preferences.userNodeForPackage(Util.class).get(id, "");
-         if (t==null || t.length()==0) return def;
-         try { n=Integer.parseInt(t); } catch(NumberFormatException ex) { return def; }
-         return bound(n);
-      }
-   }
-
+   
    /** Copy the input list, append "element" to it, then return the result as an unmodifiable list. */
    public static<T> ConstList<T> append(List<T> list, T element) {
       TempList<T> ans = new TempList<T>(list.size()+1);
@@ -121,7 +58,6 @@ public final class Util {
    }
 
    /** Copy the input array, append "element" to it, then return the result as a new array. */
-   @SuppressWarnings("unchecked")
    public static<T> T[] append(T[] list, T element) {
       T[] ans = (T[]) java.lang.reflect.Array.newInstance(list.getClass().getComponentType(), list.length+1);
       System.arraycopy(list, 0, ans, 0, list.length);
@@ -598,5 +534,22 @@ public final class Util {
 
    /** Returns a mask of the form 000..0011..11 where the number of 1s is equal to the number of significant bits of the highest integer withing the given bitwidth */
    public static int shiftmask(int bitwidth) { return bitwidth < 1 ? 0 : (1 << (32 - Integer.numberOfLeadingZeros(bitwidth-1))) - 1; }
+   
+   /** 
+	* Determines the name of the xml file for a particular state of the trace.
+	* 
+	* @param file the original name of the file
+	* @param state the particular state to be retrieved
+	* @return the file with the representation of the state
+	*/
+   // [HASLab]
+   public static String temporize(String file, int state) {
+	  int fi = file.lastIndexOf(File.separator);
+	  String p = file.substring(0, fi);
+	  String f = file.substring(fi,file.length());
+      String[] spl = f.split(Pattern.quote("_"));
+      String dfilename = spl[0] + "_" + state;
+	  return p+dfilename;
+   }
 
 }

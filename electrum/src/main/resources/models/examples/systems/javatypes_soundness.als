@@ -39,7 +39,7 @@ sig Slot {}
 
 abstract sig Statement {}
 sig Assignment extends Statement {
-  var: Variable,
+  vari: Variable,
   expr: Expr
   }
 sig Setter extends Statement {
@@ -65,13 +65,13 @@ sig Getter extends Expr {
 sig State {
   objects: set Object,
   reaches: Object -> Object,
-  vars: set Variable,
+  varis: set Variable,
   holds: (Slot + Variable) -> lone Value,
   val: Expr -> lone Value
   } {
   all o: Object | o.reaches = holds[o.slot[Field]] & Object
-  holds.Value & Variable = vars
-  objects = holds[vars].^reaches
+  holds.Value & Variable = varis
+  objects = holds[varis].^reaches
   all e: Expr | let v = val[e] {
     e in Variable => v = holds[e]
     e in Getter => v = holds[(val[e.expr]).slot[e.field]]
@@ -81,19 +81,19 @@ sig State {
 pred RuntimeTypesOK [s: State] {
   all o: s.objects, f: o.type.fields |
     let v = s.holds [o.slot [f]] | HasType [v, f.declType]
-  all var: s.vars |
-    let v = s.holds [var] | HasType [v, var.declType]
+  all vari: s.varis |
+    let v = s.holds [vari] | HasType [v, vari.declType]
   }
 
 pred HasType [v: Value, t: Type] {
   v in Null or Subtype [v.type, t]
   }
 
-pred Subtype [t, t': Type] {
+pred Subtype [t, t1: Type] {
   t in Class =>
      (let supers = (t & Class).*(Class<:xtends) |
-        t' in (supers + supers.implements.*(Interface<:xtends)))
-  t in Interface => t' in (t & Interface).*(Interface<:xtends)
+        t1 in (supers + supers.implements.*(Interface<:xtends)))
+  t in Interface => t1 in (t & Interface).*(Interface<:xtends)
   }
 
 pred TypeChecksSetter [stmt: Setter] {
@@ -102,24 +102,24 @@ pred TypeChecksSetter [stmt: Setter] {
   Subtype [stmt.rexpr.type, stmt.field.declType]
   }
 
-pred ExecuteSetter [s, s': State, stmt: Setter] {
-  stmt.(rexpr+lexpr).subexprs & Variable in s.vars
-  s'.objects = s.objects and s'.vars = s.vars
+pred ExecuteSetter [s, s1: State, stmt: Setter] {
+  stmt.(rexpr+lexpr).subexprs & Variable in s.varis
+  s1.objects = s.objects and s1.varis = s.varis
   let rval = s.val [stmt.rexpr], lval = s.val [stmt.lexpr] {
     no lval & Null
-    s'.holds = s.holds ++ (lval.slot[stmt.field] -> rval)
+    s1.holds = s.holds ++ (lval.slot[stmt.field] -> rval)
    }
   }
 
 assert TypeSoundness {
-  all s, s': State, stmt: Setter |
+  all s, s1: State, stmt: Setter |
     {RuntimeTypesOK[s]
-    ExecuteSetter [s, s', stmt]
+    ExecuteSetter [s, s1, stmt]
     TypeChecksSetter[stmt]
-    } => RuntimeTypesOK[s']
+    } => RuntimeTypesOK[s1]
   }
 
-fact {all o, o': Object | some o.slot[Field] & o'.slot[Field] => o = o'}
+fact {all o, o1: Object | some o.slot[Field] & o1.slot[Field] => o = o1}
 fact {all g: Getter | no g & g.^subexprs}
 
 fact ScopeFact {

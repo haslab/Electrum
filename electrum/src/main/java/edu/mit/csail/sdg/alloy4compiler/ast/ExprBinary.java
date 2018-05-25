@@ -1,4 +1,5 @@
 /* Alloy Analyzer 4 -- Copyright (c) 2006-2009, Felix Chang
+ * Electrum -- Copyright (c) 2015-present, Nuno Macedo
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files
  * (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify,
@@ -40,6 +41,8 @@ import edu.mit.csail.sdg.alloy4compiler.ast.Type.ProductType;
  * <p> <b>Invariant:</b>  type!=EMPTY => (left.mult==2 => this.op is one of the 17 arrow operators)
  * <p> <b>Invariant:</b>  type!=EMPTY => (right.mult==1 => this.op==IN)
  * <p> <b>Invariant:</b>  type!=EMPTY => (right.mult==2 => (this.op==IN || this.op is one of the 17 arrow operators))
+ * 
+ * @modified Eduardo Pessoa, Nuno Macedo // [HASLab] temporal model finding
  */
 
 public final class ExprBinary extends Expr {
@@ -193,7 +196,8 @@ public final class ExprBinary extends Expr {
       /** &lt;=&gt;       */  IFF("<=>",false),
       /** until;          */  UNTIL("until",false), // [HASLab]
       /** release;        */  RELEASE("release",false), // [HASLab]
-      /** since;          */  SINCE("since",false); // [HASLab]
+      /** since;          */  SINCE("since",false), // [HASLab]
+      /** trigger         */  TRIGGER("trigger",false); // [HASLab]
 
       /** The constructor.
        * @param label - the label (for printing debugging messages)
@@ -233,7 +237,7 @@ public final class ExprBinary extends Expr {
               right = right.typecheck_as_int();
               break;
            }
-           case IFF: case IMPLIES: case RELEASE: case UNTIL: case SINCE: { // [HASLab]
+           case IFF: case IMPLIES: case RELEASE: case UNTIL: case SINCE: case TRIGGER: { // [HASLab]
               left = left.typecheck_as_formula();
               right = right.typecheck_as_formula();
               break;
@@ -267,7 +271,7 @@ public final class ExprBinary extends Expr {
          JoinableList<Err> errs = left.errors.make(right.errors);
          if (errs.isEmpty()) switch(this) {
            case LT: case LTE: case GT: case GTE: case NOT_LT: case NOT_LTE: case NOT_GT: case NOT_GTE:
-           case AND: case OR: case IFF: case IMPLIES: case RELEASE: case UNTIL: case SINCE: // [HASLab]
+           case AND: case OR: case IFF: case IMPLIES: case RELEASE: case UNTIL: case SINCE: case TRIGGER: // [HASLab]
               type = Type.FORMULA;
               break;
            case MUL: case DIV: case REM: case SHL: case SHR: case SHA:
@@ -344,7 +348,7 @@ public final class ExprBinary extends Expr {
            a=(b=Type.smallIntType());
            break;
         }
-        case AND: case OR: case IFF: case IMPLIES: case RELEASE: case UNTIL: case SINCE: { // [HASLab]
+        case AND: case OR: case IFF: case IMPLIES: case RELEASE: case UNTIL: case SINCE: case TRIGGER: { // [HASLab]
            a=(b=Type.FORMULA);
            break;
         }

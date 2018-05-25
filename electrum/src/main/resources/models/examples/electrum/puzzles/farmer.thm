@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<alloy>
+
+<view nodetheme="Martha">
+
+<defaultnode/>
+
+<defaultedge/>
+
+<node>
+   <type name="Chicken"/>
+   <type name="Fox"/>
+   <type name="Grain"/>
+   <type name="Int"/>
+   <type name="String"/>
+   <type name="seq/Int"/>
+   <set name="this/far" type="Object"/>
+   <set name="this/near" type="Object"/>
+</node>
+
+<node color="White">
+   <type name="univ"/>
+</node>
+
+<node shape="Box">
+   <type name="Farmer"/>
+</node>
+
+<node shape="Ellipse">
+   <type name="Object"/>
+</node>
+
+</view>
+
+</alloy>

@@ -1,5 +1,5 @@
 /* Alloy Analyzer 4 -- Copyright (c) 2006-2009, Felix Chang
- * Electrum -- Copyright (c) 2014-present, Nuno Macedo
+ * Electrum -- Copyright (c) 2015-present, Nuno Macedo
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files
  * (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify,
@@ -34,6 +34,7 @@ import kodkod.instance.Universe;
 import edu.mit.csail.sdg.alloy4.A4Reporter;
 import edu.mit.csail.sdg.alloy4.Err;
 import edu.mit.csail.sdg.alloy4.Pos;
+import edu.mit.csail.sdg.alloy4.Version;
 import edu.mit.csail.sdg.alloy4compiler.ast.Sig.Field;
 import edu.mit.csail.sdg.alloy4compiler.ast.Sig.PrimSig;
 import edu.mit.csail.sdg.alloy4compiler.ast.Sig.SubsetSig;
@@ -302,13 +303,21 @@ final class BoundsComputer {
                  }
                  ub.addAll(upper);
               }
-               Relation r = sol.addRel(s.label+"."+f.label, null, ub,f);
+  		 	  Relation r = sol.addRel(s.label + "." + f.label, null, ub, f);
 
-               // [HASLab] avoid collapse of var one sigs
-               sol.addField(f, isOne&&!isVar ? sol.a2k(s).product(r) : r);
+			  // [HASLab] avoid collapse of var one sigs
+			  sol.addField(f, isOne&&!isVar ? sol.a2k(s).product(r) : r);
 
            }
         }
+        // [HASLab] Add possible symbolic bounds
+        if (Version.experimental)
+	        for(Sig s:sigs) {
+	        	sol.addSymbolicBound(s);
+	            for(Field f:s.getFields())
+	    		 	sol.addSymbolicBound(f);
+	        }
+
         // Add any additional SIZE constraints
         for(Sig s:sigs) if (!s.builtin) {
             Expression exp = sol.a2k(s);

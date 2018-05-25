@@ -1,5 +1,5 @@
 /* Alloy Analyzer 4 -- Copyright (c) 2006-2009, Felix Chang
- * Electrum -- Copyright (c) 2014-present, Nuno Macedo
+ * Electrum -- Copyright (c) 2015-present, Nuno Macedo
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files
  * (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify,
@@ -77,6 +77,7 @@ import kodkod.instance.TupleFactory;
 import kodkod.instance.TupleSet;
 import kodkod.instance.Universe;
 import kodkod.util.ints.IndexedEntry;
+import edu.mit.csail.sdg.alloy4.A4Preferences;
 import edu.mit.csail.sdg.alloy4.A4Reporter;
 import edu.mit.csail.sdg.alloy4.ConstList;
 import edu.mit.csail.sdg.alloy4.ConstMap;
@@ -99,6 +100,7 @@ import edu.mit.csail.sdg.alloy4compiler.ast.Func;
 import edu.mit.csail.sdg.alloy4compiler.ast.Sig;
 import edu.mit.csail.sdg.alloy4compiler.ast.Sig.Field;
 import edu.mit.csail.sdg.alloy4compiler.ast.Sig.PrimSig;
+import edu.mit.csail.sdg.alloy4compiler.ast.Sig.SubsetSig;
 import edu.mit.csail.sdg.alloy4compiler.ast.Type;
 import edu.mit.csail.sdg.alloy4compiler.translator.A4Options.SatSolver;
 
@@ -111,57 +113,57 @@ import edu.mit.csail.sdg.alloy4compiler.translator.A4Options.SatSolver;
 
 public final class A4Solution {
 
-	//====== static immutable fields ====================================================================//
+    //====== static immutable fields ====================================================================//
 
-	/** The constant unary relation representing the smallest Int atom. */
-	static final Relation KK_MIN = Relation.unary("Int/min");
+    /** The constant unary relation representing the smallest Int atom. */
+    static final Relation KK_MIN = Relation.unary("Int/min");
 
-	/** The constant unary relation representing the Int atom "0". */
-	static final Relation KK_ZERO = Relation.unary("Int/zero");
+    /** The constant unary relation representing the Int atom "0". */
+    static final Relation KK_ZERO = Relation.unary("Int/zero");
 
-	/** The constant unary relation representing the largest Int atom. */
-	static final Relation KK_MAX = Relation.unary("Int/max");
+    /** The constant unary relation representing the largest Int atom. */
+    static final Relation KK_MAX = Relation.unary("Int/max");
 
-	/** The constant binary relation representing the "next" relation from each Int atom to its successor. */
-	static final Relation KK_NEXT = Relation.binary("Int/next");
+    /** The constant binary relation representing the "next" relation from each Int atom to its successor. */
+    static final Relation KK_NEXT = Relation.binary("Int/next");
 
-	/** The constant unary relation representing the set of all seq/Int atoms. */
-	static final Relation KK_SEQIDX = Relation.unary("seq/Int");
+    /** The constant unary relation representing the set of all seq/Int atoms. */
+    static final Relation KK_SEQIDX = Relation.unary("seq/Int");
 
-	/** The constant unary relation representing the set of all String atoms. */
-	static final Relation KK_STRING = Relation.unary("String");
+    /** The constant unary relation representing the set of all String atoms. */
+    static final Relation KK_STRING = Relation.unary("String");
 
-	//====== immutable fields ===========================================================================//
+    //====== immutable fields ===========================================================================//
 
-	/** The original Alloy options that generated this solution. */
-	private final A4Options originalOptions;
+    /** The original Alloy options that generated this solution. */
+    private final A4Options originalOptions;
 
-	/** The original Alloy command that generated this solution; can be "" if unknown. */
-	private final String originalCommand;
+    /** The original Alloy command that generated this solution; can be "" if unknown. */
+    private final String originalCommand;
 
-	/** The bitwidth; always between 1 and 30. */
-	private final int bitwidth;
+    /** The bitwidth; always between 1 and 30. */
+    private final int bitwidth;
 
-	/** The maximum allowed sequence length; always between 0 and 2^(bitwidth-1)-1. */
-	private final int maxseq;
+    /** The maximum allowed sequence length; always between 0 and 2^(bitwidth-1)-1. */
+    private final int maxseq;
 
-	/** The maximum allowed number of loop unrolling and recursion level. */
-	private final int unrolls;
+    /** The maximum allowed number of loop unrolling and recursion level. */
+    private final int unrolls;
 
-	/** The list of all atoms. */
-	private final ConstList<String> kAtoms;
+    /** The list of all atoms. */
+    private final ConstList<String> kAtoms;
 
-	/** The Kodkod TupleFactory object. */
-	private final TupleFactory factory;
+    /** The Kodkod TupleFactory object. */
+    private final TupleFactory factory;
 
-	/** The set of all Int atoms; immutable. */
-	private final TupleSet sigintBounds;
+    /** The set of all Int atoms; immutable. */
+    private final TupleSet sigintBounds;
 
-	/** The set of all seq/Int atoms; immutable. */
-	private final TupleSet seqidxBounds;
+    /** The set of all seq/Int atoms; immutable. */
+    private final TupleSet seqidxBounds;
 
-	/** The set of all String atoms; immutable. */
-	private final TupleSet stringBounds;
+    /** The set of all String atoms; immutable. */
+    private final TupleSet stringBounds;
 
 	/** The Temporal Kodkod Solver object. */
 	// [HASLab]
@@ -176,52 +178,52 @@ public final class A4Solution {
 	// [HASLab]
 	private PardinusBounds bounds; 
 
-	/** The list of Kodkod formulas; can be empty if unknown; once a solution is solved we must not modify this anymore */
-	private ArrayList<Formula> formulas = new ArrayList<Formula>();
+    /** The list of Kodkod formulas; can be empty if unknown; once a solution is solved we must not modify this anymore */
+    private ArrayList<Formula> formulas = new ArrayList<Formula>();
 
-	/** The list of known Alloy4 sigs. */
-	private SafeList<Sig> sigs;
+    /** The list of known Alloy4 sigs. */
+    private SafeList<Sig> sigs;
 
-	/** If solved==true and is satisfiable, then this is the list of known skolems. */
-	private SafeList<ExprVar> skolems = new SafeList<ExprVar>();
+    /** If solved==true and is satisfiable, then this is the list of known skolems. */
+    private SafeList<ExprVar> skolems = new SafeList<ExprVar>();
 
-	/** If solved==true and is satisfiable, then this is the list of actually used atoms. */
-	private SafeList<ExprVar> atoms = new SafeList<ExprVar>();
-	
-	/** If solved==true and is satisfiable, then this maps each Kodkod atom to a short name. */
-	private Map<Object,String> atom2name = new LinkedHashMap<Object,String>();
+    /** If solved==true and is satisfiable, then this is the list of actually used atoms. */
+    private SafeList<ExprVar> atoms = new SafeList<ExprVar>();
 
-	/** If solved==true and is satisfiable, then this maps each Kodkod atom to its most specific sig. */
-	private Map<Object,PrimSig> atom2sig = new LinkedHashMap<Object,PrimSig>();
+    /** If solved==true and is satisfiable, then this maps each Kodkod atom to a short name. */
+    private Map<Object,String> atom2name = new LinkedHashMap<Object,String>();
 
-	/** If solved==true and is satisfiable, then this is the Kodkod evaluator. */
-	private Evaluator eval = null;
+    /** If solved==true and is satisfiable, then this maps each Kodkod atom to its most specific sig. */
+    private Map<Object,PrimSig> atom2sig = new LinkedHashMap<Object,PrimSig>();
 
-	/** If not null, you can ask it to get another solution. */
-	private Iterator<Solution> kEnumerator = null; 
+    /** If solved==true and is satisfiable, then this is the Kodkod evaluator. */
+    private Evaluator eval = null;
 
-	/** The map from each Sig/Field/Skolem/Atom to its corresponding Kodkod expression. */
-	private Map<Expr,Expression> a2k;
+    /** If not null, you can ask it to get another solution. */
+    private Iterator<Solution> kEnumerator = null;
 
-	/** The map from each String literal to its corresponding Kodkod expression. */
-	private final ConstMap<String,Expression> s2k;
+    /** The map from each Sig/Field/Skolem/Atom to its corresponding Kodkod expression. */
+    private Map<Expr,Expression> a2k;
 
-	/** The map from each kodkod Formula to Alloy Expr or Alloy Pos (can be empty if unknown) */
-	private Map<Formula,Object> k2pos;
+    /** The map from each String literal to its corresponding Kodkod expression. */
+    private final ConstMap<String,Expression> s2k;
 
-	/** The map from each Kodkod Relation to Alloy Type (can be empty or incomplete if unknown) */
-	private Map<Relation,Type> rel2type;
+    /** The map from each kodkod Formula to Alloy Expr or Alloy Pos (can be empty if unknown) */
+    private Map<Formula,Object> k2pos;
 
-	/** The map from each Kodkod Variable to an Alloy Type and Alloy Pos. */
-	private Map<Variable,Pair<Type,Pos>> decl2type;
+    /** The map from each Kodkod Relation to Alloy Type (can be empty or incomplete if unknown) */
+    private Map<Relation,Type> rel2type;
+
+    /** The map from each Kodkod Variable to an Alloy Type and Alloy Pos. */
+    private Map<Variable,Pair<Type,Pos>> decl2type;
 
 	/** The maximum trace length of this solution. */
 	// [HASLab]
-	private int traceLength;
+	private int lastState;
 	
 	/** The back loop instant of this solution, if any (-1 otherwise). */
 	// [HASLab]
-	private int backLoop;
+	private int loopState;
 
 	//===================================================================================================//
 	
@@ -237,8 +239,6 @@ public final class A4Solution {
 	 // [HASLab] adapted to consider temporal problems, solutions and options.
 	A4Solution(String originalCommand, int bitwidth, int minTracelength, int maxTracelength, int maxseq, Set<String> stringAtoms, Collection<String> atoms, final A4Reporter rep, A4Options opt, int expected) throws Err {
 		opt = opt.dup();
-		this.canAddSkolems = true; // [HASLab] pessoa: in the first renaming the atoms are added
-		this.temporalAtoms = new GatherTemporalAtoms(); // [HASLab] pessoa: the object is initialized to gather all atoms in the renaming procedure
 		this.unrolls = opt.unrolls;
 		this.sigs = new SafeList<Sig>(Arrays.asList(UNIV, SIGINT, SEQIDX, STRING, NONE));
 		this.a2k = Util.asMap(new Expr[]{UNIV, SIGINT, SEQIDX, STRING, NONE}, Relation.INTS.union(KK_STRING), Relation.INTS, KK_SEQIDX, KK_STRING, Relation.NONE);
@@ -248,7 +248,7 @@ public final class A4Solution {
 		this.originalOptions = opt;
 		this.originalCommand = (originalCommand==null ? "" : originalCommand);
 		this.bitwidth = bitwidth;
-		this.traceLength = maxTracelength; // [HASLab]
+		this.lastState = maxTracelength; // [HASLab]
 		this.maxseq = maxseq;
 		if (bitwidth < 0)   throw new ErrorSyntax("Cannot specify a bitwidth less than 0");
 		if (bitwidth > 30)  throw new ErrorSyntax("Cannot specify a bitwidth greater than 30");
@@ -295,21 +295,37 @@ public final class A4Solution {
 		int sym = (expected==1 ? 0 : opt.symmetry);
 
 		ExtendedOptions varOptions = new ExtendedOptions(); // [HASLab] extended options
+		varOptions.setReporter(new SLF4JReporter()); // [HASLab] reporter
 		varOptions.setRunTemporal(true); // [HASLab] extended options
 		varOptions.setNoOverflow(opt.noOverflow);
 		varOptions.setMaxTraceLength(maxTracelength); // [HASLab] propagate options
 		varOptions.setMinTraceLength(minTracelength); // [HASLab] propagate options
-		if (opt.decomposed > 0) { // [HASLab] propagate options
+		if (opt.decomposed_mode > 0) { // [HASLab] propagate options
 			varOptions.setRunDecomposed(true);
-			varOptions.setDecomposedMode(DMode.HYBRID);
-			if (opt.decomposed > 1) // if 1, let default
-				varOptions.setThreads(opt.decomposed);
+			if (opt.decomposed_mode == 1)
+				varOptions.setDecomposedMode(DMode.HYBRID);
+			else
+				varOptions.setDecomposedMode(DMode.PARALLEL);
+			if (opt.decomposed_threads > 0)
+				varOptions.setThreads(opt.decomposed_threads);
 		} else {
 			varOptions.setRunDecomposed(false);
 		}
 //		solver.options().setFlatten(false); // added for now, since multiplication and division circuit takes forever to flatten // [HASLab] kodkod 2.0+
 		// [HASLab] pushed solver creation further below as solver choice is needed for initialization
-		if (opt.solver.external()!=null) {
+		if (opt.solver.id().equals(A4Options.SatSolver.ElectrodS.id())) { // [HASLab]
+			String[] nopts = new String[opt.solver.options().length+2];
+			System.arraycopy(opt.solver.options(), 0, nopts, 2, opt.solver.options().length);
+			nopts[0] = "-t"; nopts[1] = "NuSMV";
+			varOptions.setSolver(SATFactory.electrod(nopts));
+			varOptions.setRunUnbounded(true);
+		} else if (opt.solver.id().equals(A4Options.SatSolver.ElectrodX.id())) { // [HASLab]
+			String[] nopts = new String[opt.solver.options().length+2];
+			System.arraycopy(opt.solver.options(), 0, nopts, 2, opt.solver.options().length);
+			nopts[0] = "-t"; nopts[1] = "nuXmv";
+			varOptions.setSolver(SATFactory.electrod(nopts));
+			varOptions.setRunUnbounded(true);
+		} else if (opt.solver.external()!=null) {
 			String ext = opt.solver.external();
 			if (opt.solverDirectory.length()>0 && ext.indexOf(File.separatorChar)<0) ext=opt.solverDirectory+File.separatorChar+ext;
 			try {
@@ -318,24 +334,21 @@ public final class A4Solution {
 //				solver.options().setSolver(SATFactory.externalFactory(ext, tmp.getAbsolutePath(), "", opt.solver.options())); // [HASLab] kodkod 2.0+
 				varOptions.setSolver(SATFactory.externalFactory(ext, tmp.getAbsolutePath(), opt.solver.options()));
 			} catch(IOException ex) { throw new ErrorFatal("Cannot create temporary directory.", ex); }
-		} else if (opt.solver.equals(A4Options.SatSolver.ZChaffJNI)) { // [HASLab] kodkod 2.0+
-//			solver.options().setSolver(SATFactory.ZChaff);
-			throw new UnsupportedOperationException("Kodkod no longer supports ZChaff.");
-		} else if (opt.solver.equals(A4Options.SatSolver.MiniSatJNI)) {
-			varOptions.setSolver(SATFactory.MiniSat);
-		} else if (opt.solver.equals(A4Options.SatSolver.MiniSatProverJNI)) {
-			sym=20;
-			varOptions.setSolver(SATFactory.MiniSatProver);
-			varOptions.setLogTranslation(2);
-			varOptions.setCoreGranularity(opt.coreGranularity);
-		} else if (opt.solver.equals(A4Options.SatSolver.GlucoseJNI)) { // [HASLab]
-			varOptions.setSolver(SATFactory.Glucose);
-		} else if (opt.solver.equals(A4Options.SatSolver.ElectrodS)) { // [HASLab]
-			varOptions.setSolver(SATFactory.electrodS());
-			varOptions.setRunUnbounded(true);
-		} else if (opt.solver.equals(A4Options.SatSolver.ElectrodX)) { // [HASLab]
-			varOptions.setSolver(SATFactory.electrodX());
-			varOptions.setRunUnbounded(true);
+        } else if (opt.solver.equals(A4Options.SatSolver.LingelingJNI)) {
+        	varOptions.setSolver(SATFactory.Lingeling);
+        } else if (opt.solver.equals(A4Options.SatSolver.PLingelingJNI)) {
+        	varOptions.setSolver(SATFactory.plingeling(4, null));
+        } else if (opt.solver.equals(A4Options.SatSolver.GlucoseJNI)) {
+        	varOptions.setSolver(SATFactory.Glucose);
+        } else if (opt.solver.equals(A4Options.SatSolver.CryptoMiniSatJNI)) {
+        	varOptions.setSolver(SATFactory.CryptoMiniSat);
+        } else if (opt.solver.equals(A4Options.SatSolver.MiniSatJNI)) {
+        	varOptions.setSolver(SATFactory.MiniSat);
+        } else if (opt.solver.equals(A4Options.SatSolver.MiniSatProverJNI)) {
+            sym=20;
+            varOptions.setSolver(SATFactory.MiniSatProver);
+            varOptions.setLogTranslation(2);
+            varOptions.setCoreGranularity(opt.coreGranularity);
 		} else {
 			varOptions.setSolver(SATFactory.DefaultSAT4J); // Even for "KK" and "CNF", we choose SAT4J here; later, just before solving, we'll change it to a Write2CNF solver
 		}
@@ -363,8 +376,8 @@ public final class A4Solution {
 		originalOptions = old.originalOptions;
 		originalCommand = old.originalCommand;
 		bitwidth = old.bitwidth;
-		backLoop = old.backLoop; // [HASLab] temporal meta-data
-		traceLength = old.traceLength; // [HASLab] temporal meta-data
+		loopState = old.loopState; // [HASLab] temporal meta-data
+		lastState = old.lastState; // [HASLab] temporal meta-data
 		maxseq = old.maxseq;
 		kAtoms = old.kAtoms;
 		factory = old.factory;
@@ -380,9 +393,8 @@ public final class A4Solution {
 		rel2type = old.rel2type;
 		decl2type = old.decl2type;
 		if (inst!=null) {
-			traceLength = inst.end; // [HASLab] temporal meta-data
-			backLoop = inst.loop; // [HASLab] temporal meta-data
-			this.instance = inst; // [HASLab] pessoa: the original instance is kept to perform the renaming
+			lastState = inst.end; // [HASLab] temporal meta-data
+			loopState = inst.loop; // [HASLab] temporal meta-data
 			eval = new Evaluator(inst, old.solver.options());
 			a2k = new LinkedHashMap<Expr,Expression>();
 			for(Map.Entry<Expr,Expression> e: old.a2k.entrySet())
@@ -401,8 +413,6 @@ public final class A4Solution {
 		atom2name = ConstMap.make(atom2name);
 		atom2sig = ConstMap.make(atom2sig);
 		solved = true;
-		temporalAtoms = new GatherTemporalAtoms(); // [HASLab] pessoa
-		canAddSkolems = true; // [HASLab] pessoa
 	}
 
 	/** Turn the solved flag to be true, and make all remaining fields immutable. */
@@ -449,14 +459,12 @@ public final class A4Solution {
 	//===================================================================================================//
 
 	/** Returns the Kodkod input used to generate this solution; returns "" if unknown. */
-	public String debugExtractKInput() {  // [HASLab] TODO: why?
-		// [HASLab] pessoa: solved or not, the kodkod returned is always the original (without "unuseds")
-		return TranslateKodkodToJava.convert(Formula.and(formulas), bitwidth, kAtoms, bounds.unmodifiableView(), null);
-//		if (solved)
-//			return TranslateKodkodToJava.convert(Formula.and(formulas), bitwidth, kAtoms, bounds, atom2name);
-//		else
-//			return TranslateKodkodToJava.convert(Formula.and(formulas), bitwidth, kAtoms, bounds.unmodifiableView(), null);
-	}
+    public String debugExtractKInput() {
+       if (solved)
+          return TranslateKodkodToJava.convert(Formula.and(formulas), bitwidth, kAtoms, bounds, atom2name);
+       else
+          return TranslateKodkodToJava.convert(Formula.and(formulas), bitwidth, kAtoms, bounds.unmodifiableView(), null);
+    }
 
 	//===================================================================================================//
 
@@ -475,11 +483,13 @@ public final class A4Solution {
 		if (solved) throw new ErrorFatal("Cannot add a Kodkod relation since solve() has completed.");
 		Relation rel;
 		if (expr instanceof  Field){
-			if (((Field) expr).isVariable != null){rel = VarRelation.nary(label, upper.arity());} // [HASLab]
+			Field f = (Field) expr;
+			if (f.isVariable != null){rel = VarRelation.nary(label, upper.arity());} // [HASLab]
 			else{rel = Relation.nary(label, upper.arity());}
 		}  else {
 			if (expr instanceof  Sig){
-				if (((Sig) expr).isVariable != null){rel = VarRelation.nary(label, upper.arity());} // [HASLab]
+				Sig s = (Sig) expr;
+				if (s.isVariable != null){rel = VarRelation.nary(label, upper.arity());} // [HASLab]
 				else{rel = Relation.nary(label, upper.arity());}
 			}else{
 				rel = Relation.nary(label, upper.arity());
@@ -620,11 +630,11 @@ public final class A4Solution {
 
 	/** Returns the back loop instance of this instance (or -1 if finite). */
 	// [HASLab]
-	public int getBackLoop() { return backLoop; }
+	public int getLoopState() { return loopState; }
 
-	/** Returns the trace length of this instance. */
+	/** Returns the index of the last state of the finite prefix. */
 	// [HASLab]
-	public int getLastTrace() { return traceLength; }
+	public int getLastState() { return lastState; }
 
 	//===================================================================================================//
 
@@ -819,7 +829,7 @@ public final class A4Solution {
 	/** Set the back loop instant of this instance.*/
 	// [HASLab] 
 	void setBackLoop(int backloop) {
-		this.backLoop = backloop;
+		this.loopState = backloop;
 	}
 
 	//===================================================================================================//
@@ -881,14 +891,7 @@ public final class A4Solution {
 	}
 
 	/** Helper method that chooses a name for each atom based on its most specific sig; (external caller should call this method with s==null and nexts==null). */
-	// [HASLab] evals to 0.
-	private static void rename (A4Solution frame, PrimSig s, Map<Sig,List<Tuple>> nexts, UniqueNameGenerator un) throws Err {
-		rename(frame,s,nexts,un,0);
-	}
-
-	/** Helper method that chooses a name for each atom based on its most specific sig; (external caller should call this method with s==null and nexts==null). */
-	// [HASLab] evals to specific state. 
-	private static void rename(A4Solution frame, PrimSig s, Map<Sig,List<Tuple>> nexts, UniqueNameGenerator un, int state) throws Err {
+	private static void rename(A4Solution frame, PrimSig s, Map<Sig,List<Tuple>> nexts, UniqueNameGenerator un) throws Err {
 		if (s==null) {
 			for(ExprVar sk:frame.skolems) un.seen(sk.label);
 			// Store up the skolems
@@ -947,7 +950,7 @@ public final class A4Solution {
 			for(Tuple t:frame.eval.evaluate(Relation.INTS)) { frame.atom2sig.put(t.atom(0), SIGINT); }
 			for(Tuple t:frame.eval.evaluate(KK_SEQIDX))     { frame.atom2sig.put(t.atom(0), SEQIDX); }
 			for(Tuple t:frame.eval.evaluate(KK_STRING))     { frame.atom2sig.put(t.atom(0), STRING); }
-			for(Sig sig:frame.sigs) if (sig instanceof PrimSig && !sig.builtin && ((PrimSig)sig).isTopLevel()) rename(frame, (PrimSig)sig, nexts, un, state); // [HASLab]
+			for(Sig sig:frame.sigs) if (sig instanceof PrimSig && !sig.builtin && ((PrimSig)sig).isTopLevel()) rename(frame, (PrimSig)sig, nexts, un);
 			// These are redundant atoms that were not chosen to be in the final instance
 			int unused=0;
 			for(Tuple tuple:frame.eval.evaluate(Relation.UNIV)) {
@@ -955,23 +958,22 @@ public final class A4Solution {
 				if (!frame.atom2sig.containsKey(atom)) { frame.atom2name.put(atom, "unused"+unused); unused++; }
 			}
 			// Add the skolems
-			// [HASLab] pessoa: the skolems are only added in the first renaming of a solution
-			if (frame.canAddSkolems) {
-				for (int num = skolems.size(), i = 0; i < num - 2; i = i + 3) {
-					String n = (String) skolems.get(i);
-					while (n.length() > 0 && n.charAt(0) == '$') n = n.substring(1);
-					Type t = (Type) skolems.get(i + 1);
-					Relation r = (Relation) skolems.get(i + 2);
-					frame.addSkolem(un.make("$" + n), t, r);
-				}
+			for (int num = skolems.size(), i = 0; i < num - 2; i = i + 3) {
+				String n = (String) skolems.get(i);
+				while (n.length() > 0 && n.charAt(0) == '$') n = n.substring(1);
+				Type t = (Type) skolems.get(i + 1);
+				Relation r = (Relation) skolems.get(i + 2);
+				frame.addSkolem(un.make("$" + n), t, r);
 			}
 			return;
 		}
 		if (s.isVariable!=null && s.parent!=UNIV) return; // [HASLab] do not rename variable sigs unless top
-		for(PrimSig c: s.children()) rename(frame, c, nexts, un, state); // [HASLab] particular state
+		for(PrimSig c: s.children()) rename(frame, c, nexts, un);
 		String signame = un.make(s.label.startsWith("this/") ? s.label.substring(5) : s.label);
 		List<Tuple> list = new ArrayList<Tuple>();
-		for(Tuple t: frame.eval.evaluate(frame.a2k(s), state)) list.add(t); // [HASLab] particular state
+		for (int i = 0; i <= frame.lastState; i ++) // [HASLab] collect from every state
+			for(Tuple t: frame.eval.evaluate(frame.a2k(s),i)) 
+				list.add(t);
 
 		List<Tuple> order = nexts.get(s);
 		if (order!=null && order.size()==list.size() && order.containsAll(list)) { list=order; }
@@ -989,8 +991,6 @@ public final class A4Solution {
 			frame.eval.instance().add(r, ts);
 			frame.a2k.put(v, r);
 			frame.atoms.add(v);
-			// [HASLab] pessoa: in this map we adding as the renaming evolves in time the map between a alloy expression and a kk expression
-			frame.temporaryA2k.put(v, r);
 		}
 	}
 
@@ -1007,9 +1007,8 @@ public final class A4Solution {
 				Tuple it = factory.tuple(""+i);
 				inst.add(i, factory.range(it, it));
 			}
-			for(Relation r: bounds.relations()) inst.add(r, bounds.lowerBound(r));
+			for (Relation r : bounds.relations()) inst.add(r, bounds.lowerBound(r));
 			eval = new Evaluator(inst, solver.options());
-			// [HASLab] pessoa: since the atoms' name already are properly renamed, when we are reading a file, it isn't required
 			rename(this, null, null, new UniqueNameGenerator());
 			solved();
 			return this;
@@ -1019,7 +1018,7 @@ public final class A4Solution {
 		long time = System.currentTimeMillis();
 		rep.debug("Simplifying the bounds...\n");
 		if (simp!=null && formulas.size()>0 && !simp.simplify(rep, this, formulas)) addFormula(Formula.FALSE, Pos.UNKNOWN);
-		rep.translate(opt.solver.id(), bitwidth, maxseq, solver.options().skolemDepth(), solver.options().symmetryBreaking());
+		rep.translate(opt.solver.id(), A4Preferences.Decomposed.values()[opt.decomposed_mode].toString(), bitwidth, maxseq, solver.options().skolemDepth(), solver.options().symmetryBreaking());
 		Formula fgoal = Formula.and(formulas);
 		rep.debug("Generating the solution...\n");
 		kEnumerator = null;
@@ -1028,6 +1027,7 @@ public final class A4Solution {
 		final boolean solved[] = new boolean[]{true};
 		// [HASLab] sl4j reporter
 		solver.options().setReporter(new SLF4JReporter() { // Set up a reporter to catch the type+pos of skolems
+			boolean config_done = !solver.options().decomposed();
 			@Override public void skolemizing(Decl decl, Relation skolem, List<Decl> predecl) {
 				try {
 					Type t=kv2typepos(decl.variable()).a;
@@ -1041,10 +1041,21 @@ public final class A4Solution {
 				} catch(Throwable ex) { } // Exception here is not fatal
 			}
 			@Override public void solvingCNF(int primaryVars, int vars, int clauses) {
+				if (!config_done) return;
 				if (solved[0]) return; else solved[0]=true; // initially solved[0] is true, so we won't report the # of vars/clauses
 				if (rep!=null) rep.solve(primaryVars, vars, clauses);
 			}
+			@Override public void reportConfigs(int configs, int primaryVars, int vars, int clauses) { // [HASLab] propagate found configs
+				if (config_done) return;
+				config_done = true;
+				if (rep!=null) {
+					rep.solve(primaryVars, vars, clauses);
+					if (configs >= 50)
+						rep.configs(configs);
+				}
+			}
 		});
+		solver.options().configOptions().setReporter(solver.options().reporter()); // [HASLab]
 		// [HASLab] TODO: how to handle non-temporal examples?
 //		if (!opt.solver.equals(SatSolver.CNF) && !opt.solver.equals(SatSolver.KK) && tryBookExamples && !isTemporal) { // try book examples
 //			A4Reporter r = "yes".equals(System.getProperty("debug")) ? rep : null;
@@ -1072,25 +1083,23 @@ public final class A4Solution {
 			rep.resultCNF(out);
 			return null;
 		}
-//		if (solver.options().solver()==SATFactory.ZChaffMincost || !solver.options().solver().incremental()) {
-//			if (sol==null) sol = solver.solve(fgoal, bounds);
-//		} else { // [HASLab] kodkod 2.0+
+		if (/*solver.options().solver()==SATFactory.ZChaffMincost ||*/ !solver.options().solver().incremental() && !solver.options().decomposed()) { // [HASLab] decomposed is incremental
+			if (sol==null) sol = solver.solve(fgoal, bounds);
+		} else { // [HASLab] kodkod 2.0+
+			PardinusBounds b;
+			if (solver.options().decomposed()) {
+				b = new PardinusBounds(bounds,true); // [HASLab] support for decomposed
+			}
+			else b = bounds;
+			kEnumerator = new Peeker<Solution>(solver.solveAll(fgoal, b));
+			if (sol==null) sol = kEnumerator.next();
 
-		rep.debug("eff: "+fgoal.toString());
-		rep.debug("eff: "+bounds.toString());
-		rep.debug("eff: "+solver.options().toString());
-		PardinusBounds b;
-		if (solver.options().decomposed())
-			b = new PardinusBounds(bounds,true); // [HASLab] support for decomposed
-		else b = bounds;
-		kEnumerator = new Peeker<Solution>(solver.solveAll(fgoal, b));
-		if (sol==null) sol = kEnumerator.next();
-
-//		}
+		}
 		if (!solved[0]) rep.solve(0, 0, 0);
 		final TemporalInstance inst = (TemporalInstance) sol.instance(); // [HASLab]
 		// To ensure no more output during SolutionEnumeration
 		solver.options().setReporter(oldReporter);
+		solver.options().configOptions().setReporter(oldReporter); // [HASLab]
 		// If unsatisfiable, then retrieve the unsat core if desired
 		if (inst==null && solver.options().solver()==SATFactory.MiniSatProver) {
 			try {
@@ -1118,13 +1127,9 @@ public final class A4Solution {
 
 		// If satisfiable, then add/rename the atoms and skolems
 		if (inst!=null) { // [HASLab]
-			// [HASLab] pessoa: if the instance is not null, the loop variables are stored, the original instance is saved with
-			//the purpose of renaming and the universe' bounds is kept in a Arraylist
-			traceLength = inst.end;
-			backLoop = inst.loop;
-//			Iterator<Object> it = bounds.universe().iterator();
-//			while(it.hasNext()) this.universeList.add(it.next());
-			instance = inst;
+			// [HASLab] pessoa: if the instance is not null, the loop variables are stored
+			lastState = inst.end;
+			loopState = inst.loop;
 			eval = new Evaluator(inst, solver.options());
 			rename(this, null, null, new UniqueNameGenerator());
 		}
@@ -1133,40 +1138,6 @@ public final class A4Solution {
 		time = System.currentTimeMillis() - time;
 		if (inst!=null) rep.resultSAT(cmd, time, this); else rep.resultUNSAT(cmd, time, this);
 		return this;
-	}
-
-	// [HASLab] pessoa: structure to execute the renaming as the time evolves
-	private Instance instance ;
-	private Map<Expr,Expression> originalA2k;
-	private Map<Expr,Expression> temporaryA2k =  new HashMap<>();
-
-	// [HASLab] pessoa: boolean var to allow or not add the skolem into the original list from the second renaming
-	private boolean canAddSkolems;
-
-	// [HASLab] pessoa: Object of GatherTemporalAtoms class in order to build a xml file with all atoms that appear in the renaming
-	public GatherTemporalAtoms temporalAtoms;
-
-	// [HASLab] pessoa: this function performs the renaming of a solution given a particular state.
-	// To do that, the control structures are initialised as well as the evaluator with the original instance.
-	@Deprecated
-	public A4Solution renameTemporal(int state){
-		try {
-			originalA2k = new HashMap<>();
-			for (Expr e : a2k.keySet()){
-				if (!this.temporaryA2k.containsKey(e)) this.originalA2k.put(e,a2k.get(e));
-			}
-			this.a2k =  originalA2k;
-			evalCache =  new HashMap<>();
-			atoms = new SafeList<ExprVar>();
-			atom2name = new LinkedHashMap<Object,String>();
-			atom2sig = new LinkedHashMap<Object,PrimSig>();
-			eval = new Evaluator(instance, solver.options());
-			rename(this, null, null, new UniqueNameGenerator(), state);
-			return this;
-		} catch (Err err) {
-			err.printStackTrace();
-		}
-		return null;
 	}
 
 	//===================================================================================================//
@@ -1205,7 +1176,6 @@ public final class A4Solution {
 		if (sol instanceof TemporalInstance) {
 			for (int i = 0; i <= ((TemporalInstance) sol).end; i++) { // [HASLab]
 				sb.append("------State " + i + "-------\n");
-				this.renameTemporal(i);
 				try {
 					for (Sig s : sigs) {
 						sb.append(s.label).append("=").append(eval(s, i)).append("\n");
@@ -1304,25 +1274,9 @@ public final class A4Solution {
 	//===================================================================================================//
 
 	/** Helper method to write out a full XML file. */
-	public void writeXML(String filename) throws Err {
-		writeXML(filename, null, null);
-	}
-
-	/** Helper method to write out a full XML file. */
 	// [HASLab] evals to specific state.
 	public void writeXML(String filename, int state) throws Err {
 		writeXML(filename, null, null, state);
-	}
-
-	/** Helper method to write out a full XML file. */
-	public void writeXML(String filename, Iterable<Func> macros) throws Err {
-		writeXML(filename, macros, null);
-	}
-	
-	/** Helper method to write out a full XML file.*/
-	// [HASLab] evals to 0. 
-	public void writeXML(String filename, Iterable<Func> macros, Map<String,String> sourceFiles) throws Err {
-		writeXML(filename, macros, sourceFiles, 0);
 	}
 
 	/** Helper method to write out a full XML file.*/
@@ -1352,12 +1306,6 @@ public final class A4Solution {
 			throw new ErrorFatal("Error writing the solution XML file.", ex);
 		}
 	}
-
-	/** Helper method to write out a full XML file. */
-	// [HASLab] evals to 0. 
-	public void writeXML(PrintWriter writer, Iterable<Func> macros, Map<String,String> sourceFiles) throws Err {
-		writeXML(writer, macros, sourceFiles, 0);
-	}
 	
 	/** Helper method to write out a full XML file. */
 	// [HASLab] evals to specific state. 
@@ -1371,6 +1319,48 @@ public final class A4Solution {
 	public void writeXML(A4Reporter rep, PrintWriter writer, Iterable<Func> macros, Map<String,String> sourceFiles, int state) throws Err {
 		A4SolutionWriter.writeInstance(rep, this, writer, macros, sourceFiles, state);
 		if (writer.checkError()) throw new ErrorFatal("Error writing the solution XML file.");
+	}
+	
+	// [HASLab]
+	protected void addSymbolicBound(Sig s) {
+		if (s.builtin || s.isTopLevel() || s instanceof PrimSig) return;
+		Relation r = (Relation) a2k.get(s);
+		if (bounds.lowerBound(r).size() == bounds.upperBound(r).size())
+			return;
+		Expression ke = Expression.NONE; // [HASLab]
+		if (s instanceof PrimSig) ke = a2k.get(((PrimSig) s).parent); // [HASLab]
+		else
+			for (Sig ss : ((SubsetSig) s).parents)
+				ke = ke.union(a2k.get(ss));
+		if (ke != Expression.NONE && ke != null)
+			bounds.bound(r, ke);
+	}
+	
+	// [HASLab]
+	protected void addSymbolicBound(Field f) {
+		Relation r;
+		Expression e = a2k.get(f);
+		if (e instanceof Relation) r = (Relation) e;
+		else if (e instanceof BinaryExpression &&  // singleton sig, collapsed relation
+				((BinaryExpression) e).op() == ExprOperator.PRODUCT &&
+				((BinaryExpression) e).right() instanceof Relation)
+			r = (Relation) ((BinaryExpression) e).right();
+		else throw new UnsupportedOperationException();
+		if (bounds.lowerBound(r).size() == bounds.upperBound(r).size())
+			return;
+		boolean isOne = f.sig.isOne!=null;
+        boolean isVar = f.sig.isVariable!=null;
+        Type t = isOne&&!isVar ? Sig.UNIV.type().join(f.type()) : f.type();
+        Expression ub = null;
+        for(List<PrimSig> p:t.fold()) {
+        	Expression upper=null;
+           for(PrimSig b:p) {
+              Expression tmp = a2k(b);
+              if (upper==null) upper=tmp; else upper=upper.product(tmp);
+           }
+           if (ub==null) ub = upper; else ub = ub.union(upper);
+        }
+		bounds.bound(r, ub);
 	}
 	
 }

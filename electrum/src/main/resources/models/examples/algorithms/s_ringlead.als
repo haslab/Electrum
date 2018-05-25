@@ -46,54 +46,54 @@ fact CleanupLast {
     no ls.runs
 }
 
-pred ValidTrans2[s, s': State] {
-  all p : s.runs | VT2Helper[p,s,s']
-  all p : Process - s.runs | NOP2[p,s,s']
-  NoMagicMsg[s,s']
+pred ValidTrans2[s, s1: State] {
+  all p : s.runs | VT2Helper[p,s,s1]
+  all p : Process - s.runs | NOP2[p,s,s1]
+  NoMagicMsg[s,s1]
 
 }
 
-pred NoMagicMsg[s, s' : State] {
+pred NoMagicMsg[s, s1 : State] {
     // no magically appearing messages
-    all p : Process, m : s'.buffer[p] |
-      m in s.buffer[p] || (!NOP2[p,s,s'] &&
+    all p : Process, m : s1.buffer[p] |
+      m in s.buffer[p] || (!NOP2[p,s,s1] &&
                             ((s = so/first && m = p) ||
                              (s != so/first && m in s.buffer[p.~rightNeighbor]
-                              && m !in s'.buffer[p.~rightNeighbor] && po/gt[m,p])))
+                              && m !in s1.buffer[p.~rightNeighbor] && po/gt[m,p])))
 }
 
-pred PossTrans[s, s' : State] {
-  all p : Process | VT2Helper[p,s,s'] || NOP2[p,s,s']
-  NoMagicMsg[s,s']
+pred PossTrans[s, s1 : State] {
+  all p : Process | VT2Helper[p,s,s1] || NOP2[p,s,s1]
+  NoMagicMsg[s,s1]
 }
 
-pred VT2Helper[p : Process, s, s' : State] {
+pred VT2Helper[p : Process, s, s1 : State] {
     (
       let readable=s.buffer[p.~rightNeighbor] |
         (s = so/first) => {
-          p = s'.buffer[p]
-          readable in s'.buffer[p.~rightNeighbor]
-          p !in s'.leader
+          p = s1.buffer[p]
+          readable in s1.buffer[p.~rightNeighbor]
+          p !in s1.leader
         } else {
           (some readable) => {
            some m : set readable | {
-             m !in s'.buffer[p.~rightNeighbor]
+             m !in s1.buffer[p.~rightNeighbor]
              // nothing else gets deleted
-             readable - m in s'.buffer[p.~rightNeighbor]
-             { m': m | po/gt[m',p] } /*m & nexts(p)*/ in s'.buffer[p]
-             p in s'.leader iff (p in s.leader || p in m)
+             readable - m in s1.buffer[p.~rightNeighbor]
+             { m1: m | po/gt[m1,p] } /*m & nexts(p)*/ in s1.buffer[p]
+             p in s1.leader iff (p in s.leader || p in m)
            }
-          } else NOP2[p,s,s']
+          } else NOP2[p,s,s1]
         }
     )
 }
 
-pred NOP2[p : Process, s,s': State] {
-  p in s'.leader iff p in s.leader
+pred NOP2[p : Process, s,s1: State] {
+  p in s1.leader iff p in s.leader
   // no reads
-  s.buffer[p.~rightNeighbor] in s'.buffer[p.~rightNeighbor]
+  s.buffer[p.~rightNeighbor] in s1.buffer[p.~rightNeighbor]
   // no sends
-  s'.buffer[p] in s.buffer[p]
+  s1.buffer[p] in s.buffer[p]
 }
 
 pred Preconds[p : Process, s : State] {
@@ -108,13 +108,13 @@ fact TransIfPossible {
 
 fact LegalTrans {
   all s : State - so/last |
-    let s' = so/next[s] |
-      ValidTrans2[s,s']
+    let s1 = so/next[s] |
+      ValidTrans2[s,s1]
 }
 
-pred EquivStates[s, s': State] {
-  s.buffer = s'.buffer
-  s.leader = s'.leader
+pred EquivStates[s, s1: State] {
+  s.buffer = s1.buffer
+  s.leader = s1.leader
 }
 
 assert Safety {
@@ -136,7 +136,7 @@ pred BadLivenessTrace {
 
 pred TraceWithoutLoop  {
   all t1, t2 : State | t1!=t2 => !EquivStates[t1,t2]
-  all s, s' : State | (s' in (so/nexts[s] - so/next[s])) => !PossTrans[s,s']
+  all s, s1 : State | (s1 in (so/nexts[s] - so/next[s])) => !PossTrans[s,s1]
   all s : State | !Legit[s]
 }
 

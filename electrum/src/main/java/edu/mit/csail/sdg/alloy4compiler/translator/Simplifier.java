@@ -1,4 +1,5 @@
 /* Alloy Analyzer 4 -- Copyright (c) 2006-2009, Felix Chang
+ * Electrum -- Copyright (c) 2015-present, Nuno Macedo
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files
  * (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify,
@@ -25,9 +26,11 @@ import kodkod.ast.Expression;
 import kodkod.ast.Formula;
 import kodkod.ast.NaryFormula;
 import kodkod.ast.Relation;
+import kodkod.ast.UnaryTempFormula;
 import kodkod.ast.operator.ExprCompOperator;
 import kodkod.ast.operator.ExprOperator;
 import kodkod.ast.operator.FormulaOperator;
+import kodkod.ast.operator.TemporalOperator;
 import kodkod.engine.ltl2fol.TemporalTranslator;
 import kodkod.instance.TupleSet;
 import edu.mit.csail.sdg.alloy4.A4Reporter;
@@ -42,6 +45,9 @@ import edu.mit.csail.sdg.alloy4.MailBug;
  *         any excess unknowns from A's upperbound.
  *
  * <p> (2) When it sees "A = B", it will try to simplify A assuming "A in B", and then simplify B assuming "B in A".
+ * 
+ * @modified: Nuno Macedo // [HASLab] temporal formulas
+ * [HASLab] TODO: symbolic bound extraction should probably be done at this level
  */
 
 public class Simplifier {
@@ -232,7 +238,17 @@ public class Simplifier {
 
     /** Simplify the bounds based on the fact that "form is true"; return false if we discover the formula is unsat. */
     private final boolean simplify_in (Formula form) {
-       if (TemporalTranslator.isTemporal(form)) return true; // [HASLab]
+       if (TemporalTranslator.isTemporal(form)) {
+    	   // [HASLab] allow only "always" formulas over non-variable relations
+    	   // TODO: handle variable relations
+    	   if (form instanceof UnaryTempFormula) {
+    		   UnaryTempFormula f = (UnaryTempFormula)form;
+    	          if (f.op() == TemporalOperator.ALWAYS) {
+    	              return simplify_in(f.formula());
+    	          }
+    	       }
+    	   return true; 
+       }
        if (form instanceof NaryFormula) {
           NaryFormula f = (NaryFormula)form;
           if (f.op() == FormulaOperator.AND) {

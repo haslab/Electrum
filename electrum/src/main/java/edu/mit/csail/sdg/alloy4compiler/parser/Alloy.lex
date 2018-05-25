@@ -164,6 +164,7 @@ import java_cup.runtime.*;
 "release"             { return alloy_sym(yytext(), CompSym.RELEASE     );} // [HASLab] ltl tokens
 "until"               { return alloy_sym(yytext(), CompSym.UNTIL       );} // [HASLab] ltl tokens
 "since"               { return alloy_sym(yytext(), CompSym.SINCE       );} // [HASLab] ltl tokens
+"trigger"             { return alloy_sym(yytext(), CompSym.TRIGGER     );} // [HASLab] ltl tokens
 ";"                   { return alloy_sym(yytext(), CompSym.TRCSEQ      );} // [HASLab] ltl tokens
 "and"                 { return alloy_sym(yytext(), CompSym.AND         );}
 "assert"              { return alloy_sym(yytext(), CompSym.ASSERT      );}

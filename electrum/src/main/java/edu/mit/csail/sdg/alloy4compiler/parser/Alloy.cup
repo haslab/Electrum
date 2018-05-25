@@ -192,7 +192,7 @@ parser code {:
     ch.put(CompSym.NOTLTE, "!");
     ch.put(CompSym.ONE2, "one");
     ch.put(CompSym.ONE, "one");
-    ch.put(CompSym.ACT, "act"); 					     // [HASLab] action tokens
+    ch.put(CompSym.ACT, "act"); 					  // [HASLab] action tokens
     ch.put(CompSym.VAR, "var");                       // [HASLab] variable tokens
     ch.put(CompSym.ALWAYS, "always");                 // [HASLab] ltl tokens
     ch.put(CompSym.EVENTUALLY, "eventually");         // [HASLab] ltl tokens
@@ -203,7 +203,8 @@ parser code {:
     ch.put(CompSym.RELEASE, "release");               // [HASLab] ltl tokens
     ch.put(CompSym.UNTIL, "until");                   // [HASLab] ltl tokens
     ch.put(CompSym.SINCE, "since");                   // [HASLab] ltl tokens
-    ch.put(CompSym.TRCSEQ, ";");	   	                 // [HASLab] ltl tokens
+    ch.put(CompSym.TRIGGER, "trigger");               // [HASLab] ltl tokens
+    ch.put(CompSym.TRCSEQ, ";");	   	              // [HASLab] ltl tokens
     ch.put(CompSym.OPEN, "open");
     ch.put(CompSym.OR, "||");
     ch.put(CompSym.PART, "part");
@@ -476,16 +477,17 @@ terminal Pos ONE2;             //  one            // The filter enables us to di
 terminal Pos ONE;              //  one            // The filter enables us to disambiguate
 terminal Pos ACT;              //  act   		  // [HASLab] action token  
 terminal Pos VAR;              //  var   		 // [HASLab] variable token  
-terminal Pos ALWAYS;           //  always   	     // [HASLab] ltl tokens
+terminal Pos ALWAYS;           //  always      	 // [HASLab] ltl tokens
 terminal Pos EVENTUALLY;       //  eventually  	 // [HASLab] ltl tokens
 terminal Pos AFTER;            //  after  	  	 // [HASLab] ltl tokens
 terminal Pos ONCE;             //  once   	 	 // [HASLab] ltl tokens
 terminal Pos HISTORICALLY;     //  historically	 // [HASLab] ltl tokens
 terminal Pos PREVIOUS;         //  previous		 // [HASLab] ltl tokens
 terminal Pos RELEASE;          //  release		 // [HASLab] ltl tokens
-terminal Pos UNTIL;            //  until		     // [HASLab] ltl tokens
-terminal Pos SINCE;            //  since		     // [HASLab] ltl tokens
-terminal Pos TRCSEQ;           //  trace seq      // [HASLab] ltl tokens
+terminal Pos UNTIL;            //  until		 // [HASLab] ltl tokens
+terminal Pos SINCE;            //  since		 // [HASLab] ltl tokens
+terminal Pos TRIGGER;          //  trigger   	 // [HASLab] ltl tokens
+terminal Pos TRCSEQ;           //  trace seq     // [HASLab] ltl tokens
 terminal Pos OPEN;             //  open
 terminal Pos OR;               //  ||     or
 terminal Pos PART;             //  part   partition
@@ -943,12 +945,14 @@ AndExprB ::= AndExprB:a AND:o TempBinaryB:b {: RESULT=ExprBinary.Op.AND.make(o, 
 TempBinaryA ::=                         TempUnaryA:a  {: RESULT=a;                                                                       :}; // [HASLab] ltl ops
 TempBinaryA ::= TempBinaryB:a UNTIL:o   Bind:b        {: RESULT = ExprBinary.Op.UNTIL  .make(o, null, a, b);                             :}; // [HASLab] ltl ops
 TempBinaryA ::= TempBinaryB:a SINCE:o   Bind:b        {: RESULT = ExprBinary.Op.SINCE  .make(o, null, a, b);                             :}; // [HASLab] ltl ops
+TempBinaryA ::= TempBinaryB:a TRIGGER:o Bind:b        {: RESULT = ExprBinary.Op.TRIGGER.make(o, null, a, b);                             :}; // [HASLab] ltl ops
 TempBinaryA ::= TempBinaryB:a RELEASE:o Bind:b        {: RESULT = ExprBinary.Op.RELEASE.make(o, null, a, b);                             :}; // [HASLab] ltl ops
 TempBinaryA ::= Bind:b        TRCSEQ:o  TempBinaryB:a {: RESULT = ExprBinary.Op.AND    .make(o, null, a, ExprUnary.Op.AFTER.make(o, b)); :}; // [HASLab] ltl ops
 TempBinaryB ::=                         TempUnaryB:b  {: RESULT=b;                                                                       :}; // [HASLab] ltl ops
 TempBinaryB ::= TempBinaryB:a UNTIL:o   TempUnaryB:b  {: RESULT = ExprBinary.Op.UNTIL  .make(o, null, a, b);                             :}; // [HASLab] ltl ops
 TempBinaryB ::= TempBinaryB:a SINCE:o   TempUnaryB:b  {: RESULT = ExprBinary.Op.SINCE  .make(o, null, a, b);                             :}; // [HASLab] ltl ops
 TempBinaryB ::= TempBinaryB:a RELEASE:o TempUnaryB:b  {: RESULT = ExprBinary.Op.RELEASE.make(o, null, a, b);                             :}; // [HASLab] ltl ops
+TempBinaryB ::= TempBinaryB:a TRIGGER:o TempUnaryB:b  {: RESULT = ExprBinary.Op.TRIGGER.make(o, null, a, b);                             :}; // [HASLab] ltl ops
 TempBinaryB ::= TempUnaryB:a  TRCSEQ:o  TempBinaryB:b {: RESULT = ExprBinary.Op.AND    .make(o, null, a, ExprUnary.Op.AFTER.make(o, b)); :}; // [HASLab] ltl ops
 
 TempUnaryA ::=                NegExprA:a     {: RESULT=a; 										:}; // [HASLab] ltl ops

@@ -1,0 +1,89 @@
+module examples/toys/life
+
+/*
+ * John Conway's Game of Life
+ *
+ * For a detailed description, see:
+ *  http://www.math.com/students/wonders/life/life.html
+ *
+ * authors: Bill Thies, Manu Sridharan
+ */
+
+sig Point {
+  right: lone Point,
+  below: lone Point
+}
+var sig live in Point {}
+
+
+fact Acyclic {
+  all p: Point | p !in p.^(right + below)
+}
+
+one sig Root extends Point {}
+
+fact InnerSquaresCommute {
+  all p: Point {
+    p.below.right = p.right.below
+    some p.below && some p.right => some p.below.right
+  }
+}
+
+fact TopRow {
+  all p: Point - Root | no p.~below => # p.*below = # Root.*below
+}
+
+fact Connected {
+  Root.*(right + below) = Point
+}
+
+pred Square {
+  # Root.*right = # Root.*below
+}
+
+run Square for 6 Point, exactly 3 Time expect 1
+
+pred Rectangle {}
+
+fun Neighbors[p : Point] : set Point {
+  p.right + p.right.below + p.below
+              + p.below.~right + p.~right
+              + p.~right.~below + p.~below +
+              p.~below.right
+}
+
+fun LiveNeighborsInState[p : Point] : set Point {
+  Neighbors[p] & live
+}
+
+pred Trans[p : Point] {
+   let preLive = LiveNeighborsInState[p] |
+    // dead cell w/ 3 live neighbors becomes live
+    (p !in live && # preLive = 3) =>
+    p in live'
+  else (
+    // live cell w/ 2 or 3 live neighbors stays alive
+    (p in live && (# preLive = 2 || # preLive = 3)) =>
+      p in live' else p !in live'
+    )
+}
+
+fact ValidTrans {
+  always
+      all p : Point |
+        Trans[p]
+}
+
+pred Show {}
+
+// slow
+run Show for exactly 12 Point, exactly 3 Time expect 1
+
+// a small but interesting example
+pred interesting {
+	eventually some live
+	eventually some Point - live
+	some right
+	some below
+}
+run interesting for exactly 6 Point, exactly 3 Time expect 1

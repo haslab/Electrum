@@ -1,5 +1,5 @@
 /* Alloy Analyzer 4 -- Copyright (c) 2006-2009, Felix Chang
- * Electrum -- Copyright (c) 2014-present, Nuno Macedo
+ * Electrum -- Copyright (c) 2015-present, Nuno Macedo
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files
  * (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify,
@@ -575,7 +575,7 @@ public abstract class Sig extends Expr {
 	 * @param pos - the position in the original file where this field was defined (can be null if unknown)
 	 * @param isPrivate - if nonnull, that means the user intended this field to be "private"
 	 * @param isMeta - if nonnull, that means the user intended this field to be "meta"
-	 * @param isVar TODO
+	 * @param isVar if nonnull, that means the user intended this field to be "variable"
 	 * @param labels - the names of the fields to be added (these names does not need to be unique)
 	 * @param bound - the new field will be bound by "all x: one ThisSig | x.ThisField in bound"
 	 * @throws ErrorSyntax  if the sig is one of the builtin sig

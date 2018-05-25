@@ -32,8 +32,8 @@ module examples/systems/views
  *
  * As a terminological convention, when there are two
  * complementary view relationships, we will give them types
- * t and t'. For example, KeySetView propagates from map to
- * set, and KeySetView' propagates from set to map.
+ * t and t1. For example, KeySetView propagates from map to
+ * set, and KeySetView1 propagates from set to map.
  *
  * author: Daniel Jackson
  */
@@ -76,12 +76,12 @@ sig SetRef extends Ref {}
 fact {State.obj[SetRef] in Set}
 
 abstract sig ViewType {}
-one sig KeySetView, KeySetView', IteratorView extends ViewType {}
+one sig KeySetView, KeySetView1, IteratorView extends ViewType {}
 fact ViewTypes {
   State.views[KeySetView] in MapRef -> SetRef
-  State.views[KeySetView'] in SetRef -> MapRef
+  State.views[KeySetView1] in SetRef -> MapRef
   State.views[IteratorView] in IteratorRef -> SetRef
-  all s: State | s.views[KeySetView] = ~(s.views[KeySetView'])
+  all s: State | s.views[KeySetView] = ~(s.views[KeySetView1])
   }
 
 /**
@@ -107,20 +107,20 @@ pred allocates [pre, post: State, rs: set Ref] {
   }
 
 /** 
- * models frame condition that limits change to view object from v to v' when backing object changes to b'
+ * models frame condition that limits change to view object from v to v1 when backing object changes to b1
  */
-pred viewFrame [t: ViewType, v, v', b': Object] {
-  t in KeySetView => v'.elts = dom [b'.map]
-  t in KeySetView' => b'.elts = dom [v'.map]
-  t in KeySetView' => (b'.elts) <: (v.map) = (b'.elts) <: (v'.map)
-  t in IteratorView => v'.elts = b'.left + b'.done
+pred viewFrame [t: ViewType, v, v1, b1: Object] {
+  t in KeySetView => v1.elts = dom [b1.map]
+  t in KeySetView1 => b1.elts = dom [v1.map]
+  t in KeySetView1 => (b1.elts) <: (v.map) = (b1.elts) <: (v1.map)
+  t in IteratorView => v1.elts = b1.left + b1.done
   }
 
 pred MapRef.keySet [pre, post: State, setRefs: SetRef] {
   post.obj[setRefs].elts = dom [pre.obj[this].map]
   modifies [pre, post, none]
   allocates [pre, post, setRefs]
-  post.views = pre.views + KeySetView->this->setRefs + KeySetView'->setRefs->this
+  post.views = pre.views + KeySetView->this->setRefs + KeySetView1->setRefs->this
   }
 
 pred MapRef.put [pre, post: State, k, v: Ref] {
@@ -141,10 +141,10 @@ pred SetRef.iterator [pre, post: State, iterRef: IteratorRef] {
   }
 
 pred IteratorRef.remove [pre, post: State] {
-  let i = pre.obj[this], i' = post.obj[this] {
-    i'.left = i.left
-    i'.done = i.done - i.lastRef
-    no i'.lastRef
+  let i = pre.obj[this], i1 = post.obj[this] {
+    i1.left = i.left
+    i1.done = i.done - i.lastRef
+    no i1.lastRef
     }
   modifies [pre,post,this]
   allocates [pre, post, none]
@@ -152,11 +152,11 @@ pred IteratorRef.remove [pre, post: State] {
   }
 
 pred IteratorRef.next [pre, post: State, ref: Ref] {
-  let i = pre.obj[this], i' = post.obj[this] {
+  let i = pre.obj[this], i1 = post.obj[this] {
     ref in i.left
-    i'.left = i.left - ref
-    i'.done = i.done + ref
-    i'.lastRef = ref
+    i1.left = i.left - ref
+    i1.done = i.done + ref
+    i1.lastRef = ref
     }
   modifies [pre, post, this]
   allocates [pre, post, none]

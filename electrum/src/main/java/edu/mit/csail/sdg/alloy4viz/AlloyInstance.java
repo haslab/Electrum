@@ -30,14 +30,12 @@ import edu.mit.csail.sdg.alloy4compiler.translator.A4Solution;
 /** Immutable; represents an Alloy instance that can be displayed in the visualizer.
  *
  * <p><b>Thread Safety:</b> Can be called only by the AWT event thread.
- * 
- * @modified: nmm, Eduardo Pessoa (pt.uminho.haslab)
  */
 
 public final class AlloyInstance {
 
    /** The original A4Solution object. */
-   public final A4Solution originalA4; // FIXTHIS: eventually we shouldn't need this field... // pt.uminho.haslab: public
+   final A4Solution originalA4;
 
    /** If true, it is a metamodel, else it is not a metamodel. */
    public final boolean isMetamodel;

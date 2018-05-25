@@ -1,0 +1,120 @@
+module examples/algorithms/dijkstra
+
+/*
+ * Models how mutexes are grabbed and released by processes, and
+ * how Dijkstra's mutex ordering criterion can prevent deadlocks.
+ *
+ * For a detailed description, see:
+ *   E. W. Dijkstra, Cooperating sequential processes. Technological
+ *   University, Eindhoven, The Netherlands, September 1965.
+ *   Reprinted in Programming Languages, F. Genuys, Ed., Academic
+ *   Press, New York, 1968, 43-112.
+ *
+ * Acknowledgements to Ulrich Geilmann for finding and fixing a bug
+ * in the GrabMutex predicate.
+ *   
+ */
+
+open util/ordering [Mutex] as mo
+
+sig Process {
+	var holds: set Mutex,
+	var waits: set Mutex  
+}
+
+sig Mutex {}
+
+pred Initial { no holds + waits }
+
+pred IsFree [m: Mutex] {
+   // no process holds this mutex
+   no m.~(holds)
+   // all p: Process | m !in p.(this.holds)
+}
+
+pred IsStalled [p: Process] { some p.(waits) }
+
+pred GrabMutex [p: Process, m: Mutex] {
+   // a process can only act if it is not
+   // waiting for a mutex
+   !IsStalled[p]
+   // can only grab a mutex we do not yet hold
+   m !in p.holds
+   // mutexes are grabbed in order
+   all mm: p.(holds) | mo/lt[mm,m]
+   IsFree[m] => {
+      // if the mutex is free, we now hold it,
+      // and do not become stalled
+      p.holds' = p.holds + m
+      no p.waits'
+   } else {
+    // if the mutex was not free,
+    // we still hold the same mutexes we held,
+    // and are now waiting on the mutex
+    // that we tried to grab.
+    p.holds' = p.holds
+    p.waits' = m
+  }
+  all otherProc: Process - p {
+     otherProc.holds' = otherProc.holds
+     otherProc.waits' = otherProc.waits
+  }
+}
+
+pred ReleaseMutex [p: Process, m: Mutex] {
+   !IsStalled[p]
+   m in p.holds
+   p.holds' = p.holds - m
+   no p.waits'
+   no m.~waits => {
+      no m.~holds'
+      no m.~waits'
+   } else {
+      some lucky: m.~waits | {
+        m.~waits' = m.~waits - lucky
+        m.~holds' = lucky
+      }
+   }
+  all mu: Mutex - m {
+    mu.~waits' = mu.~waits
+    mu.~holds'= mu.~holds
+  }
+}
+
+/**
+ * for every adjacent (pre,post) pair of States,
+ * one action happens: either some process grabs a mutex,
+ * or some process releases a mutex,
+ * or nothing happens (have to allow this to show deadlocks)
+ */
+pred GrabOrRelease  {
+    Initial &&
+    (
+    always (
+       (holds' = holds && waits' = waits)
+        ||
+       (some p: Process, m: Mutex | GrabMutex [p, m])
+        ||
+       (some p: Process, m: Mutex | ReleaseMutex [p, m])
+
+    ))
+}
+
+pred Deadlock  {
+         some Process
+         eventually all p: Process | some p.waits
+}
+
+assert DijkstraPreventsDeadlocks {
+   GrabOrRelease => ! Deadlock
+}
+
+
+pred ShowDijkstra  {
+    GrabOrRelease && Deadlock
+    some waits
+}
+
+run Deadlock for 3 expect 1
+run ShowDijkstra for 5 Time, 2 Process, 2 Mutex expect 1
+check DijkstraPreventsDeadlocks for 5 Time, 5 Process, 4 Mutex

@@ -1,4 +1,5 @@
 /* Alloy Analyzer 4 -- Copyright (c) 2006-2009, Felix Chang
+ * Electrum -- Copyright (c) 2015-present, Nuno Macedo
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files
  * (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify,
@@ -48,6 +49,8 @@ import edu.mit.csail.sdg.alloy4.Listener.Event;
 /** Graphical syntax-highlighting editor.
  *
  * <p><b>Thread Safety:</b> Can be called only by the AWT event thread
+ * 
+ * @modified Nuno Macedo // [HASLab] file extensions
  */
 
 public final class OurSyntaxWidget {
@@ -244,7 +247,7 @@ public final class OurSyntaxWidget {
    boolean discard(boolean askUser, Collection<String> bannedNames) {
       char ans = (!modified || !askUser) ? 'd' : OurDialog.askSaveDiscardCancel("The file \"" + filename + "\"");
       if (ans=='c' || (ans=='s' && save(false, bannedNames)==false)) return false;
-      for(int i=1; ;i++) if (!bannedNames.contains(filename = Util.canon("Untitled " + i + ".als"))) break;
+      for(int i=1; ;i++) if (!bannedNames.contains(filename = Util.canon("Untitled " + i + ".ele"))) break; // [HASLab] ele extension
       pane.setText(""); clearUndo(); modified=false; isFile=false; listeners.fire(this, Event.STATUS_CHANGE);
       return true;
    }
@@ -290,7 +293,7 @@ public final class OurSyntaxWidget {
    boolean save(boolean alwaysPickNewName, Collection<String> bannedNames) {
       String n = this.filename;
       if (alwaysPickNewName || isFile==false || n.startsWith(Util.jarPrefix())) {
-         File f = OurDialog.askFile(false, null, ".als", ".als files");  if (f==null) return false;
+         File f = OurDialog.askFile(false, null, ".ele", ".ele files");  if (f==null) return false;  // [HASLab] ele extension
          n = Util.canon(f.getPath());   if (f.exists() && !OurDialog.askOverwrite(n)) return false;
       }
       if (saveAs(n, bannedNames)) {Util.setCurrentDirectory(new File(filename).getParentFile()); return true;} else return false;

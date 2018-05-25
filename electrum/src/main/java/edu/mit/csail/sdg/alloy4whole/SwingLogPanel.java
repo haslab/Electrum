@@ -25,7 +25,6 @@ import java.awt.event.MouseListener;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
-
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -41,7 +40,6 @@ import javax.swing.text.StyledDocument;
 import javax.swing.text.StyledEditorKit;
 import javax.swing.text.View;
 import javax.swing.text.ViewFactory;
-
 import edu.mit.csail.sdg.alloy4.OurAntiAlias;
 import edu.mit.csail.sdg.alloy4.OurUtil;
 
@@ -138,7 +136,19 @@ final class SwingLogPanel {
                         if (!AbstractDocument.SectionElementName.equals(x.getName())) return defaultFactory.create(x);
                         return new BoxView(x, View.Y_AXIS) {
                             @Override public final float getMinimumSpan(int axis) { return super.getPreferredSpan(axis); }
-                            @Override public final void layout(int width,int height) { super.layout(30000, height); }
+                            @Override public final void layout(int width,int height) {
+                                int x = 0;
+                                int dec = 20;
+                                int w = 30000 + dec;
+                                while (x++ < 10) {
+                                    try {
+                                        super.layout(w - (int)Math.pow(2, x-1)*dec, height);
+                                        break;
+                                    } catch (Exception e) {
+                                        //System.out.println("---------error for ww = " + ww);
+                                    }
+                                }
+                            }
                         };
                     }
                 };
@@ -331,7 +341,7 @@ final class SwingLogPanel {
         log.copy();
     }
 
-    /** Removes any messages writtin in "red" style. */
+    /** Removes any messages written in "red" style. */
     public void clearError() {
         if (log==null) return;
         // Since this class always removes "red" messages prior to writing anything,

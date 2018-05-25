@@ -15,23 +15,17 @@
 
 package edu.mit.csail.sdg.alloy4;
 
-import static javax.swing.JOptionPane.ERROR_MESSAGE;
-import static javax.swing.JOptionPane.QUESTION_MESSAGE;
-import static javax.swing.JOptionPane.WARNING_MESSAGE;
-import static javax.swing.JOptionPane.YES_NO_OPTION;
-
+import java.io.File;
+import java.io.FilenameFilter;
+import java.util.Locale;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.FileDialog;
 import java.awt.Frame;
 import java.awt.GraphicsEnvironment;
 import java.awt.HeadlessException;
-import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
-import java.io.File;
-import java.io.FilenameFilter;
-import java.util.Locale;
-
+import java.awt.event.KeyEvent;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
@@ -44,6 +38,10 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.filechooser.FileFilter;
+import static javax.swing.JOptionPane.YES_NO_OPTION;
+import static javax.swing.JOptionPane.QUESTION_MESSAGE;
+import static javax.swing.JOptionPane.WARNING_MESSAGE;
+import static javax.swing.JOptionPane.ERROR_MESSAGE;
 
 /** Graphical dialog methods for asking the user some questions.
  *
@@ -122,7 +120,9 @@ public final class OurDialog {
 
    /** Returns true if a font with that name exists on the system (comparison is case-insensitive). */
    public synchronized static boolean hasFont(String fontname) {
+      //if (fontname == null) return false;
       if (allFonts == null) allFonts = GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames();
+      if (allFonts == null) return false;
       for(int i = 0; i < allFonts.length; i++) if (fontname.compareToIgnoreCase(allFonts[i]) == 0) return true;
       return false;
    }

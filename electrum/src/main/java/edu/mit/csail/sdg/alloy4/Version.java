@@ -1,4 +1,5 @@
 /* Alloy Analyzer 4 -- Copyright (c) 2006-2009, Felix Chang
+ * Electrum -- Copyright (c) 2015-present, Nuno Macedo
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files
  * (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify,
@@ -20,6 +21,8 @@ package edu.mit.csail.sdg.alloy4;
  * The release build script will generate a customized Version.java with the correct buildnumber and date.
  *
  * <p><b>Thread Safety:</b>  Safe.
+ * 
+ * @modified Nuno Macedo // [HASLab] Electrum version
  */
 
 public final class Version {
@@ -33,8 +36,12 @@ public final class Version {
    /** Returns the build number. */
    public static int buildNumber() { return Integer.MAX_VALUE; }
 
-   /** Returns the version string. */
-   public static String version() { return "4.2.?"; }
+   /** Returns the Alloy version string. */
+   public static String version() { return "4.2"; }
+
+   /** Returns the Electrum version string. */
+   // [HASLab]
+   public static String eleVersion() { return "1.1"; }
 
    /** Returns the build date. */
    public static String buildDate() { return "unknown"; }

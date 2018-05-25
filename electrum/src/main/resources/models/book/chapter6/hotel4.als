@@ -73,12 +73,12 @@ sig Checkout extends Event { } {
 fact Traces {
 	init [first]
 	all t: Time-last |
-		let t' = t.next |
+		let t1 = t.next |
 			some e: Event {
-				e.pre = t and e.post = t'
-				currentKey.t != currentKey.t' => e in Entry
-				occupant.t != occupant.t' => e in Checkin + Checkout
-				(lastKey.t != lastKey.t' or keys.t != keys.t') => e in Checkin
+				e.pre = t and e.post = t1
+				currentKey.t != currentKey.t1 => e in Entry
+				occupant.t != occupant.t1 => e in Checkin + Checkout
+				(lastKey.t != lastKey.t1 or keys.t != keys.t1) => e in Checkin
 			}
 	}
 

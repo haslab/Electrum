@@ -1,4 +1,5 @@
 /* Alloy Analyzer 4 -- Copyright (c) 2006-2009, Felix Chang
+ * Electrum -- Copyright (c) 2015-present, Nuno Macedo
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files
  * (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify,
@@ -37,7 +38,10 @@ import edu.mit.csail.sdg.alloy4compiler.ast.Expr;
 import edu.mit.csail.sdg.alloy4compiler.ast.Module;
 import edu.mit.csail.sdg.alloy4compiler.parser.CompModule.Open;
 
-/** This class provides convenience methods for calling the parser and the compiler. */
+/** This class provides convenience methods for calling the parser and the compiler. 
+ * 
+ * @modified Nuno Macedo // [HASLab] file extensions
+ * */
 
 public final class CompUtil {
 
@@ -84,7 +88,7 @@ public final class CompUtil {
                 // eg. main==/home/models/main.als, then sub/test=>/home/models/sub/test.als"
                 int numberOfSlash=0;
                 for(int i=0; i<moduleA.length(); i++)  if (moduleA.charAt(i)=='/') numberOfSlash++;
-                return up(fileA, numberOfSlash+1)+File.separatorChar+moduleB.replace('/',File.separatorChar)+".als";
+                return up(fileA, numberOfSlash+1)+File.separatorChar+moduleB.replace('/',File.separatorChar)+".ele"; // [HASLab] ele extension for local modules
             }
             moduleA=moduleA.substring(a+1);
             moduleB=moduleB.substring(b+1);
@@ -132,7 +136,12 @@ public final class CompUtil {
             } catch(IOException ex1) {
                 try {
                     String newCp = (Util.jarPrefix()+"models/"+x.filename+".als").replace('/', File.separatorChar);
-                    content = Util.readAll(newCp);
+                    try { // [HASLab] ele extension for built-ins, but must still support als utils (integer, ordering)
+                    	content = Util.readAll(newCp);
+                    } catch (IOException e) {
+                    	newCp = (Util.jarPrefix()+"models/"+x.filename+".ele").replace('/', File.separatorChar);
+                    }
+                	content = Util.readAll(newCp);
                     cp = newCp;
                 } catch(IOException ex) {
                     throw new ErrorSyntax(x.pos,
