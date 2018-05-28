@@ -67,7 +67,7 @@ Electrum is open-source and available under the [MIT license](electrum/LICENSE),
 - First stable public release (accompanying the ABZ'18 [submission](https://doi.org/10.1007/978-3-319-91271-4_21))
 - Common interface for temporal relational model finding problems through Pardinus
 - Bounded and unbounded model checking of Electrum models
-- Uniform visualisation of trace instances
+- Uniform visualization of trace instances
 - Support for a decomposed solving strategy
 
 ### Electrum [0.2](https://github.com/haslab/Electrum/releases/tag/v0.2) (November 2016) 
