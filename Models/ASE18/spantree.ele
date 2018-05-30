@@ -80,35 +80,10 @@ assert Closure {
 	always IsSpanTree => parent = parent'
 }
 
-pred consistent {}
-
-run consistent for 3 but 10 Time expect 1
-check BadLiveness for 3 but 10 Time expect 1
-check GoodSafety for 3 but 10 Time expect 0
-check GoodLiveness for 3 but 10 Time expect 0
-
-run consistent for 4 but 10 Time expect 1
-check BadLiveness for 4 but 10 Time expect 1
-check GoodSafety for 4 but 10 Time expect 0
-check GoodLiveness for 4 but 10 Time expect 0
-
-run consistent for 5 but 10 Time expect 1
 check BadLiveness for 5 but 10 Time expect 1
 check GoodSafety for 5 but 10 Time expect 0
 check GoodLiveness for 5 but 10 Time expect 0
 
-run consistent for 6 but 10 Time expect 1
 check BadLiveness for 6 but 10 Time expect 1
 check GoodSafety for 6 but 10 Time expect 0
 check GoodLiveness for 6 but 10 Time expect 0
-
-run consistent for 7 but 10 Time expect 1
-check BadLiveness for 7 but 10 Time expect 1
-check GoodSafety for 7 but 10 Time expect 0
-check GoodLiveness for 7 but 10 Time expect 0
-
-run consistent for 8 but 10 Time expect 1
-check BadLiveness for 8 but 10 Time expect 1
-check GoodSafety for 8 but 10 Time expect 0
-check GoodLiveness for 8 but 10 Time expect 0
-

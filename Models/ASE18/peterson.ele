@@ -175,18 +175,6 @@ pred ThreeRun  {
     eventually (P[i1] = L4 and after (eventually P[i2] = L4 and after eventually P[i3] = L4))
 }
 
-run TwoRun for 3 but 10 Time expect 1
-check Safety for 3 but 10 Time expect 0
-check NotStuck for 3 but 10 Time expect 1
-
-run TwoRun for 4 but 10 Time expect 1
-check Safety for 4 but 10 Time expect 0
-check NotStuck for 4 but 10 Time expect 1
-
-run TwoRun for 5 but 10 Time expect 1
-check Safety for 5 but 10 Time expect 0
-check NotStuck for 5 but 10 Time expect 1
-
 run TwoRun for 6 but 10 Time expect 1
 check Safety for 6 but 10 Time expect 0
 check NotStuck for 6 but 10 Time expect 1
@@ -194,7 +182,3 @@ check NotStuck for 6 but 10 Time expect 1
 run TwoRun for 7 but 10 Time expect 1
 check Safety for 7 but 10 Time expect 0
 check NotStuck for 7 but 10 Time expect 1
-
-run TwoRun for 8 but 10 Time expect 1
-check Safety for 8 but 10 Time expect 0
-check NotStuck for 8 but 10 Time expect 1

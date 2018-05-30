@@ -115,10 +115,6 @@ pred ShowDijkstra  {
     some waits
 }
 
-run Deadlock for 3 but 10 Time expect 1
-run ShowDijkstra for 3 but 10 Time expect 0
-check DijkstraPreventsDeadlocks for 3 but 10 Time expect 0
-
 run Deadlock for 4 but 10 Time expect 1
 run ShowDijkstra for 4 but 10 Time expect 0
 check DijkstraPreventsDeadlocks for 4 but 10 Time expect 0
@@ -126,15 +122,3 @@ check DijkstraPreventsDeadlocks for 4 but 10 Time expect 0
 run Deadlock for 5 but 10 Time expect 1
 run ShowDijkstra for 5 but 10 Time expect 0
 check DijkstraPreventsDeadlocks for 5 but 10 Time expect 0
-
-run Deadlock for 6 but 10 Time expect 1
-run ShowDijkstra for 6 but 10 Time expect 0
-check DijkstraPreventsDeadlocks for 6 but 10 Time expect 0
-
-run Deadlock for 7 but 10 Time expect 1
-run ShowDijkstra for 7 but 10 Time expect 0
-check DijkstraPreventsDeadlocks for 7 but 10 Time expect 0
-
-run Deadlock for 8 but 10 Time expect 1
-run ShowDijkstra for 8 but 10 Time expect 0
-check DijkstraPreventsDeadlocks for 8 but 10 Time expect 0

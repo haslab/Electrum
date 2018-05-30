@@ -108,10 +108,6 @@ assert GoodSafety {
 
 pred Consistent {}
 
-run Consistent for 3 but 10 Time expect 1
-check BadSafety for 3 but 10 Time expect 1
-check GoodSafety for 3 but 10 Time expect 0
-
 run Consistent for 4 but 10 Time expect 1
 check BadSafety for 4 but 10 Time expect 1
 check GoodSafety for 4 but 10 Time expect 0
@@ -119,15 +115,3 @@ check GoodSafety for 4 but 10 Time expect 0
 run Consistent for 5 but 10 Time expect 1
 check BadSafety for 5 but 10 Time expect 1
 check GoodSafety for 5 but 10 Time expect 0
-
-run Consistent for 6 but 10 Time expect 1
-check BadSafety for 6 but 10 Time expect 1
-check GoodSafety for 6 but 10 Time expect 0
-
-run Consistent for 7 but 10 Time expect 1
-check BadSafety for 7 but 10 Time expect 1
-check GoodSafety for 7 but 10 Time expect 0
-
-run Consistent for 8 but 10 Time expect 1
-check BadSafety for 8 but 10 Time expect 1
-check GoodSafety for 9 but 10 Time expect 0

@@ -138,9 +138,3 @@ check TypeSoundness for 3 but 1 Statement, 3 Field, 3 Slot, 10 Time expect 0
 
 run ExecuteSetter for 4 but 10 Time expect 1
 check TypeSoundness for 4 but 1 Statement, 3 Field, 3 Slot, 10 Time expect 0
-
-run ExecuteSetter for 5 but 10 Time expect 1
-check TypeSoundness for 5 but 1 Statement, 3 Field, 3 Slot, 10 Time expect 0
-
-run ExecuteSetter for 6 but 10 Time expect 1
-check TypeSoundness for 6 but 1 Statement, 3 Field, 3 Slot, 10 Time expect 0
