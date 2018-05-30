@@ -1,0 +1,210 @@
+module firewire
+
+abstract sig Msg {}
+one sig Req, Ack extends Msg {}
+
+sig Node {to, from: set Link} {
+  to = {x: Link | x.target = this}
+  from = {x: Link | x.source = this}
+  }
+
+var sig Waiting, Active, Contending, Elected extends Node {}
+
+sig Link {
+	target, source: Node,
+	reverse: Link,
+	var queue : Queue
+} {
+  reverse.@source = target
+  reverse.@target = source
+  }
+
+var sig ParentLinks in Link {}
+
+/**
+ * at most one link between a pair of nodes in a given direction
+ */
+fact {no x,y: Link | x!=y && x.source = y.source && x.target = y.target}
+
+/**
+ * topology is tree-like: acyclic when viewed as an undirected graph
+ */
+one sig Tree{
+   tree: Node->Node
+}
+{
+some root: Node {
+  tree in Node lone -> Node
+  Node in root.*tree
+  no ^tree & iden & Node->Node
+  tree + ~tree = ~source.target
+  }
+}
+
+abstract sig Op {}
+one sig Init, AssignParent, ReadReqOrAck, Elect, WriteReqOrAck,
+ResolveContention, Stutter extends Op {}
+
+var one sig Happen in Op {}
+
+pred SameState {
+  Waiting = Waiting'
+  Active = Active'
+  Contending = Contending'
+  Elected = Elected'
+  ParentLinks = ParentLinks'
+  all x: Link | SameQueue [queue[x], queue'[x]]
+  }
+
+pred Trans {
+  Happen' != Init
+  Happen' = Stutter => SameState
+  Happen' = AssignParent => {
+    some x: Link {
+      x.target in Waiting && x.target in Waiting'
+      NoChangeExceptAt [x.target]
+      ! IsEmptyQueue [x]
+      ParentLinks' = ParentLinks + x
+      ReadQueue [x]
+      }}
+  Happen' = ReadReqOrAck => {
+    ParentLinks' = ParentLinks
+    some x: Link {
+      x.target in (Active + Contending) &&  x.target in (PeekQueue [x, Ack] => Contending' else Active')
+      NoChangeExceptAt [x.target]
+      ! IsEmptyQueue [x]
+      ReadQueueInv [x]
+      }}
+  Happen' = Elect => {
+    ParentLinks' = ParentLinks
+    some n: Node {
+      n in Active && after n in Elected
+      NoChangeExceptAt [n]
+      n.to in ParentLinks
+      QueuesUnchanged [Link]
+      }}
+  Happen' = WriteReqOrAck => {
+    ParentLinks' = ParentLinks
+    some n: Node {
+      n in Waiting && after n in Active
+      lone n.to - ParentLinks
+      NoChangeExceptAt [n]
+      all x: n.from | WriteQueue [x, (x.reverse in ParentLinks => Ack else Req)]
+      QueuesUnchanged [Link - n.from]
+      }}
+  Happen' = ResolveContention => {
+    some x: Link {
+      x.(source + target) in Contending && after x.(source + target) in Active'
+      NoChangeExceptAt [x.(source + target)]
+      ParentLinks' = ParentLinks + x
+      }
+    QueuesUnchanged [Link]
+    }
+}
+
+pred NoChangeExceptAt [nodes: set Node] {
+  (Node - nodes) & Waiting = (Node - nodes) & Waiting'
+  (Node - nodes) & Active = (Node - nodes) & Active'
+  (Node - nodes) & Contending = (Node - nodes) & Contending'
+  (Node - nodes) & Elected = (Node - nodes) & Elected'
+  }
+
+sig Queue {slot: lone Msg, overflow: lone Msg}
+
+pred SameQueue [q, q1: Queue] {
+    q.slot = q1.slot && q.overflow = q1.overflow
+  }
+
+pred ReadQueue [x: Link] {
+  no queue'[x].(slot + overflow)
+  all x1: Link - x | queue'[x1] = queue[x1]
+  }
+
+pred ReadQueueInv [x: Link] {
+  no queue[x].(slot + overflow)
+  all x1: Link - x | queue[x1] = queue'[x1]
+  }
+
+pred PeekQueue [x: Link, m: Msg] {
+  m = queue[x].slot
+  }
+
+pred WriteQueue [x: Link, m: Msg] {
+  no queue[x].slot =>
+    ( (queue'[x]).slot = m && no (queue'[x]).overflow) else
+    some (queue'[x]).overflow
+  }
+
+pred QueuesUnchanged [xs: set Link] {
+  all x: xs | queue'[x] = queue[x]
+  }
+
+pred IsEmptyQueue [x: Link] {
+  no queue[x].(slot + overflow)
+  }
+
+pred Initialization {
+  Happen = Init
+  Node in Waiting
+  no ParentLinks
+  all x: Link | IsEmptyQueue [x]
+  }
+
+pred Execution  {
+  Initialization
+  always Trans
+  }
+
+pred ElectionHappens {
+    Execution
+    eventually some Elected
+}
+
+assert GoodSafety {
+  Execution  => (always lone Elected)
+}
+
+assert NoOverflow {
+  Execution  => (always all x: Link | no queue[x].overflow)
+}
+
+assert BadLiveness {
+  Execution  => (eventually some Elected)
+}
+
+run Execution for 3 but 10 Time expect 1
+check BadLiveness for 3 but 10 Time expect 1
+check GoodSafety for 3 but 10 Time expect 0
+check NoOverflow for 3 but 10 Time expect 0
+
+run Execution for 4 but 10 Time expect 1
+check BadLiveness for 4 but 10 Time expect 1
+check GoodSafety for 4 but 10 Time expect 0
+check NoOverflow for 4 but 10 Time expect 0
+
+run Execution for 5 but 10 Time expect 1
+check BadLiveness for 5 but 10 Time expect 1
+check GoodSafety for 5 but 10 Time expect 0
+check NoOverflow for 5 but 10 Time expect 0
+
+run Execution for 6 but 10 Time expect 1
+check BadLiveness for 6 but 10 Time expect 1
+check GoodSafety for 6 but 10 Time expect 0
+check NoOverflow for 6 but 10 Time expect 0
+
+run Execution for 7 but 10 Time expect 1
+check BadLiveness for 7 but 10 Time expect 1
+check GoodSafety for 7 but 10 Time expect 0
+check NoOverflow for 7 but 10 Time expect 0
+
+run Execution for 8 but 10 Time expect 1
+check BadLiveness for 8 but 10 Time expect 1
+check GoodSafety for 8 but 10 Time expect 0
+check NoOverflow for 8 but 10 Time expect 0
+
+// DEFINED VARIABLES
+// Defined variables are uncalled, no-argument functions.
+// They are helpful for getting good visualization.
+fun queued: Link -> Msg {
+  {L: Link, m: Msg | m in L.(queue).slot}
+}

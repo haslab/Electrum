@@ -1,0 +1,1374 @@
+/**
+An Electrum model of the Hybrid ERTMS/ETCS Level 3 Concept (HL3) based on the "Principles"
+document at https://www.southampton.ac.uk/abz2018/information/case-study.page 
+launched  as part of the ABZ 2018 call for case study contributions.
+
+A technical report describing the model and its development can be found at
+http://haslab.github.io/Electrum/ertms.pdf.
+
+This model is available at http://haslab.github.io/Electrum/ertms.ele and its visualizer theme 
+at http://haslab.github.io/Electrum/ertms.thm. A similar Alloy encoding can be found at 
+http://haslab.github.io/Electrum/ertms.als.
+
+@author: Nuno Macedo
+**/
+module ERTMS 
+
+open util/ordering[VSS] as V
+open util/ordering[TTD] as D
+
+/**
+Structural components of the HL3 model, including the track configurations and train state, 
+and the communication between on-board and the trackside systems.
+**/
+
+-- the states that can be assigned to each VSS
+enum State { Unknown, Free, Ambiguous, Occupied }
+
+-- virtual sub-sections of the track, totally ordered
+sig VSS {
+	var state	: one State, 	-- the current state of each VSS
+	var jumping	: lone Train	-- jumping trains detected by #2B
+}
+
+-- whether the disconnect propagation timer of each VSS has expired
+var sig disconnect_ptimer in VSS {} 		
+-- whether the integrity loss propagation timer of each VSS has expired
+var sig integrity_loss_ptimer in VSS {}
+
+-- trackside train detection sections, totally ordered
+sig TTD {
+	start 			: VSS,		-- first VSS of the TTD
+	end 			: VSS,		-- last VSS of the TTD
+} { end.gte[start] }
+
+-- whether the shadow timer A of each TTD has expired
+var sig shadow_timer_A	in TTD {}
+-- whether the shadow timer B of each TTD has expired
+var sig shadow_timer_B	in TTD {}
+-- whether the ghost train propagation timer of each TTD has expired
+var sig ghost_ptimer in TTD {}	
+
+-- all VSSs that comprise a TTD
+fun VSSs[t:TTD] : set VSS {
+	t.start.*V/next & t.end.*(~V/next)
+}
+
+-- the parent TTD of a VSS
+fun parent[v:VSS] : one TTD {
+	max[(v.*V/prev).~start]
+}
+
+-- the concept of occupied TTD is instantaneous
+-- NOTE: this is not assumed in the HL3, affects Scenario 5
+fun occupied : set TTD {
+	{ ttd : TTD | some VSSs[ttd] & Train.(pos_rear+pos_front) }
+}
+
+-- enforce total partition of the track into TDDs/VSSs
+fact trackSections {
+	all ttd:TTD-D/last | ttd.end.V/next = (ttd.D/next).start
+	D/first.start = V/first
+	D/last.end= V/last
+}
+
+-- available trains, always positioned in the track
+sig Train {
+	var pos_front	: one VSS,	-- actual front end position, unknown to trackside
+	var pos_rear	: one VSS,	-- actual rear end position, unknown to trackside
+	var MA 			: one VSS, 	-- current MA assigned to the train by the trackside
+}
+
+-- whether each train is connected to the trackside
+var sig connected in Train {}
+-- whether each train reported PTD front information
+var sig report_front in Train {}
+-- whether each train reported PTD rear information
+var sig report_rear in Train {}	
+
+-- whether the mute timer of each train has expired
+var sig mute_timer in Train {}
+-- whether the integrity timer of each train has expired
+var sig integrity_timer in Train {}
+
+-- trains not reporting at a given instant
+fun mute : set Train {
+	Train-(report_rear+report_front)
+}
+
+-- whether a train failed to report the rear position or is the result of a break up
+-- NOTE: this abstracts the 3 conditions of #7B and #8A and the ghost propagation timer
+fun disintegrated : set Train {
+	report_front - report_rear
+}
+
+-- all VSSs comprising the MA of a train
+fun MAs[tr:Train] : set VSS {
+	knownRear[tr].*V/next & (tr.MA).*V/prev
+}
+
+-- all trains whose MA includes the TTD
+fun MAs[ttd:TTD] : set Train {
+	{ tr:Train | some VSSs[ttd] & MAs[tr] }
+}
+
+-- all trains whose MA includes the VSS
+fun MAs[vss:VSS] : set Train {
+	{ tr:Train | vss in MAs[tr] }
+}
+
+-- last reported position of the train
+fun knownLoc[tr:Train] : set VSS {
+	knownFront[tr] + knownRear[tr]
+}
+
+-- last reported front end position of the train
+fun knownFront[tr:Train] : one VSS {
+	some jumping.tr => jumping.tr else
+	{vss:VSS | (tr not in report_front) since (tr in report_front && vss = tr.pos_front) }
+}
+
+-- last reported rear end position of the train
+fun knownRear[tr:Train] : one VSS {
+	{vss:VSS | (tr not in report_rear) since (tr in report_rear && vss = tr.pos_rear) }
+}
+
+-- trains whose last reported position was the VSS
+fun knownTrain[vss:VSS] : set Train {
+	{tr:Train | (tr not in report_rear) since (tr in report_rear && vss = tr.pos_rear) }
+	+
+	{tr:Train | (tr not in report_front) since (tr in report_front && vss = tr.pos_front) }
+}
+
+-- trains reported in a TTD
+fun positioned[ttd:TTD] : set Train {
+	{ tr:Train | some vss : VSSs[ttd] | tr in knownTrain[vss] }
+}
+
+-- state of the VSS when the train last reported
+fun knownState[tr:Train] : one State {
+	{st:State | (tr not in report_front) since (tr in report_front && st in tr.pos_front.state) }
+}
+
+-- forces the detection of jumping trains due to #2B
+fact jumpingTrain {
+	always 
+	jumping = { v:VSS,tr:Train { 
+		v.state = Occupied
+		previous v.state = Free
+		parent[v] in occupied
+		n02B[v]
+		tr.pos_front = v }
+	}
+}
+
+/**
+Timers start and stop events definition. No particular duration imposed, only possibility 
+of expiration is encoded. Expired timers do not remain so indefinitely as this would 
+break, e.g., Scenario 9.
+**/
+
+-- the mute timer for a train may expire if it is not reporting
+pred set_mute_timer {
+	mute_timer in mute
+}
+
+-- the integrity timer for a train expire if it is disintegrated
+pred set_integrity_timer {
+	integrity_timer in disintegrated
+}
+
+-- the shadow timer A of a TTD may expire if start conditions were once met
+pred set_shadow_timer_A {
+	shadow_timer_A in start_shadow_timer_A
+}
+
+-- shadow timer A start event conditions
+fun start_shadow_timer_A : set TTD {
+	{ ttd : TTD | once {
+			(previous ttd in occupied)
+			(ttd not in occupied)
+			(previous ttd.end.state = Ambiguous)
+		}
+	}
+}
+
+-- the shadow timer B of a TTD may expire if start conditions were once met
+pred set_shadow_timer_B {
+	shadow_timer_B in start_shadow_timer_B
+}
+
+-- shadow timer B start event conditions
+fun start_shadow_timer_B : set TTD {
+	{ ttd : TTD | once {
+			ttd.end.state = Unknown
+			previous ttd.end.state = Ambiguous 
+			some tr:Train {
+				(previous tr in positioned[ttd])
+				(tr not in positioned[ttd])
+				(previous tr not in disintegrated)
+			}
+			-- NOTE: ignores min-safe-rear-end	
+		}
+	}
+}
+
+-- the disconnect propagation timer for a VSS may expire if a train last reported
+-- in it has the mute timer expired
+pred set_disconnect_ptimer {
+	all vs:VSS | vs in disconnect_ptimer => some (knownTrain[vs])&mute_timer
+}
+
+-- the integrity loss propagation timer of a train may expire if start conditions were 
+-- once met
+pred set_integrity_loss_ptimer {
+	integrity_loss_ptimer in start_integrity_loss_ptimer
+}
+
+-- integrity loss propagation timer start event conditions
+fun start_integrity_loss_ptimer : set VSS {
+	{ vss : VSS | once {
+			previous vss in state.Occupied
+			some tr2 : knownTrain[vss] |
+				(tr2 in integrity_timer && (previous tr2 not in integrity_timer))		
+		}
+	}
+}
+
+-- the ghost propagation timer of a TTD may expire if start conditions were once met
+pred set_ghost_ptimer {
+	ghost_ptimer in start_ghost_ptimer
+}
+
+-- ghost propagation timer start event conditions
+fun start_ghost_ptimer : set TTD {
+	{ ttd : TTD | once {
+			ttd in occupied
+			previous (ttd not in occupied)
+			(no positioned[ttd] || no MAs[ttd])
+		}
+	}
+}
+
+-- enforce all timer expiration conditions
+pred timers {
+	set_mute_timer
+	set_integrity_timer
+
+	set_shadow_timer_A
+	set_shadow_timer_B
+
+	set_disconnect_ptimer
+	set_integrity_loss_ptimer
+	set_ghost_ptimer
+}
+
+/**
+Trackside system evolution, including the VSS state machine and the assignment of MAs.
+**/
+
+-- encodes the VSS state machine according to the defined priorities
+pred states[vss:VSS] {
+	vss.state' = ( 
+		n01[vss] 	=> 	Unknown else
+		n02[vss] 	=> 	Occupied else 	-- priority over n03
+		n03[vss] 	=> 	Ambiguous else
+		n04[vss] 	=> 	Free else	 	-- priority over n05 and n12
+		n12[vss] 	=> 	Occupied else	-- priority over n05
+		n05[vss] 	=> 	Ambiguous else	
+		n06[vss] 	=> 	Free else	 	
+		n07[vss] 	=> 	Unknown else	-- priority over n08	 	
+		n08[vss] 	=> 	Ambiguous else	
+		n09[vss] 	=> 	Free else		-- priority over n10
+		n10[vss] 	=> 	Unknown else	
+		n11[vss] 	=> 	Occupied else	
+						vss.state
+	)
+}
+
+-- VSS state transition #1 from Free to Unknown
+pred n01 [v:VSS] {
+	v.state = Free
+	-- TTD is occupied, common to all #1
+	parent[v] in occupied'
+	after (n01A[v] || n01B[v] || n01C[v] || n01D[v] || n01E[v] || n01F[v])
+}
+
+pred n01A [v:VSS] {
+	-- no FS MA issued or no train on TTD
+	-- NOTE: the "no train on TTD" breaks the scenarios; also, 4.2.2 does not mention this
+	no MAs[parent[v]] && no positioned[parent[v]]
+}
+
+pred n01B [v:VSS] {
+	-- VSS part of MA sent to a train for which mute timer expired
+	some tr: MAs[v] & mute_timer {
+		-- VSS is located after the VSS where train last reported
+		previous v in knownLoc[tr].nexts
+	}
+}
+
+pred n01C [v:VSS] {
+	some vss:disconnect_ptimer { 
+		-- only free or unknown VSS between here and a VSS with disconnect propagation timer
+		(vss.^next & v.^prev).(state) in Free+Unknown
+		-- VSS on the same TTD as the one with timer
+		parent[vss] = parent[v]
+	}
+}
+
+pred n01D [v:VSS] {
+	some vss:disconnect_ptimer { 
+		-- only free or unknown VSS between here and a VSS with disconnect propagation timer
+		(vss.^next & v.^prev).(state) in Free+Unknown
+		-- VSS not on the same TTD as the one with timer
+		parent[vss] != parent[v]
+		-- VSS not part of an MA
+		no MAs[v]
+	}
+}
+
+pred n01E [v:VSS] {
+	some vss:integrity_loss_ptimer { 
+		-- only free or unknown VSS between here and a VSS with integrity loss propagation timer
+		(vss.^next & v.^prev).(state) in Free+Unknown
+		-- VSS on same TDD as the VSS for which integrity loss propagation timer
+		parent[vss] = parent[v]
+	}
+}
+
+pred n01F [v:VSS] {
+	some ttd:ghost_ptimer { 
+		-- only free or unknown VSS between here and a VSS with ghost train propagation timer
+		previous (ttd.end.nexts & v.prevs).state in Free+Unknown
+		-- VSS not on the same TTD as the one with timer
+		ttd != parent[v]
+	}
+}
+
+-- VSS state transition #2 from Free to Occupied
+pred n02 [v:VSS] {
+	v.state = Free
+	-- TTD is occupied, common to all #2
+	parent[v] in occupied'
+	after (n02A[v] || n02B[v])
+}
+
+pred n02A [v:VSS] {
+	some tr: Train {
+		-- there is a train on the VSS 
+		v in knownLoc[tr]
+		-- the VSS of the front was occupied after the position report
+		previous Occupied in knownState[tr] 
+		-- current state of last reported VSS is not unknown
+		previous Unknown not in knownFront[tr].(state')
+	}
+}
+
+pred n02B [v:VSS] {
+	-- TTD in rear is free
+	parent[v].D/prev not in occupied
+	-- VSS is the first in TTD
+	some v.~start
+	-- there is a train on rear TTD
+	some tr: Train {
+		-- train is reported on last TTD
+		tr in positioned[parent[v].D/prev]
+		-- train is not reported on TTD
+		tr not in positioned[parent[v]]
+		-- the VSS of the front was occupied after the position report
+		previous Occupied in knownState[tr]
+		-- VSS part of MA
+		tr in MAs[v]
+	}
+}
+
+-- VSS state transition #3 from Free to Ambiguous
+pred n03 [v:VSS] {
+	v.state = Free
+	-- TTD is occupied, common to all #3
+	parent[v] in occupied'
+	after (n03A[v] || n03B[v])
+}
+
+pred n03A [v:VSS] {
+	-- train reported on VSS
+	some knownTrain[v]
+}
+
+pred n03B [v:VSS] {
+	-- rear TTD free
+	parent[v].D/prev not in occupied
+	-- there is a train in the previous TTD, not on this TTD, and v is part of its MA
+	some tr:positioned[parent[v].D/prev]-positioned[parent[v]] | tr in MAs[v]
+	-- first VSS of TTD
+	v in TTD.start
+}
+
+-- VSS state transition #4 from Unknown to Free
+pred n04 [v:VSS] {
+	v.state = Unknown
+	after (n04A[v] || n04B[v] || n04C[v])
+}
+
+pred n04A [v:VSS] {
+	-- TDD free
+	parent[v] not in occupied
+}
+
+pred n04B [v:VSS] {
+	-- train reconnects for which VSS is in MA
+	some tr:MAs[v] {
+		previous tr in mute
+		tr not in disintegrated
+		previous (once tr not in mute)
+		previous (once no none) 
+		tr not in mute
+		-- VSS is in advance of the VSS where the reconnected train is located
+		v in (knownFront[tr]).nexts
+	}
+}
+
+pred n04C [v:VSS] {
+	-- train reconnects
+	some tr:Train {
+		previous tr in mute
+		tr not in disintegrated
+		tr not in mute
+
+		-- train data train length has not changed
+		-- VSS is in advance of, or is, the VSS where the train was located when the connection was lost
+		previous v in (knownLoc[tr]).*next -- guarantees that it was once connected
+		-- VSS is in rear of the VSS where the reconnected train is located
+		v in (knownRear[tr]).prevs
+		-- in rear of this VSS and subsequent VSS(s) that had become “unknown” because of the lost
+		-- connection of this train is a “free” VSS on the same TTD as the train is located on
+		previous (
+			let v0 = max[(v.prevs)&state.(State-Unknown)&VSSs[parent[v]]] {
+				v0.state = Free
+				all v1 : v0.nexts&((knownRear[tr])'.prevs) | v1.state = Unknown since v.state = Unknown
+			}
+		)
+	}
+}
+
+-- VSS state transition #5 from Unknown to Ambiguous
+pred n05 [v:VSS] {
+	v.state = Unknown
+	after n05A[v] 
+}
+
+pred n05A [v:VSS] {
+	-- train on VSS
+	some knownTrain[v] & (report_rear+report_front) -- NOTE: not the standard notion of located
+}
+
+-- VSS state transition #6 from Occupied to Free
+pred n06 [v:VSS] {
+	v.state = Occupied
+	after (n06A[v] || n06B[v])
+}
+
+pred n06A [v:VSS] {
+	-- TDD free
+	parent[v] not in occupied
+}
+
+pred n06B [v:VSS] {
+	-- a train was on the VSS and was reported leaving
+	some tr:Train {
+		-- integer train
+		tr not in disintegrated
+		tr not in mute
+		v not in knownLoc[tr]
+		previous v in knownLoc[tr]
+	}
+}
+
+-- VSS state transition #7 from Occupied to Unknown
+pred n07 [v:VSS] {
+	v.state = Occupied
+	after (n07A[v] || n07B[v])
+}
+
+pred n07A [v:VSS] {
+	-- train with mute timer expired or EoM
+	-- train on VSS
+	some tr:knownTrain[v] | tr in mute_timer || previous previous eom[tr] 
+}
+
+pred n07B [v:VSS] {
+	-- a train was on the VSS and was reported leaving
+	some tr:Train {
+		v not in knownFront[tr]
+		previous v in knownLoc[tr]
+		(tr in integrity_timer && (previous tr not in integrity_timer)) 
+	}
+}
+
+-- VSS state transition #8 from Occupied to Ambiguous
+pred n08 [v:VSS] {
+	v.state = Occupied
+	after (n08A[v] || n08B[v] || n08C[v])
+}
+
+pred n08A [v:VSS] {
+	-- train on VSS
+	some tr: knownTrain[v] |
+		(tr in integrity_timer && (previous tr not in integrity_timer))
+}
+
+pred n08B [v:VSS] {
+	-- train on VSS
+	some knownTrain[v]
+	-- rear VSS is unknown
+	v.prev.state = Unknown
+}
+
+pred n08C [v:VSS] {
+	-- trains on VSS
+	some disj tr1,tr2: knownTrain[v] | not integral[tr1,tr2]
+}
+
+-- VSS state transition #9 from Ambiguous to Free
+pred n09 [v:VSS] {
+	v.state = Ambiguous
+	after (n09A[v] || n09B[v])
+}
+
+pred n09A [v:VSS] {
+	-- TDD free
+	parent[v] not in occupied
+}
+
+pred n09B [v:VSS] {
+	-- a train was on the VSS and was reported leaving
+	some tr:Train {
+		-- integer train
+		tr not in disintegrated
+		v not in knownLoc[tr]
+		previous v in knownLoc[tr]
+		-- no shadow timer
+		parent[v] not in shadow_timer_A		
+		parent[v] in start_shadow_timer_A
+	}
+}
+
+-- VSS state transition #10 from Ambiguous to Unknown
+pred n10 [v:VSS] {
+	v.state = Ambiguous
+	after (n10A[v] || n10B[v])
+}
+
+pred n10A [v:VSS] {
+	-- all trains reported leaving
+	previous some knownTrain[v]
+	all tr:Train {
+		(previous (tr in knownTrain[v]) && tr in connected) => (tr not in knownTrain[v])
+	}
+}
+
+pred n10B [v:VSS] {
+	-- train on VSS and mute timer expired
+	some knownTrain[v] & (mute_timer + (Train - connected))
+}
+
+-- VSS state transition #11 from Ambiguous to Occupied
+pred n11 [v:VSS] {
+	v.state = Ambiguous
+	after (n11A[v] || n11B[v])
+}
+
+pred n11A [v:VSS] {
+	some tr: knownTrain[v] {
+		tr not in disintegrated
+		-- train left the previous TTD
+		no knownLoc[tr] & VSSs[parent[v].D/prev]
+	}
+	-- shadow train timer A of the TTD in rear was not exprired
+	parent[v].D/prev not in shadow_timer_A
+	parent[v].D/prev in start_shadow_timer_A
+
+	-- NOTE: ignores about min-safe-rear-end
+}
+
+pred n11B [v:VSS] {
+	-- TTD in rear is free
+	parent[v].D/prev not in occupied
+	-- integer train located on the VSS reported to have left the TTD in rear
+	some tr: knownTrain[v] {
+		-- integer train
+		tr not in disintegrated
+		tr not in mute
+		previous some knownLoc[tr] & VSSs[parent[v].D/prev]
+	}
+	-- the “shadow train timer B” of the TTD in rear for this direction was not expired at the 
+	-- moment of the time stamp in the position report
+	parent[v].D/prev not in shadow_timer_B
+	parent[v].D/prev in start_shadow_timer_B
+}
+
+-- VSS state transition #12 from Unknown to Occupied
+pred n12 [v:VSS] {
+	v.state = Unknown
+	after (n12A[v] || n12B[v])
+}
+
+pred n12A [v:VSS] {
+	-- train located on the VSS
+	some tr: knownTrain[v] {
+		-- reconnects within same session
+		previous tr in mute
+		tr not in mute
+		-- integer train
+		tr not in disintegrated
+		-- In rear of this VSS and subsequent VSS(s) that had become “unknown” because of the lost 
+		-- connection of this train is a “free” VSS on an “occupied” TTD
+		previous (
+			let v0 = max[(v.prevs)&state.(State-Unknown)] {
+				v0.state = Free
+				parent[v0] in occupied
+				all v1 : v0.nexts&((knownRear[tr])'.prevs) | v1.state = Unknown since v.state = Unknown
+			}
+		)
+	}
+}
+
+pred n12B [v:VSS] {
+	parent[v] in occupied
+	-- train located on the VSS
+	some tr: knownTrain[v] {
+		-- the VSS of the front was occupied after the position report
+		previous Occupied in knownState[tr] 
+		-- the train is not re-connecting, i.e. the mute timer was not expired
+		previous tr not in mute_timer
+		-- current state of last reported VSS is not unknown
+	 	previous Unknown not in (knownFront[tr]).state	
+	}
+}
+
+-- updates the MAs assigned to a train according to VSS state and PTD information
+-- NOTE: note defined in the HL3, loose reasonable assumptions
+pred MAs {
+	-- if a train is connected, do nothing, assign MA to a free VSS in front or assign OS MA
+	all tr:connected | (tr.MA' = tr.MA || (knownFront[tr].*next&tr.MA'.*V/prev).state = Free || after OSMA[tr])
+	-- if a train is connected, do nothing or remove MA (assign to current known position)
+	all tr:(Train-connected)+mute_timer | (tr.MA' = tr.MA || tr.MA' = knownFront[tr])
+}
+
+-- assigns OS MA to a train by allowing free movement up to the last VSS
+pred OSMA[tr:Train] {
+	knownFront[tr] != V/last
+	tr.MA = V/last
+}
+
+/**
+Train movement and PTD reporting.
+**/
+
+-- encodes valid train movement and the reporting of PTD information.
+-- each train may move one VSS at a time, and the front and rear end must not be more
+-- than a VSS away.
+-- may not report PTD information at all; may report only front information, meaning
+-- lost integrity.
+-- if connected, obbeys the MA.
+pred move [tr:Train] {
+	-- possible effective train movement
+	tr.pos_front' in tr.pos_front + (tr.pos_front).V/next 
+	tr.pos_rear' in tr.pos_front' + (tr.pos_front').V/prev
+	tr.pos_rear' in tr.pos_rear + (tr.pos_rear).V/next
+
+	-- posibility to report PTD
+	{
+		tr in connected
+		tr in report_rear' => tr in report_front'
+	} || {
+		tr not in report_front'
+		tr not in report_rear'
+	}
+
+	-- if connected, follow MA
+	tr in connected => after tr.pos_front in MAs[tr]
+
+	-- frame condition
+	tr in connected iff tr in connected'
+}
+
+-- start of mission action
+pred som[tr:Train] {
+	tr not in connected
+	connected' = connected + tr
+	
+	report_rear' = report_rear + tr
+	report_front' = report_front + tr
+	
+	-- frame conditions
+	pos_front' = pos_front
+	pos_rear' = pos_rear
+}
+
+-- end of mission action
+pred eom[tr:Train] {
+	tr in connected
+	connected' = connected - tr
+
+	report_rear' = report_rear - tr
+	report_front' = report_front - tr
+
+	-- frame conditions
+	pos_front' = pos_front
+	pos_rear' = pos_rear
+}
+
+-- encodes the notion of two carriages being the same integral train:
+-- historically has the same state.
+pred integral[tr,tr1:Train] {
+	historically {
+	    tr1.MA = tr.MA
+		tr1.pos_front = tr.pos_front
+		tr1.pos_rear = tr.pos_rear
+		tr1 in report_front iff tr in report_front
+		tr1 in report_rear iff tr in report_rear
+	}
+}
+
+-- encodes the breaking up of an two-carriage train into two.
+-- front one reports lost integrity, rear one stays disconnecetd.
+pred split [tr,tr1:Train] {
+		tr != tr1
+		integral[tr,tr1]
+		tr1 not in (report_rear+report_front)'
+		tr.pos_rear' in tr.pos_front + tr.pos_rear
+		tr1.pos_front' = tr1.pos_front
+		tr1.pos_rear' = tr1.pos_rear
+		pos_rear' - (tr+tr1) -> VSS = pos_rear - (tr+tr1) -> VSS
+		pos_front' - tr1 -> VSS = pos_front - tr1 -> VSS
+		report_rear' = report_rear - (tr+tr1)
+		report_front' = report_front - tr1
+		tr1 in connected
+		tr1 not in connected'
+}
+
+/** 
+Overall system evolution.
+**/
+
+-- forces state to be correctly updated; every train may move in each step.
+fact trace {
+	always {
+		timers
+		MAs
+		all v:VSS | states[v]		
+		(all tr:Train | move[tr]) || (some tr,tr1:Train | split[tr,tr1] || som[tr] || eom[tr]) 
+	}
+}
+
+/**
+Operational scenarios of the HL3 concept.
+**/
+
+-- Scenario 1 - Normal running of a single train with integrity confirmed by external device
+pred S1 {
+
+	always no integrity_timer + mute_timer + integrity_loss_ptimer + 
+		disconnect_ptimer + ghost_ptimer + shadow_timer_A + shadow_timer_B
+
+	let	v11 = V/first, v12 = v11.next, v21 = v12.next,
+			v22 = v21.next, v23 = v22.next, v31 = v23.next {
+	v12 in parent[first].end
+	v31 in parent[last].start
+
+	some tr:Train {
+		-- initial state
+		v11.state = Occupied
+		v11.nexts.state = Free
+
+		always tr in report_front
+		
+		tr in report_rear;tr not in report_rear;tr in report_rear;tr not in report_rear;
+		tr in report_rear;tr not in report_rear;tr in report_rear;tr in report_rear
+
+		tr.(pos_front+pos_rear) = v11;tr.(pos_front+pos_rear) = v12;
+		tr.(pos_front+pos_rear) = v12;tr.(pos_front+pos_rear) = v21;
+		tr.(pos_front+pos_rear) = v21;tr.(pos_front+pos_rear) = v22;
+		tr.(pos_front+pos_rear) = v23;tr.(pos_front+pos_rear) = v31
+ 
+		-- final state
+		after after after after after after after	v31.state = Occupied
+		after after after after after after after 	(VSS-v31).state = Free
+	}
+	}
+}
+
+-- Scenario 2 - Splitting of a composite train with integrity confirmed by external device
+pred S2 {
+
+	always no ghost_ptimer + shadow_timer_A + shadow_timer_B + disconnect_ptimer
+
+	let	v11 = V/first, v12 = v11.next, v21 = v12.next,
+			v22 = v21.next, v23 = v22.next, v31 = v23.next,
+			v32 = v31.next, v33 = v32.V/next {
+	v12 in parent[first].end
+	v31 in parent[last].start
+
+	some disj tr1,tr2:Train {
+		-- initial state
+		v11.state = Free
+		v12.state = Occupied
+		v12.nexts.state = Free
+
+		split[tr1,tr2]
+
+		(tr1 in report_rear && tr1 in report_front && tr2 in report_rear && tr2 in report_front);
+		(tr1 not in report_rear && tr1 in report_front && tr2 not in report_rear && tr2 not in report_front);
+		(tr1 in report_rear && tr1 in report_front && tr2 not in report_rear && tr2 not in report_front);
+		(tr1 in report_rear && tr1 in report_front && tr2 not in report_rear && tr2 not in report_front);
+		(tr1 in report_rear && tr1 in report_front && tr2 not in report_rear && tr2 not in report_front);
+		(tr1 in report_rear && tr1 in report_front && tr2 not in report_rear && tr2 not in report_front);
+		(tr1 not in report_rear && tr1 not in report_front && tr2 not in report_rear && tr2 not in report_front);
+	 	(tr1 in report_rear && tr1 in report_front && tr2 not in report_rear && tr2 not in report_front)
+		
+		(tr1 in connected && tr2 in connected)
+		after always (tr1 in connected && tr2 not in connected)
+
+		always tr1 not in mute_timer
+		after no mute_timer
+
+		no integrity_loss_ptimer;
+		no integrity_loss_ptimer;
+		no integrity_loss_ptimer;
+		no integrity_loss_ptimer;
+		v12 = integrity_loss_ptimer
+
+		tr1.(pos_front+pos_rear) = v12;tr1.(pos_front+pos_rear) = v12;
+		tr1.(pos_front+pos_rear) = v21;tr1.(pos_front+pos_rear) = v22;
+		tr1.(pos_front+pos_rear) = v23;tr1.(pos_front+pos_rear) = v31+v23;
+		tr1.(pos_front+pos_rear) = v31;tr1.(pos_front+pos_rear) = v31
+
+		tr2.(pos_front+pos_rear) = v12
+		after after after after after after after 	tr2.(pos_front+pos_rear) = v12
+
+		tr1.MA = v32
+		after after always tr2.MA = v12
+
+		-- final state
+		after after after after after after after 	(v11+v12).state = Unknown
+		after after after after after after after 	v31.state = Occupied
+		after after after after after after after 	(v21+v22+v23+v32+v33).state = Free
+	}
+	}
+}
+
+-- Scenario 3 - Shadow train
+-- NOTE: breaks if #1A is modelled as in the HL3 concept
+pred S3 {
+
+	always 	no ghost_ptimer + shadow_timer_A + shadow_timer_B + disconnect_ptimer
+
+	let 	v11 = V/first, v12 = v11.next, v21 = v12.next,
+			v22 = v21.next, v23 = v22.next, v31 = v23.next,
+			v32 = v31.next {
+	v12 in parent[first].end
+	v31 in parent[last].start
+
+	some disj tr1,tr2:Train {
+		-- initial state
+		v11.state = Free
+		v12.state = Occupied
+		v12.nexts.state = Free
+
+		tr1 in report_front
+		tr1 in report_rear
+		after tr1 in report_front
+		after tr1 not in report_rear
+		after after tr1 in report_front
+		after after tr1 in report_rear
+		after after after tr1 in report_front
+		after after after tr1 in report_rear
+		after after after after tr1 in report_front
+		after after after after tr1 in report_rear
+		after after after after after tr1 not in report_front
+		after after after after after tr1 not in report_rear
+		after after after after after after always tr1 in report_front
+		after after after after after after always tr1 in report_rear
+
+		tr2 in report_rear
+		tr2 in report_front
+		after always tr2 not in report_rear
+		after always tr2 not in report_front
+
+		always tr1 not in mute_timer
+		after no mute_timer
+		after some integrity_loss_ptimer
+
+		split[tr1,tr2]
+
+		tr1.(pos_front+pos_rear) = v12
+		after after tr1.(pos_front+pos_rear) = v21
+		after after after tr1.(pos_front+pos_rear) = v22
+		after after after after tr1.(pos_front+pos_rear) = v23
+		after after after after after tr1.(pos_front+pos_rear) = v31
+		after after after after after after tr1.(pos_front+pos_rear) = (v31+v32)
+		after after after after after after after tr1.(pos_front+pos_rear) = v32
+		after after after after after after after after tr1.(pos_front+pos_rear) = v32
+
+		tr2.(pos_front+pos_rear) = v12
+		after after tr2.(pos_front+pos_rear) = v12
+		after after after tr2.(pos_front+pos_rear) = v12
+		after after after after tr2.(pos_front+pos_rear) = v21
+		after after after after after tr2.(pos_front+pos_rear) = v22
+		after after after after after after tr2.(pos_front+pos_rear) = v23
+		after after after after after after after tr2.(pos_front+pos_rear) = v31
+		after after after after after after after after tr2.(pos_front+pos_rear) = v31
+
+		after after always tr2.MA = v12
+		always tr1.MA = v32
+
+		-- final state
+		after after after after after after after after v31.state = Unknown
+		after after after after after after after after v32.state = Ambiguous
+		after after after after after after after after (VSS-(v31+v32)).state = Free
+	}
+	}
+}
+
+-- Scenario 4 - Start of Mission / End of Mission
+-- NOTE: breaks if #5A is modelled as in the HL3 concept
+pred S4 {
+
+	always no ghost_ptimer + shadow_timer_A + shadow_timer_B + integrity_timer
+
+	let	v11 = V/first, v12 = v11.next, v21 = v12.next,
+		v22 = v21.next, v23 = v22.next, v31 = v23.next,
+		v32 = v31.next, v33 = v32.next {
+	v12 in parent[first].end
+	v31 in parent[last].start
+
+	some tr:Train {
+		-- initial state
+		(v11+v12).state = Unknown
+		v12.nexts.state = Free
+		
+		tr not in connected;tr in connected;tr in connected;tr in connected;
+		tr in connected;tr in connected;tr not in connected;tr not in connected
+        
+        tr not in report_front;after tr in report_front;tr in report_front;
+        tr in report_front;tr in report_front;tr in report_front; always tr not in report_front
+        
+        tr not in report_rear;tr in report_rear;tr in report_rear;tr in report_rear;
+        tr in report_rear;tr in report_rear;always tr not in report_rear
+
+		tr.(pos_front+pos_rear) = v11;tr.(pos_front+pos_rear) = v11;tr.(pos_front+pos_rear) = v12;
+		tr.(pos_front+pos_rear) = v21;tr.(pos_front+pos_rear) = v21; always tr.(pos_front+pos_rear) = v22
+
+		after after after after after after after no disconnect_ptimer
+		after after after after after after after after some disconnect_ptimer
+		after after after after after after no mute_timer
+		after after after after after after after some mute_timer 
+
+		-- final state
+		after after after after after after after after (v21+v22+v23).state = Unknown
+		after after after after after after after after (v11+v12+v31+v32+v33).state = Free
+
+		after always tr.MA = v22
+	}
+	}
+}
+
+-- Scenario 5 - Integrity lost
+-- NOTE: model does not implement delays on TTD detection
+pred S5 {
+
+	always no ghost_ptimer + shadow_timer_A + shadow_timer_B + disconnect_ptimer
+
+	let	v11 = V/first, v12 = v11.next, v21 = v12.next,
+			v22 = v21.next, v23 = v22.next, v31 = v23.next,
+			v32 = v31.next, v33 = v32.next {
+	v12 in parent[first].end
+	v31 in parent[last].start
+
+	some disj tr1,tr2:Train {
+		-- initial state
+		v11.state = Free
+		v12.state = Occupied
+		v12.nexts.state = Free
+
+		always tr1 in report_front
+		tr1 in report_rear;tr1 not in report_rear;tr1 not in report_rear;always tr1 in report_rear
+
+		tr2 in report_front; always tr2 not in report_front
+		tr2 in report_rear; always tr2 not in report_rear
+
+		split[tr1,tr2]
+
+		always no mute_timer
+
+		no integrity_loss_ptimer;no integrity_loss_ptimer;no integrity_loss_ptimer;always some integrity_loss_ptimer
+
+		tr1.(pos_front+pos_rear) = v12
+		after after tr1.(pos_front+pos_rear) = v21
+		after after after tr1.(pos_front+pos_rear) = v22
+		after after after after tr1.(pos_front+pos_rear) = v23
+		after after after after after tr1.(pos_front+pos_rear) = v23+v31
+		after after after after after after tr1.(pos_front+pos_rear) = v31
+		after after after after after after after tr1.(pos_front+pos_rear) = v31
+
+		tr2.(pos_front+pos_rear) = v12
+		after after after after after after after tr2.(pos_front+pos_rear) = v12
+
+		-- final state
+		after after after after after after after (v11+v12).state = Unknown
+		after after after after after after after v31.state = Occupied
+		after after after after after after after (v21+v22+v23+v32+v33).state = Free
+
+		after after always tr2.MA = v12
+		always tr1.MA = v32
+	}
+	}
+}
+
+-- Scenario 6 - Connection lost and reconnect within session
+-- NOTE: breaks if #1A is modelled as in the HL3 concept
+pred S6 {
+
+	always no ghost_ptimer + shadow_timer_A + shadow_timer_B + integrity_loss_ptimer + integrity_timer
+
+	let	v11 = V/first, v12 = v11.next, v21 = v12.next,
+		 	v22 = v21.next, v23 = v22.next, v31 = v23.next {
+	v12 in parent[first].end
+	v31 in parent[last].start
+
+	some disj tr1:Train {
+		-- initial state
+		v11.state = Free
+		v12.state = Occupied
+		v12.nexts.state = Free
+	
+		(tr1 in report_front && tr1 in report_rear && tr1 in connected);
+		(tr1 not in report_front && tr1 not in report_rear && tr1 in connected);
+		(tr1 not in report_front && tr1 not in report_rear && tr1 not in connected);
+		(tr1 not in report_front && tr1 not in report_rear && tr1 not in connected);
+		(tr1 not in report_front && tr1 not in report_rear && tr1 not in connected);
+		(always tr1 in report_front && always tr1 in report_rear && always tr1 in connected)
+
+		tr1.(pos_front+pos_rear) = v12;
+		tr1.(pos_front+pos_rear) = v12;
+		tr1.(pos_front+pos_rear) = v12;
+		tr1.(pos_front+pos_rear) = v21;
+		tr1.(pos_front+pos_rear) = v22;
+		tr1.(pos_front+pos_rear) = v22;
+		tr1.(pos_front+pos_rear) = v23;
+		tr1.(pos_front+pos_rear) = v31
+
+		no mute_timer;no mute_timer;tr1 in mute_timer
+		
+		after no disconnect_ptimer
+		after after no disconnect_ptimer
+		after after after no disconnect_ptimer
+		after after after after some disconnect_ptimer
+
+		tr1.MA = v22;tr1.MA = v22;tr1.MA = v22;tr1.MA = v22;
+		tr1.MA = v22;tr1.MA = v22;always tr1.MA = V/last
+
+		-- final state
+		after after after after after after after after v31.state = Occupied
+		after after after after after after after after (VSS-v31).state = Free
+	}
+	}
+}
+
+-- Scenario 7 - Connection lost and reconnect within session with release of VSS
+-- NOTE: breaks if #1A is modelled as in the HL3 concept
+pred S7 {
+
+	always no ghost_ptimer + shadow_timer_A + shadow_timer_B + integrity_loss_ptimer + disconnect_ptimer + integrity_timer
+
+	let	v11 = V/first, v12 = v11.next, v21 = v12.next,
+			v22 = v21.next, v23 = v22.next, v31 = v23.next,
+			v32 = v31.next {
+	v12 in parent[first].end
+	v31 in parent[last].start
+
+	some tr1:Train {
+		-- initial state
+		(v11+v12).state = Free
+		v21.state = Occupied
+		v21.nexts.state = Free
+
+		(tr1 in report_front && tr1 in report_rear && tr1 in connected);
+		(tr1 in report_front && tr1 in report_rear && tr1 in connected);
+		(tr1 in report_front && tr1 in report_rear && tr1 in connected);
+		(tr1 not in report_front && tr1 not in report_rear && tr1 not in connected);
+		(tr1 not in report_front && tr1 not in report_rear && tr1 not in connected);
+		(tr1 not in report_front && tr1 not in report_rear && tr1 not in connected);
+		(always tr1 in report_front && always tr1 in report_rear && always tr1 in connected)
+
+		tr1.(pos_front+pos_rear) = v21;
+		tr1.(pos_front+pos_rear) = v22;
+		tr1.(pos_front+pos_rear) = v22;
+		tr1.(pos_front+pos_rear) = v22;
+		tr1.(pos_front+pos_rear) = v23;
+		tr1.(pos_front+pos_rear) = v23+v31;
+		tr1.(pos_front+pos_rear) = v23+v31;
+		tr1.(pos_front+pos_rear) = v31;
+		tr1.(pos_front+pos_rear) = v32
+
+		tr1 not in mute_timer;tr1 not in mute_timer;
+		tr1 not in mute_timer;tr1 not in mute_timer;
+		tr1 in mute_timer;tr1 in mute_timer;
+		always tr1 not in mute_timer
+
+		always tr1.MA = v32
+
+		-- final state
+		after after after after after after after after v32.state = Occupied
+		after after after after after after after after (VSS-v32).state = Free
+	}
+	}
+}
+
+-- Scenario 8 – Sweeping, jumping and two trains in a VSS
+-- NOTE: trains can't enter or leave the track, modelled with "dummy" TTD
+pred S8 {
+	always no ghost_ptimer + shadow_timer_A + shadow_timer_B + integrity_loss_ptimer + disconnect_ptimer + mute_timer + integrity_timer
+
+	let	v11 = V/first, v12 = v11.next, v21 = v12.next,
+			v22 = v21.next, v23 = v22.next, v31 = v23.next,
+			v32 = v31.next, v33 = v32.next, v4 = v33.next {
+	v12 in parent[v11].end
+	v31 in parent[v33].start
+	v4 in TTD.start
+
+	some disj tr1,tr2:Train {
+		-- initial state		
+		v12.nexts.state = Free
+		(v11+v12).state = Occupied
+
+		always tr1 in report_rear
+		always tr1 in report_front
+
+		(tr2 in report_front && tr2 in report_rear);
+		(tr2 in report_front && tr2 in report_rear);
+		(tr2 in report_front && tr2 in report_rear);
+		(tr2 in report_front && tr2 in report_rear);
+		(tr2 in report_front && tr2 in report_rear);
+		(tr2 in report_front && tr2 in report_rear);
+		(tr2 in report_front && tr2 in report_rear);
+		(tr2 in report_front && tr2 in report_rear);
+		(tr2 in report_front && tr2 in report_rear);
+		(tr2 in report_front && tr2 in report_rear);
+		(tr2 not in report_front && tr2 not in report_rear)
+
+		tr1.(pos_front+pos_rear) = v12;
+		tr1.(pos_front+pos_rear) = v12;
+        tr1.(pos_front+pos_rear) = v21;
+		tr1.(pos_front+pos_rear) = v22;
+		tr1.(pos_front+pos_rear) = v23;
+		tr1.(pos_front+pos_rear) = v31;
+		tr1.(pos_front+pos_rear) = v31;
+		tr1.(pos_front+pos_rear) = v32;
+		tr1.(pos_front+pos_rear) = v33;
+		tr1.(pos_front+pos_rear) = v4;
+		tr1.(pos_front+pos_rear) = v4
+		
+		tr2.(pos_front+pos_rear) = v11;
+		tr2.(pos_front+pos_rear) = v11+v12;
+		tr2.(pos_front+pos_rear) = v12;
+		tr2.(pos_front+pos_rear) = v12;
+		tr2.(pos_front+pos_rear) = v12;
+		tr2.(pos_front+pos_rear) = v21;
+		tr2.(pos_front+pos_rear) = v21;
+		tr2.(pos_front+pos_rear) = v22;
+		tr2.(pos_front+pos_rear) = v22;
+		tr2.(pos_front+pos_rear) = v23;
+		tr2.(pos_front+pos_rear) = v31
+	
+		tr2.MA = v12
+		after after after after after always tr2.MA= v4
+
+		-- final state
+		after after after after after after after after after after (v31+v4).state = Occupied
+		after after after after after after after after after after (VSS-(v31+v4)).state = Free
+	}
+	}
+}
+
+-- Scenario 9 – Ghost train
+-- NOTE: breaks if indefinite timer expiration is implemented
+-- NOTE: requires that the front report be processed before the rear report, must be forced
+-- NOTE: trains can't enter or leave the track, modelled with "dummy" TTD
+pred S9 {
+	always no shadow_timer_A + shadow_timer_B + integrity_loss_ptimer + disconnect_ptimer
+
+	let	v0 = V/first, v11 = v0.next, v12 = v11.next, v21 = v12.next,
+			v22 = v21.next, v23 = v22.next, v31 = v23.next,
+			v32 = v31.next, v33 = v32.next {
+	v12 in parent[v12].end
+	v31 in parent[v33].start
+	v0 in TTD.end
+
+	some disj tr1,tr2:Train {
+		-- initial state
+		v23.state = Occupied
+		v0.state = Unknown
+		(VSS-(v23+v0)).state = Free
+
+		always tr1 in connected
+		always tr1 in report_front
+
+		tr1 in report_rear;
+		tr1 in report_rear;
+		tr1 in report_rear;
+		tr1 in report_rear;
+		tr1 in report_rear;
+		tr1 not in report_rear;
+		tr1 not in report_rear;
+		always tr1 in report_rear  
+
+		tr2 not in connected+report_rear+report_front
+		after tr2 not in connected
+		after after tr2 not in connected
+		after after after tr2 not in connected
+		after after after after tr2 not in connected
+		after after after after after after always tr2 in connected
+		after after after after after after always tr2 in report_front
+		after after after after after after after after tr2 in report_rear
+		after after after after after after after after after tr2 not in report_rear
+		after after after after after after after after after after tr2 not in report_rear
+
+		after after after after after after after after after tr2 not in integrity_timer
+		after after after after after after after after after after tr2 in integrity_timer
+
+		tr1.(pos_front+pos_rear) = v23;
+		tr1.(pos_front+pos_rear) = v23;
+		tr1.(pos_front+pos_rear) = v23;
+		(tr1.pos_front = v31 && tr1.pos_rear = v23);
+		(tr1.pos_front = v32 && tr1.pos_rear = v31);
+		tr1.(pos_front+pos_rear) = v32;
+		tr1.(pos_front+pos_rear) = v32;
+		tr1.(pos_front+pos_rear) = v32;
+		tr1.(pos_front+pos_rear) = v32 + v33;
+		always tr1.(pos_front+pos_rear) = v33
+
+		tr2.(pos_front+pos_rear) = v0;
+		tr2.(pos_front+pos_rear) = v11;
+		tr2.(pos_front+pos_rear) = v11;
+		tr2.(pos_front+pos_rear) = v12;
+		tr2.(pos_front+pos_rear) = v12;
+		tr2.(pos_front+pos_rear) = v12;
+		tr2.(pos_front+pos_rear) = v12;
+		tr2.(pos_front+pos_rear) = v21;
+		tr2.(pos_front+pos_rear) = v21;
+		always tr2.(pos_front+pos_rear) = v22
+	
+		after no ghost_ptimer
+		after after D/first.next in ghost_ptimer
+		after after after always no ghost_ptimer
+
+		-- final state
+		after after after after after after after after after after v21.state = Unknown
+		after after after after after after after after after after v22.state = Ambiguous
+		after after after after after after after after after after v33.state = Occupied
+		after after after after after after after after after after (VSS-(v21+v22+v33)).state = Free
+	}
+	}
+}
+
+/**
+Verification of safety properties.
+**/
+
+-- if all PTD information is consistent and no OS MAs, then only Free and Occupied states are assigned
+assert trains_ok_states_ok {
+	(init && always (no mute && no disintegrated && all tr:Train | not (after OSMA[tr]))) =>
+		after always VSS.state in Free + Occupied
+}
+
+-- if all PTD information is consistent and no OS MAs, then Free is always correctly assigned (has no train)
+assert trains_ok_free_ok {
+	(init && always (no mute && no disintegrated && all tr:Train | not (after OSMA[tr]))) =>
+		always (VSS-Train.(pos_front+pos_rear)).state = Free
+}
+
+-- if all PTD information is consistent and no OS MAs, then Occupied is always correctly assigned (has train)
+assert trains_ok_occupied_ok {
+	(init && always (no mute && no disintegrated && all tr:Train | not (after OSMA[tr]))) =>
+		always Train.(pos_front+pos_rear).state = Occupied
+}
+
+-- if all timers expire automatically, no OS MAs and trains don't move outside MAs,
+-- then VSSs with a train are never Free
+assert timers_auto_free_ok {
+	(init && always (auto_timer && all tr:Train | tr.pos_front in MAs[tr] && not (after OSMA[tr]))) =>
+		always all tr:Train | (tr.pos_front).state != Free
+}
+
+-- if all timers expire automatically, no OS MAs and trains don't move outside MAs,
+-- then Occupied VSSs have at most a train
+assert timers_auto_occupied_ok {
+	(init && always (auto_timer && all tr:Train | tr.pos_front in MAs[tr] && not (after OSMA[tr]))) =>
+		always all v:VSS | v.state in Occupied => lone (pos_front + pos_rear).v
+}
+
+-- initial predicate, all trains reporting, all VSS states consistent, no expired timers.
+pred init {
+	some Train
+	no mute_timer + integrity_timer + shadow_timer_A + shadow_timer_B + integrity_loss_ptimer + disconnect_ptimer
+	Train = connected & report_rear & report_front
+	all tr:Train | tr.pos_front = tr.pos_rear && tr.(pos_rear+pos_front).state = Occupied
+	(VSS - (Train.(pos_rear+pos_front))).state = Free
+	all tr:Train | tr.MA in tr.pos_front.*V/next &&
+		all t2 : Train-tr | no MAs[tr] & MAs[t2]
+}
+
+-- forces all timers to expire as soon as start event is met
+pred auto_timer {
+	start_shadow_timer_A in shadow_timer_A
+	start_shadow_timer_B in shadow_timer_B
+	start_ghost_ptimer in ghost_ptimer
+	start_integrity_loss_ptimer in integrity_loss_ptimer
+	mute in mute_timer
+	all vs:VSS | some (knownTrain[vs])&mute_timer => vs in disconnect_ptimer
+}
+
+pred Consistent { some t : Train | eventually t.pos_front != t.pos_front' }
+
+run Consistent for 1 but 10 Time expect 1
+run S1 for 2 but exactly 1 Train, exactly 3 TTD, exactly 8 VSS, exactly 10 Time expect 1
+check trains_ok_occupied_ok for 1 but 2 VSS, 1 Train, exactly 10 Time expect 0
+check timers_auto_free_ok for 1 but 2 VSS, 1 Train, exactly 10 Time expect 0
+
+run Consistent for 2 but 10 Time expect 1
+run S2 for 2 but exactly 2 Train, exactly 3 TTD, exactly 8 VSS, exactly 10 Time expect 1
+check trains_ok_occupied_ok for 2 but 4 VSS, 2 Train, exactly 10 Time expect 0
+check timers_auto_free_ok for 2 but 4 VSS, 2 Train, exactly 10 Time expect 0
+
+run Consistent for 3 but 10 Time expect 1
+run S3 for 2 but exactly 2 Train, exactly 3 TTD, exactly 8 VSS, exactly 10 Time expect 1
+check trains_ok_occupied_ok for 3 but 6 VSS, 2 Train, exactly 10 Time expect 0
+check timers_auto_free_ok for 3 but 6 VSS, 2 Train, exactly 10 Time expect 0
+
+/**
+Visualization auxiliary functions.
+**/
+
+fun _occupied : set VSS {
+	{ vss : VSS | Occupied = vss.state }
+}
+fun _unknown: set VSS {
+	{ vss : VSS | Unknown = vss.state }
+}
+fun _free : set VSS {
+	{ vss : VSS | Free = vss.state }
+}
+fun _ambiguous : set VSS {
+	{ vss : VSS | Ambiguous = vss.state }
+}
+
+fun _VSSs : TTD -> VSS {
+	{ t:TTD, v: t.start.*V/next & t.end.*(~V/next) }
+}
+
+fun _Arear : set Train { report_rear } 
+fun _Bfront : set Train { report_front }
+fun _Ccon : set Train { connected } 	
