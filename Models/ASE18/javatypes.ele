@@ -133,8 +133,12 @@ fact ScopeFact {
   lte[#Interface, 5]
 }
 
+// javatypes(1)
 run ExecuteSetter for 3 but 10 Time expect 1
+// javatypes(2)
 check TypeSoundness for 3 but 1 Statement, 3 Field, 3 Slot, 10 Time expect 0
 
+// javatypes(1)
 run ExecuteSetter for 4 but 10 Time expect 1
+// javatypes(2)
 check TypeSoundness for 4 but 1 Statement, 3 Field, 3 Slot, 10 Time expect 0

@@ -80,10 +80,16 @@ assert Closure {
 	always IsSpanTree => parent = parent'
 }
 
+// spantree(1)
 check BadLiveness for 5 but 10 Time expect 1
+// spantree(2)
 check GoodSafety for 5 but 10 Time expect 0
+// spantree(3)
 check GoodLiveness for 5 but 10 Time expect 0
 
+// spantree(1)
 check BadLiveness for 6 but 10 Time expect 1
+// spantree(2)
 check GoodSafety for 6 but 10 Time expect 0
+// spantree(3)
 check GoodLiveness for 6 but 10 Time expect 0

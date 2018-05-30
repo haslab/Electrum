@@ -55,10 +55,16 @@ assert BadLiveness { some Process => eventually { some elected } }
 
 assert GoodLiveness { some Process && Progress => eventually { some elected } }
 
+// ring(1)
 check BadLiveness for 4 but 10 Time expect 1
+// ring(2)
 check GoodSafety for 4 but 10 Time expect 0
+// ring(3)
 check GoodLiveness for 4 but 10 Time expect 0
 
+// ring(1)
 check BadLiveness for 5 but 10 Time expect 1
+// ring(2)
 check GoodSafety for 5 but 10 Time expect 0
+// ring(3)
 check GoodLiveness for 5 but 10 Time expect 0

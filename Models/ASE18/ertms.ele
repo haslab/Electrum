@@ -1333,12 +1333,18 @@ pred auto_timer {
 
 pred Consistent { some t : Train | eventually t.pos_front != t.pos_front' }
 
+// ertms(1)
 run Consistent for 2 but 10 Time expect 1
+// ertms(2)
 run S2 for 2 but exactly 2 Train, exactly 3 TTD, exactly 8 VSS, exactly 10 Time expect 1
+// ertms(3)
+run S3 for 2 but exactly 2 Train, exactly 3 TTD, exactly 8 VSS, exactly 10 Time expect 1
+// ertms(4)
 check trains_ok_occupied_ok for 2 but 4 VSS, 2 Train, exactly 10 Time expect 0
 
+// ertms(1)
 run Consistent for 3 but 10 Time expect 1
-run S3 for 2 but exactly 2 Train, exactly 3 TTD, exactly 8 VSS, exactly 10 Time expect 1
+// ertms(4)
 check trains_ok_occupied_ok for 3 but 6 VSS, 2 Train, exactly 10 Time expect 0
 
 /**

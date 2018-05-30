@@ -108,10 +108,16 @@ assert GoodSafety {
 
 pred Consistent {}
 
+// hotel(1)
 run Consistent for 4 but 10 Time expect 1
+// hotel(2)
 check BadSafety for 4 but 10 Time expect 1
+// hotel(3)
 check GoodSafety for 4 but 10 Time expect 0
 
+// hotel(1)
 run Consistent for 5 but 10 Time expect 1
+// hotel(2)
 check BadSafety for 5 but 10 Time expect 1
+// hotel(3)
 check GoodSafety for 5 but 10 Time expect 0

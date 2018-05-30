@@ -115,10 +115,16 @@ pred ShowDijkstra  {
     some waits
 }
 
+// dijkstra(1)
 run Deadlock for 4 but 10 Time expect 1
+// dijkstra(2)
 run ShowDijkstra for 4 but 10 Time expect 0
+// dijkstra(3)
 check DijkstraPreventsDeadlocks for 4 but 10 Time expect 0
 
+// dijkstra(1)
 run Deadlock for 5 but 10 Time expect 1
+// dijkstra(2)
 run ShowDijkstra for 5 but 10 Time expect 0
+// dijkstra(3)
 check DijkstraPreventsDeadlocks for 5 but 10 Time expect 0

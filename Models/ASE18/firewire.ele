@@ -172,12 +172,18 @@ assert BadLiveness {
   Execution  => (eventually some Elected)
 }
 
+// firewire(1)
 check BadLiveness for 4 but 10 Time expect 1
+// firewire(2)
 check GoodSafety for 4 but 10 Time expect 0
+// firewire(3)
 check NoOverflow for 4 but 10 Time expect 0
 
+// firewire(1)
 check BadLiveness for 5 but 10 Time expect 1
+// firewire(2)
 check GoodSafety for 5 but 10 Time expect 0
+// firewire(3)
 check NoOverflow for 5 but 10 Time expect 0
 
 // DEFINED VARIABLES
