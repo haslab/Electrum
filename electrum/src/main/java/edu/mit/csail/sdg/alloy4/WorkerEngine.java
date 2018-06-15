@@ -104,14 +104,11 @@ public final class WorkerEngine {
 			try {
 				Field f = latest_sub.getClass().getDeclaredField("pid");
 				f.setAccessible(true);
-				System.out.println("Process ID : " + f.get(latest_sub));
 				Runtime.getRuntime().exec("kill -SIGTERM "+f.get(latest_sub));
-
 			} catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException | IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-        	 
 //        	 latest_sub.destroy();
         	 }} finally { latest_manager=null; latest_sub=null; }
       }

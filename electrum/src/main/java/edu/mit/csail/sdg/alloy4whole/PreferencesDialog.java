@@ -226,8 +226,9 @@ public class PreferencesDialog extends JFrame {
    private static boolean loadLibrary(String library) {
        boolean loaded = _loadLibrary(library);
        String libName = System.mapLibraryName(library);
-       if (loaded) System.out.println("Loaded: " + libName);
-       else System.out.println("Failed to load: " + libName);
+       if ("yes".equals(System.getProperty("debug"))) // [HASLab]
+	       if (loaded) System.out.println("Loaded: " + libName);
+	       else System.out.println("Failed to load: " + libName);
        return loaded;
    }
   
@@ -238,7 +239,8 @@ public class PreferencesDialog extends JFrame {
        for(int i = dirs.length-1; i >= 0; i--) {
           final File file = new File(dirs[i]+File.separator+name);
           if (file.canExecute()) {
-        	  System.out.println("Loaded: " + name);
+              if ("yes".equals(System.getProperty("debug")))
+            	  System.out.println("Loaded: " + name);
         	  return true;
           }
        }
@@ -246,12 +248,14 @@ public class PreferencesDialog extends JFrame {
 	   for (String str : (System.getenv("PATH")+":/usr/local/bin").split(Pattern.quote(File.pathSeparator))) {
 		   Path pth = Paths.get(str);
 		   if (Files.exists(pth.resolve(name))) {
-              System.out.println("Loaded: " + name);
+		      if ("yes".equals(System.getProperty("debug"))) 
+		    	  System.out.println("Loaded: " + name);
 			  return true;
 		   }
 	   }
 
-	   System.out.println("Failed to load: " + name);
+       if ("yes".equals(System.getProperty("debug")))
+    	   System.out.println("Failed to load: " + name);
        return false;
 	}
 
