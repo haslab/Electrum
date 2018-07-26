@@ -4,7 +4,14 @@ Electrum is an extension to the Alloy Analyzer by [INESC TEC](https://www.inesct
 
 ## Getting started
 
-The best way to get started with Electrum is to download the executable ``jar`` (see [Running](#running)) and follow the [tutorial](https://github.com/haslab/Electrum/wiki/Tutorial). A repository of examples with familiar Alloy examples converted into Electrum is also available [here](electrum/src/main/resources/models/examples/electrum).
+The best way to get started with Electrum is to download the executable ``jar`` (see [Running](#running)) and follow the [tutorial](https://github.com/haslab/Electrum/wiki/Tutorial). You can also watch the following video for an overview.
+
+<a href="http://www.youtube.com/watch?feature=player_embedded&v=FbjlpvjgMDA
+" target="_blank"><img src="http://img.youtube.com/vi/FbjlpvjgMDA/0.jpg" 
+alt="Electrum Video" width="240" height="180" border="10" /></a>
+
+A repository of examples with familiar Alloy examples converted into Electrum is also available [here](https://github.com/haslab/Electrum/tree/master/electrum/src/main/resources/models/examples/electrum).
+
 
 ## Running
 
@@ -45,7 +52,7 @@ Our response to the ABZ 2018 call for case study submissions, the ERTMS system, 
 
 ## License
 
-Electrum is open-source and available under the [MIT license](electrum/LICENSE), as is the Alloy Analyzer. However, it utilizes several third-party packages whose code may be distributed under a different license (see the various [LICENSE files](electrum/LICENSES) in the distribution for details), including [Kodod](https://github.com/emina/kodkod) and its extension [Pardinus](https://github.com/haslab/Pardinus), and the underlying solvers ([SAT4J](http://www.sat4j.org), [MiniSat](http://minisat.se), [Glucose/Syrup](http://www.labri.fr/perso/lsimon/glucose/), [(P)Lingeling](http://fmv.jku.at/lingeling/), [Yices](http://yices.csl.sri.com), [zChaff](https://www.princeton.edu/~chaff/zchaff.html), [CryptoMiniSat](https://www.msoos.org/cryptominisat5/) and [Electrod](https://github.com/grayswandyr/electrod/). [CUP](http://www2.cs.tum.edu/projects/cup/) and [JFlex](http://jflex.de/) are also used to generate the parser. 
+Electrum is open-source and available under the [MIT license](https://github.com/haslab/Electrum/blob/master/electrum/LICENSE), as is the Alloy Analyzer. However, it utilizes several third-party packages whose code may be distributed under a different license (see the various [LICENSE files](https://github.com/haslab/Electrum/tree/master/LICENSES) in the distribution for details), including [Kodod](https://github.com/emina/kodkod) and its extension [Pardinus](https://github.com/haslab/Pardinus), and the underlying solvers ([SAT4J](http://www.sat4j.org), [MiniSat](http://minisat.se), [Glucose/Syrup](http://www.labri.fr/perso/lsimon/glucose/), [(P)Lingeling](http://fmv.jku.at/lingeling/), [Yices](http://yices.csl.sri.com), [zChaff](https://www.princeton.edu/~chaff/zchaff.html), [CryptoMiniSat](https://www.msoos.org/cryptominisat5/) and [Electrod](https://github.com/grayswandyr/electrod/). [CUP](http://www2.cs.tum.edu/projects/cup/) and [JFlex](http://jflex.de/) are also used to generate the parser. 
 
 ## Collaborators
 - Nuno Macedo, HASLab, INESC TEC & Universidade do Minho, Portugal
