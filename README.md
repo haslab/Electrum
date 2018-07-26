@@ -63,6 +63,7 @@ Electrum is open-source and available under the [MIT license](electrum/LICENSE),
 - Initial support for symbolic bound extraction
 - Repository of examples
 - Many enhancements and bug fixes
+- Accompanied the ASE'18 [submission](https://doi.org/10.1145/3238147.3240475)
 
 ### Electrum [1.0](https://github.com/haslab/Electrum/releases/tag/v1.0) (January 2018) 
 <!--- FM18,ABZ18 submissions, AlloyWorkshop attendance -->
