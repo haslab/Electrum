@@ -8,7 +8,7 @@ The best way to get started with Electrum is to download the executable ``jar`` 
 
 <a href="http://www.youtube.com/watch?feature=player_embedded&v=FbjlpvjgMDA
 " target="_blank"><img src="http://img.youtube.com/vi/FbjlpvjgMDA/0.jpg" 
-alt="Electrum Video" width="240" height="180" border="10" /></a>
+alt="Electrum Video" width="640" border="10" /></a>
 
 A repository of examples with familiar Alloy examples converted into Electrum is also available [here](https://github.com/haslab/Electrum/tree/master/electrum/src/main/resources/models/examples/electrum).
 
@@ -68,6 +68,7 @@ Electrum is open-source and available under the [MIT license](https://github.com
 - Initial support for symbolic bound extraction
 - Repository of examples
 - Many enhancements and bug fixes
+- Accompanied the ASE'18 [submission](https://doi.org/10.1145/3238147.3240475)
 
 ### Electrum [1.0](https://github.com/haslab/Electrum/releases/tag/v1.0) (January 2018) 
 <!--- FM18,ABZ18 submissions, AlloyWorkshop attendance -->
@@ -88,3 +89,14 @@ Electrum is open-source and available under the [MIT license](https://github.com
 - Bounded model checking of Electrum models
 - Electrum models expanded into Alloy models
 - Expanded Alloy models returned to the visualizer
+
+## Publications
+
+Electrum has been developed in the context of the [TRUST](http://trust.di.uminho.pt/) project, and incorporates contributions from several publications:
+- J. Brunel, D. Chemouil, A. Cunha and N. Macedo. **The Electrum Analyzer: Model checking relational first-order temporal specifications.** In the proceedings ASE'18. ACM, 2018.
+- A. Cunha and N. Macedo. **Validating the Hybrid ERTMS/ETCS Level 3 concept with Electrum.** In the proceedings of ABZ'18. LNCS 10817. Springer, 2018. 
+- J. Brunel, D. Chemouil, A. Cunha, T. Hujsa, N. Macedo and J. Tawa. **Proposition of an action layer for Electrum.** In the proceedings of ABZ'18. LNCS 10817. Springer, 2018. 
+- N. Macedo, A. Cunha and E. Pessoa. **Exploiting partial knowledge for efficient model analysis.** In the proceedings of ATVA'17. LNCS 10482. Springer, 2017.
+- N. Macedo, J. Brunel, D. Chemouil, A. Cunha and D. Kuperberg. **Lightweight specification and analysis of dynamic systems with rich configurations.** In the proceedings of FSE'16. ACM, 2016.
+- N. Macedo, A. Cunha and T. Guimarães. **Exploring scenario exploration.** In the proceedings of FASE'15. LNCS 9033. Springer, 2015.
+- A. Cunha, N. Macedo and T. Guimarães. **Target oriented relational model finding.** In the proceedings of FASE'14. LNCS 8411. Springer, 2014.
