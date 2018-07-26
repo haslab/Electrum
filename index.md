@@ -8,7 +8,7 @@ The best way to get started with Electrum is to download the executable ``jar`` 
 
 <a href="http://www.youtube.com/watch?feature=player_embedded&v=FbjlpvjgMDA
 " target="_blank"><img src="http://img.youtube.com/vi/FbjlpvjgMDA/0.jpg" 
-alt="Electrum Video" width="640" border="10" /></a>
+alt="Electrum Video" width="320"  border="10" /></a>
 
 A repository of examples with familiar Alloy examples converted into Electrum is also available [here](https://github.com/haslab/Electrum/tree/master/electrum/src/main/resources/models/examples/electrum).
 
