@@ -406,9 +406,11 @@ final class SimpleReporter extends A4Reporter {
     static final class SimpleTask2 implements WorkerTask {
         private static final long serialVersionUID = 0;
         public String filename = "";
+        public String act = null;
         public transient WorkerCallback out = null;
         private void cb(Object... objs) throws Exception { out.callback(objs); }
         public void run(WorkerCallback out) throws Exception {
+    		System.out.println("aaaa");
             this.out = out;
             cb("S2", "Enumerating...\n");
             A4Solution sol;
@@ -430,7 +432,9 @@ final class SimpleReporter extends A4Reporter {
                 "Currently only MiniSat and SAT4J are supported."); return;}
             int tries=0;
             while(true) {
-                sol=sol.next();
+        		System.out.println("aaaa");
+
+                sol=sol.next(act);
                 if (!sol.satisfiable())
                    {cb("pop", "There are no more satisfying instances.\n\n" +
                    "Note: due to symmetry breaking and other optimizations,\n" +
@@ -498,7 +502,11 @@ final class SimpleReporter extends A4Reporter {
                 final Command cmd=cmds.get(i);
                 rep.tempfile=tempCNF;
                 cb(out, "bold", "Executing \""+cmd+"\"\n");
-                A4Solution ai=TranslateAlloyToKodkod.execute_commandFromBook(rep, world.getAllReachableSigs(), cmd, options);
+                A4Solution ai;
+                if (options.action!=null) 
+                	ai=TranslateAlloyToKodkod.execute_commandFromBook(rep, world.getAllReachableSigs(), cmd, options, latestKodkod);
+                else
+                	ai=TranslateAlloyToKodkod.execute_commandFromBook(rep, world.getAllReachableSigs(), cmd, options);
                 if (ai==null) result.add(null);
                 else if (ai.satisfiable()) result.add(tempXML);
                 else if (ai.highLevelCore().a.size()>0) result.add(tempCNF+".core");

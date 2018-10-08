@@ -1438,13 +1438,14 @@ public final class SimpleGUI implements ComponentListener, Listener {
     /** This object performs solution enumeration. */
     private final Computer enumerator = new Computer() {
         public String compute(Object input) {
-            final String arg = (String)input;
+            final String[] arg = (String[]) input;
             OurUtil.show(frame);
             if (WorkerEngine.isBusy())
                 throw new RuntimeException("Alloy4 is currently executing a SAT solver command. Please wait until that command has finished.");
             SimpleCallback1 cb = new SimpleCallback1(SimpleGUI.this, viz, log, VerbosityPref.get().ordinal(), latestAlloyVersionName, latestAlloyVersion);
             SimpleTask2 task = new SimpleTask2();
-            task.filename = arg;
+            task.act = arg[1];
+            task.filename = arg[0];
             try {
                 WorkerEngine.run(task, SubMemory.get(), SubStack.get(), alloyHome() + fs + "binary", "", cb);
 //                task.run(cb);
@@ -1457,14 +1458,14 @@ public final class SimpleGUI implements ComponentListener, Listener {
                 log.logDivider();
                 log.flush();
                 doStop(2);
-                return arg;
+                return arg[0];
             }
             subrunningTask=2;
             runmenu.setEnabled(false);
             runbutton.setVisible(false);
             showbutton.setEnabled(false);
             stopbutton.setVisible(true);
-            return arg;
+            return arg[0];
         }
     };
 

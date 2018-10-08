@@ -74,6 +74,7 @@ import edu.mit.csail.sdg.alloy4.OurUtil;
 import edu.mit.csail.sdg.alloy4.Runner;
 import edu.mit.csail.sdg.alloy4.Util;
 import edu.mit.csail.sdg.alloy4.Version;
+import edu.mit.csail.sdg.alloy4compiler.parser.Action2Alloy;
 import edu.mit.csail.sdg.alloy4graph.GraphViewer;
 
 
@@ -115,7 +116,7 @@ public final class VizGUI implements ComponentListener {
 	   /** The buttons on the toolbar. */
 	   private final JButton projectionButton, openSettingsButton, closeSettingsButton,
 	   magicLayout, loadSettingsButton, saveSettingsButton, saveAsSettingsButton,
-	   resetSettingsButton, updateSettingsButton, openEvaluatorButton, closeEvaluatorButton, enumerateButton,
+	   resetSettingsButton, updateSettingsButton, openEvaluatorButton, closeEvaluatorButton, enumerateButton, exploreButton,
 	   vizButton, treeButton, txtButton/*, dotButton, xmlButton*/;
 
 	   /** This list must contain all the display mode buttons (that is, vizButton, xmlButton...) */
@@ -429,6 +430,8 @@ public final class VizGUI implements ComponentListener {
 	         toolbar.add(openEvaluatorButton=OurUtil.button("Evaluator", "Open the evaluator", "images/24_settings.gif", doOpenEvalPanel()));
 	         toolbar.add(closeEvaluatorButton=OurUtil.button("Close Evaluator", "Close the evaluator", "images/24_settings_close2.gif", doCloseEvalPanel()));
 	         toolbar.add(enumerateButton=OurUtil.button("Next", "Show the next solution", "images/24_history.gif", doNext()));
+	         toolbar.add(exploreButton=OurUtil.button("Extend", "Show the next extension", "images/24_history.gif", doScenario()));
+	         addActionJPanel(); // [HASLab] the JPanel for action application
 	         toolbar.add(projectionButton);
 	         toolbar.add(loadSettingsButton=OurUtil.button("Load", "Load the theme customization from a theme file", "images/24_open.gif", doLoadTheme()));
 	         toolbar.add(saveSettingsButton=OurUtil.button("Save", "Save the current theme customization", "images/24_save.gif", doSaveTheme()));
@@ -680,6 +683,7 @@ public final class VizGUI implements ComponentListener {
 	public void loadXML(final String fileName, boolean forcefully) {
 		loadXML(fileName, forcefully, 0);
         repopulateTemporalPanel(); // [HASLab] must only be initially and not whenever the state changes
+        repopulateActionPanel(); // [HASLab] must only be initially and not whenever the state changes
 	}
 	
 
@@ -977,7 +981,7 @@ public final class VizGUI implements ComponentListener {
 	      if (!wrap && frame!=null) OurUtil.zoom(frame);
 	      return wrapMe();
 	   }
-
+	   
 	   /** This method attempts to derive the next satisfying instance. */
 	   private Runner doNext() {
 	      if (wrap) return wrapMe();
@@ -988,10 +992,24 @@ public final class VizGUI implements ComponentListener {
 	         OurDialog.alert("Cannot display the next solution since the analysis engine is not loaded with the visualizer.");
 	      } else {
  			 final String xmlFileName = Util.canon(Util.temporize(this.xmlFileName,0) + ".xml"); // [HASLab] get xml for current state
-			 try { enumerator.compute(xmlFileName); } catch(Throwable ex) { OurDialog.alert(ex.getMessage()); }
+			 try { enumerator.compute(new String[] {xmlFileName, null}); } catch(Throwable ex) { OurDialog.alert(ex.getMessage()); }
 	      }
 	      return null;
 	   }
+	   
+	   private Runner doScenario() {
+		      if (wrap) return wrapMe();
+		      if (settingsOpen!=0) return null;
+		      if (xmlFileName.length()==0) {
+		         OurDialog.alert("Cannot display the next solution since no instance is currently loaded.");
+		      } else if (enumerator==null) {
+		         OurDialog.alert("Cannot display the next solution since the analysis engine is not loaded with the visualizer.");
+		      } else { // [HASLab]
+	 			 final String xmlFileName = Util.canon(Util.temporize(this.xmlFileName,0) + ".xml"); // [HASLab] get xml for current state
+				 try { enumerator.compute(new String[] {xmlFileName, comboAction.getSelectedItem().toString()}); } catch(Throwable ex) { OurDialog.alert(ex.getMessage()); }
+		      }
+		      return null;
+		   }
 
 	   /** This method updates the graph with the current theme customization. */
 	   private Runner doApply() {
@@ -1056,12 +1074,51 @@ public final class VizGUI implements ComponentListener {
 //		      return wrapMe();
 		//   }
 
-		// ========================================TRACES=====================================================//
+		// ========================================ACTIONS=====================================================//
+
+		/** Trace navigation combo box. */
+		// [HASLab]
+		private JComboBox<Object> comboAction;
+
+		/**
+		 * Populates the JPanel with the objects for trace navigation.
+		 */
+		// [HASLab] 
+		private final void addActionJPanel() {
+
+			final String[] atomnames = this.createTimeAtoms(0);
+			comboAction = new OurCombobox(atomnames.length < 1 ? new String[] { " " } : atomnames);
+			
+			comboAction.setMaximumSize(comboAction.getPreferredSize());
+//			toolbar.add(Box.createHorizontalGlue());
+//			toolbar.add(Box.createHorizontalStrut(15));
+			toolbar.add(comboAction);
+			toolbar.setBorder(new EmptyBorder(0, 0, 0, 10));
+		}
 		
+		/** 
+		 * Updates the state of trace navigation pane given a new trace length.
+		 */
+		// [HASLab]
+		private final void repopulateActionPanel() {
+			
+			AlloyType r = null;
+			for (AlloyType t : getVizState().getOriginalModel().getTypes())
+				if (t.toString().equals("_Action")) r = t;
+			
+			comboAction.removeAllItems();
+			comboAction.addItem("Free");
+			for (AlloyAtom s :  getVizState().getOriginalInstance().type2atoms(r))
+				comboAction.addItem(s);
+		
+		}
+		
+		// ========================================TRACES=====================================================//
+	    
 		/** Trace navigation combo box. */
 		// [HASLab]
 		private JComboBox<Object> comboTime;
-
+		
 		/** Trace navigation buttons. */
 		private JButton leftTime, rightTime;
 

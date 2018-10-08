@@ -204,6 +204,9 @@ public final class A4Options implements Serializable {
      */
 	// [HASLab]
     public int decomposed_threads = 4;
+
+    // [HASLab]
+	public String action = null;
 	
     /** This method makes a copy of this Options object. */
     public A4Options dup() {
@@ -221,6 +224,7 @@ public final class A4Options implements Serializable {
         x.coreGranularity = coreGranularity;
         x.decomposed_mode = decomposed_mode; // [HASLab]
         x.decomposed_threads = decomposed_threads; // [HASLab]
+        x.action = action; // [HASLab]
         return x;
     }
 }
