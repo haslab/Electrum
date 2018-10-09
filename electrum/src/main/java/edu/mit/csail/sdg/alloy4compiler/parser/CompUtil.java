@@ -40,7 +40,7 @@ import edu.mit.csail.sdg.alloy4compiler.parser.CompModule.Open;
 
 /** This class provides convenience methods for calling the parser and the compiler. 
  * 
- * @modified Nuno Macedo // [HASLab] file extensions
+ * @modified Nuno Macedo // [HASLab] electrum-base
  * */
 
 public final class CompUtil {

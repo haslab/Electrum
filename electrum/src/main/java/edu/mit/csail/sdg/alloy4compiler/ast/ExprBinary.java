@@ -42,7 +42,7 @@ import edu.mit.csail.sdg.alloy4compiler.ast.Type.ProductType;
  * <p> <b>Invariant:</b>  type!=EMPTY => (right.mult==1 => this.op==IN)
  * <p> <b>Invariant:</b>  type!=EMPTY => (right.mult==2 => (this.op==IN || this.op is one of the 17 arrow operators))
  * 
- * @modified Eduardo Pessoa, Nuno Macedo // [HASLab] temporal model finding
+ * @modified Eduardo Pessoa, Nuno Macedo // [HASLab] electrum-temporal
  */
 
 public final class ExprBinary extends Expr {

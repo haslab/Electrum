@@ -1,4 +1,5 @@
 /* Alloy Analyzer 4 -- Copyright (c) 2006-2009, Felix Chang
+ * Electrum -- Copyright (c) 2015-present, Nuno Macedo
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files
  * (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify,
@@ -43,6 +44,8 @@ import edu.mit.csail.sdg.alloy4.ConstList.TempList;
 /** This provides useful static methods for I/O and XML operations.
  *
  * <p><b>Thread Safety:</b>  Safe.
+ * 
+ * @modified Nuno Macedo // [HASLab] electrum-temporal
  */
 @SuppressWarnings({"unchecked"})
 public final class Util {

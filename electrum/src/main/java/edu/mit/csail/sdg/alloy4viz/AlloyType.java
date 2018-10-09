@@ -22,7 +22,7 @@ import edu.mit.csail.sdg.alloy4.Util;
  *
  * <p><b>Thread Safety:</b> Can be called only by the AWT event thread.
  * 
- * @modified: Nuno Macedo // [HASLab] temporal instances
+ * @modified: Nuno Macedo // [HASLab] electrum-temporal
  */
 
 public final class AlloyType extends AlloyNodeElement {

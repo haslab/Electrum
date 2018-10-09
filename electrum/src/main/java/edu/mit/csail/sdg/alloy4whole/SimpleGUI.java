@@ -114,10 +114,6 @@ import javax.swing.text.html.HTMLDocument;
 
 import kodkod.engine.fol2sat.HigherOrderDeclException;
 
-import com.apple.eawt.Application;
-import com.apple.eawt.ApplicationAdapter;
-import com.apple.eawt.ApplicationEvent;
-
 import edu.mit.csail.sdg.alloy4.A4Preferences;
 import edu.mit.csail.sdg.alloy4.A4Preferences.BooleanPref;
 import edu.mit.csail.sdg.alloy4.A4Preferences.ChoicePref;
@@ -177,7 +173,7 @@ import edu.mit.csail.sdg.alloy4whole.SimpleReporter.SimpleTask2;
  * <br> (1) the run() method in SatRunner is launched from a fresh thread
  * <br> (2) the run() method in the instance watcher (in constructor) is launched from a fresh thread
  * 
- * @modified: nmm, Eduardo Pessoa (pt.uminho.haslab): max trace length options, electrum models, trace navigation
+ * @modified: Nuno Macedo, Eduardo Pessoa // [HASLab] electrum-temporal, electrum-decomposed, electrum-base
  */
 
 public final class SimpleGUI implements ComponentListener, Listener {

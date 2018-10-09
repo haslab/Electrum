@@ -41,7 +41,7 @@ import edu.mit.csail.sdg.alloy4compiler.ast.Sig.SubsetSig;
 
 /** Immutable; this class assigns each sig and field to some Kodkod relation or expression, then set the bounds. 
  * 
- * @modified: Nuno Macedo, Eduardo Pessoa  // [HASLab] temporal model finding
+ * @modified: Nuno Macedo, Eduardo Pessoa  // [HASLab] electrum-temporal, electrum-symbolic
  */
 
 final class BoundsComputer {

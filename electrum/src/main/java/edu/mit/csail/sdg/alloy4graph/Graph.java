@@ -38,7 +38,7 @@ import edu.mit.csail.sdg.alloy4.Util;
  *
  * <p><b>Thread Safety:</b> Can be called only by the AWT event thread.
  * 
- * @modified Nuno Macedo // [HASLab] ordered nodes
+ * @modified Nuno Macedo // [HASLab] electrum-base
  */
 
 public final strictfp class Graph {

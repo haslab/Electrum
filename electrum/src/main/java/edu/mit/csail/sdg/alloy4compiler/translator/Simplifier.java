@@ -46,7 +46,7 @@ import edu.mit.csail.sdg.alloy4.MailBug;
  *
  * <p> (2) When it sees "A = B", it will try to simplify A assuming "A in B", and then simplify B assuming "B in A".
  * 
- * @modified: Nuno Macedo // [HASLab] temporal formulas
+ * @modified: Nuno Macedo // [HASLab] electrum-temporal
  * [HASLab] TODO: symbolic bound extraction should probably be done at this level
  */
 

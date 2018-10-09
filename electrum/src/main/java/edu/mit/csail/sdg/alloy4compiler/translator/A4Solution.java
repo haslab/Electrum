@@ -108,7 +108,7 @@ import edu.mit.csail.sdg.alloy4compiler.translator.A4Options.SatSolver;
  * It is also used as a staging area for the solver before generating the solution.
  * Once solve() has been called, then this object becomes immutable after that.
  * 
- * @modified: Nuno Macedo, Eduardo Pessoa // [HASLab] temporal solving
+ * @modified: Nuno Macedo, Eduardo Pessoa // [HASLab] electrum-temporal, electrum-symbolic
  */
 
 public final class A4Solution {

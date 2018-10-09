@@ -13,16 +13,13 @@
  * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF
  * OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-
 package edu.mit.csail.sdg.alloy4;
-
 
 /** This class receives diagnostic, progress, and warning messages from Alloy4.
  * (This default implementation ignores all calls; you should subclass it to do the appropriate screen output)
  * 
- * @modified Nuno Macedo // [HASLab] report decomposed info
+ * @modified Nuno Macedo // [HASLab] electrum-decomposed
  */
-
 public class A4Reporter {
 
    /** If nonnull, then we will forward requests to this reporter. */
@@ -76,7 +73,7 @@ public class A4Reporter {
    /** This method is called by the translator just before it begins generating CNF.
     *
     * @param solver - the solver chosen by the user (eg. SAT4J, MiniSat...)
-    * @param mode - solving strategy (eg. amalgamated, parallel...)
+    * @param strat - solving strategy (eg. amalgamated, parallel...)
     * @param bitwidth - the integer bitwidth chosen by the user
     * @param maxseq - the scope on seq/Int chosen by the user
     * @param skolemDepth - the skolem function depth chosen by the user (0, 1, 2...)

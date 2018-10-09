@@ -83,7 +83,7 @@ import edu.mit.csail.sdg.alloy4graph.GraphViewer;
  * <p>
  * <b>Thread Safety:</b> Can be called only by the AWT event thread.
  * 
- * @modified: Nuno Macedo, Eduardo Pessoa // [HASLab] temporal instances, file extensions
+ * @modified: Nuno Macedo, Eduardo Pessoa // [HASLab] electrum-temporal, electrum-base
  */
 
 public final class VizGUI implements ComponentListener {

@@ -53,7 +53,7 @@ import edu.mit.csail.sdg.alloy4compiler.ast.Sig.SubsetSig;
  * This helper class contains helper routines for reading an A4Solution object
  * from an XML file.
  * 
- * @modified: Nuno Macedo, Eduardo Pessoa // [HASLab] temporal model finding
+ * @modified: Nuno Macedo, Eduardo Pessoa // [HASLab] electrum-temporal
  * */
 
 public final class A4SolutionReader {

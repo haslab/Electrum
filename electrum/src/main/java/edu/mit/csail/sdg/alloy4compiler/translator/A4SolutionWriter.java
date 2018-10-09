@@ -39,7 +39,7 @@ import edu.mit.csail.sdg.alloy4compiler.ast.Type;
  * This helper class contains helper routines for writing an A4Solution object
  * out as an XML file.
  *
- * @modified: Nuno Macedo, Eduardo Pessoa // [HASLab] temporal instances
+ * @modified: Nuno Macedo, Eduardo Pessoa // [HASLab] electrum-temporal
  * */
 
 public final class A4SolutionWriter {
