@@ -538,21 +538,4 @@ public final class Util {
    /** Returns a mask of the form 000..0011..11 where the number of 1s is equal to the number of significant bits of the highest integer withing the given bitwidth */
    public static int shiftmask(int bitwidth) { return bitwidth < 1 ? 0 : (1 << (32 - Integer.numberOfLeadingZeros(bitwidth-1))) - 1; }
    
-   /** 
-	* Determines the name of the xml file for a particular state of the trace.
-	* 
-	* @param file the original name of the file
-	* @param state the particular state to be retrieved
-	* @return the file with the representation of the state
-	*/
-   // [HASLab]
-   public static String temporize(String file, int state) {
-	  int fi = file.lastIndexOf(File.separator);
-	  String p = file.substring(0, fi);
-	  String f = file.substring(fi,file.length());
-      String[] spl = f.split(Pattern.quote("_"));
-      String dfilename = spl[0] + "_" + state;
-	  return p+dfilename;
-   }
-
 }

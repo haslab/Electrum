@@ -33,9 +33,14 @@ public final class AlloySet extends AlloyNodeElement {
    /** Records whether this relation is known to be "meta"; NOTE: this value is NOT USED during equals() comparison. */
    public final boolean isMeta;
 
+   /** Records whether this relation is known to be "variable"; NOTE: this value is NOT USED during equals() comparison. */
+   // [HASLab]
+   public final boolean isVar;
+
    /** Constructs a new AlloySet object. */
-   public AlloySet(String name, boolean isPrivate, boolean isMeta, AlloyType type) {
-      super(name); this.type=type; this.isPrivate=isPrivate; this.isMeta=isMeta;
+   // [HASLab] variable info
+   public AlloySet(String name, boolean isPrivate, boolean isMeta, boolean isVar, AlloyType type) {
+      super(name); this.type=type; this.isPrivate=isPrivate; this.isMeta=isMeta; this.isVar=isVar; // [HASLab]
    }
 
    /** Returns the parent type of the AlloySet. */

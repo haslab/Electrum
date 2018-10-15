@@ -150,7 +150,7 @@ public final class SimpleCLI {
     		if (clargs.hasOption('o') && solution != null) {
     			StringWriter wr = new StringWriter();
 				try {
-					solution.writeXML(this, new PrintWriter(wr), new ArrayList<Func>(), new HashMap<String,String>(), -1);
+					solution.writeXML(this, new PrintWriter(wr), new ArrayList<Func>(), new HashMap<String,String>());
 				} catch (Err e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();

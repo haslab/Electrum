@@ -388,16 +388,8 @@ final class SimpleReporter extends A4Reporter {
     private SimpleReporter(WorkerCallback cb, boolean recordKodkod) { this.cb=cb; this.recordKodkod=recordKodkod; }
 
     /** Helper method to write out a full XML file. */
-    // [HASLab] print a particular state
-    private static void writeXML(A4Reporter rep, Module mod, String filename, A4Solution sol, Map<String,String> sources, int state) throws Exception {
-        sol.writeXML(rep, filename, mod.getAllFunc(), sources, state); // [HASLab] particular state
-        if ("yes".equals(System.getProperty("debug"))) validate(filename);
-    }
-    
-    /** Helper method to write out a full XML file. */
-    // [HASLab] print all states
     private static void writeXML(A4Reporter rep, Module mod, String filename, A4Solution sol, Map<String,String> sources) throws Exception {
-        sol.writeXML(rep, filename, mod.getAllFunc(), sources, -1); // [HASLab] -1 means all states will be written
+        sol.writeXML(rep, filename, mod.getAllFunc(), sources);
     }
 
     private int warn=0;
@@ -457,7 +449,7 @@ final class SimpleReporter extends A4Reporter {
     /** Validate the given filename to see if it is a valid Alloy XML instance file. */
     private static void validate(String filename) throws Exception {
         A4SolutionReader.read(new ArrayList<Sig>(), new XMLNode(new File(filename))).toString();
-        StaticInstanceReader.parseInstance(new File(filename));
+        StaticInstanceReader.parseInstance(new File(filename),0);
     }
     
     /** Task that perform one command. */
@@ -481,7 +473,7 @@ final class SimpleReporter extends A4Reporter {
             if (rep.warn>0 && !bundleWarningNonFatal) return;
             List<String> result = new ArrayList<String>(cmds.size());
             if (bundleIndex==-2) {
-				final String outf = Util.temporize(tempdir + File.separatorChar + "m",0) + ".xml"; // [HASLab]
+				final String outf = tempdir + File.separatorChar + "m" + ".xml"; // [HASLab]
                 cb(out, "S2", "Generating the metamodel...\n");
                 PrintWriter of = new PrintWriter(outf, "UTF-8");
                 Util.encodeXMLs(of, "\n<alloy builddate=\"", Version.buildDate(), "\">\n\n");
@@ -493,8 +485,8 @@ final class SimpleReporter extends A4Reporter {
                 synchronized(SimpleReporter.class) { latestMetamodelXML=outf; }
             } else for(int i=0; i<cmds.size(); i++) if (bundleIndex<0 || i==bundleIndex) {
                 synchronized(SimpleReporter.class) { latestModule=world; latestKodkodSRC=ConstMap.make(map); }
-                final String tempXML = Util.temporize(tempdir + File.separatorChar + i + ".cnf",0) + ".xml"; // [HASLab]
-				final String tempCNF = Util.temporize(tempdir + File.separatorChar + i + ".cnf",0); // [HASLab]
+                final String tempXML = tempdir + File.separatorChar + i + ".cnf" + ".xml"; // [HASLab]
+				final String tempCNF = tempdir + File.separatorChar + i + ".cnf"; // [HASLab]
                 final Command cmd=cmds.get(i);
                 rep.tempfile=tempCNF;
                 cb(out, "bold", "Executing \""+cmd+"\"\n");
@@ -558,11 +550,7 @@ final class SimpleReporter extends A4Reporter {
 
 		public void run() {
 			try {
-				for (int i = 0; i <= a4Solution.getLastState(); i++) {
-					writeXML(simpleReporter, latestModule, Util.temporize(filename,i) + ".xml", a4Solution, kkSRC, i);
-					if (simpleReporter != null) simpleReporter.debug(i +": "+a4Solution);
-				}
-				writeXML(simpleReporter, latestModule, filename + "Trace.xml", a4Solution, kkSRC);
+				writeXML(simpleReporter, latestModule, filename + ".xml", a4Solution, kkSRC);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}

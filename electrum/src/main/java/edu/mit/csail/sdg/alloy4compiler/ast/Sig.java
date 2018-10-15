@@ -337,7 +337,7 @@ public abstract class Sig extends Expr {
 			if (parent==NONE)   throw new ErrorSyntax(pos, "sig "+label+" cannot extend the builtin \"none\" signature");
 
 			if (parent==null) parent=UNIV; else if (parent!=UNIV) parent.children.add(this);
-
+			
 			this.parent = parent;
 			if (isEnum!=null && parent!=UNIV) throw new ErrorType(pos, "sig "+label+" is not a toplevel sig, so it cannot be an enum.");
 			for( ; parent!=null ; parent=parent.parent) if (parent.isEnum!=null) {

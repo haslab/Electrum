@@ -393,7 +393,7 @@ public final class A4Solution {
 		rel2type = old.rel2type;
 		decl2type = old.decl2type;
 		if (inst!=null) {
-			lastState = inst.end; // [HASLab] temporal meta-data
+			lastState = inst.states.size()-1; // [HASLab] temporal meta-data
 			loopState = inst.loop; // [HASLab] temporal meta-data
 			eval = new Evaluator(inst, old.solver.options());
 			a2k = new LinkedHashMap<Expr,Expression>();
@@ -482,12 +482,12 @@ public final class A4Solution {
 	Relation addRel(String label, TupleSet lower, TupleSet upper, Expr expr) throws ErrorFatal {
 		if (solved) throw new ErrorFatal("Cannot add a Kodkod relation since solve() has completed.");
 		Relation rel;
-		if (expr instanceof  Field){
+		if (expr instanceof Field){
 			Field f = (Field) expr;
 			if (f.isVariable != null){rel = VarRelation.nary(label, upper.arity());} // [HASLab]
 			else{rel = Relation.nary(label, upper.arity());}
 		}  else {
-			if (expr instanceof  Sig){
+			if (expr instanceof Sig){
 				Sig s = (Sig) expr;
 				if (s.isVariable != null){rel = VarRelation.nary(label, upper.arity());} // [HASLab]
 				else{rel = Relation.nary(label, upper.arity());}
@@ -495,6 +495,42 @@ public final class A4Solution {
 				rel = Relation.nary(label, upper.arity());
 			}
 		}
+		
+		addPreRel(label,lower,upper,rel);
+
+		return rel;
+	}
+	
+	/** Add a new relation with the given label and the given lower and upper bound with
+	 * variable information that could not be retrieved when <code>expr</code> is null (static 
+	 * instances) by {@link #addRel(String, TupleSet, TupleSet, Expr)}.
+	 * @param label - the label for the new relation; need not be unique
+	 * @param lower - the lowerbound; can be null if you want it to be the empty set
+	 * @param upper - the upperbound; cannot be null; must contain everything in lowerbound
+	 */
+	// [HASLab]
+	Relation addRel(String label, TupleSet lower, TupleSet upper, boolean var) throws ErrorFatal {
+		if (solved) throw new ErrorFatal("Cannot add a Kodkod relation since solve() has completed.");
+		Relation rel;
+		if (var)
+			rel = VarRelation.nary(label, upper.arity());
+		else
+			rel = Relation.nary(label, upper.arity());
+		
+		addPreRel(label,lower,upper,rel);
+
+		return rel;
+	}
+	
+	/** Add a new relation with the given label and the given lower and upper bound without
+	 * creating a new object.
+	 * @param label - the label for the new relation; need not be unique
+	 * @param lower - the lowerbound; can be null if you want it to be the empty set
+	 * @param upper - the upperbound; cannot be null; must contain everything in lowerbound
+	 */
+	// [HASLab]
+	void addPreRel(String label, TupleSet lower, TupleSet upper, Relation rel) throws ErrorFatal {
+		if (solved) throw new ErrorFatal("Cannot add a Kodkod relation since solve() has completed.");
 		if (lower == upper) {
 			bounds.boundExactly(rel, upper);
 		} else if (lower == null) {
@@ -503,7 +539,6 @@ public final class A4Solution {
 			if (lower.arity() != upper.arity()) throw new ErrorFatal("Relation "+label+" must have same arity for lowerbound and upperbound.");
 			bounds.bound(rel, lower, upper);
 		}
-		return rel;
 	}
 
 	/** Add a new sig to this solution and associate it with the given expression (and if s.isTopLevel then add this expression into Sig.UNIV).
@@ -673,9 +708,7 @@ public final class A4Solution {
 			if (evalCache.get(state) == null) evalCache.put(state, new LinkedHashMap<Expr, A4TupleSet>()); // [HASLab]
 			A4TupleSet ans = evalCache.get(state).get(sig);  // [HASLab]
 			if (ans!=null) return ans;
-			TupleSet ts = null;
-			if (sig.isVariable != null) ts = eval.evaluate((Expression) TranslateAlloyToKodkod.alloy2kodkod(this, sig), state); // [HASLab] 
-			else ts = eval.evaluate((Expression) TranslateAlloyToKodkod.alloy2kodkod(this, sig));
+			TupleSet ts = eval.evaluate((Expression) TranslateAlloyToKodkod.alloy2kodkod(this, sig), state); // [HASLab] 
 			ans = new A4TupleSet(ts, this);
 			evalCache.get(state).put(sig, ans);  // [HASLab]
 			return ans;
@@ -698,9 +731,7 @@ public final class A4Solution {
 			if (evalCache.get(state) == null) evalCache.put(state, new LinkedHashMap<Expr, A4TupleSet>()); // [HASLab]
 			A4TupleSet ans = evalCache.get(state).get(field); // [HASLab]
 			//if (ans!=null) return ans; 
-			TupleSet ts = null;
-			if (field.isVariable != null) ts = eval.evaluate((Expression) TranslateAlloyToKodkod.alloy2kodkod(this, field), state); // [HASLab] 
-			else ts = eval.evaluate((Expression) TranslateAlloyToKodkod.alloy2kodkod(this, field));
+			TupleSet ts = eval.evaluate((Expression) TranslateAlloyToKodkod.alloy2kodkod(this, field), state); // [HASLab] 
 			ans = new A4TupleSet(ts, this);
 			evalCache.get(state).put(field, ans);  // [HASLab]
 			return ans;
@@ -996,22 +1027,44 @@ public final class A4Solution {
 
 	//===================================================================================================//
 
-	/** Solve for the solution if not solved already; if cmd==null, we will simply use the lowerbound of each relation as its value. */
+	/** Solve for the solution if not solved already simply using the lowerbound of each relation as its value. 
+	 * For trace solutions should be called iteratively, and will build on the information from the previous steps.*/
+	// [HASLab]
+	A4Solution solve(final A4Reporter rep, A4Solution pre_sol) throws Err, IOException {
+		// construct the instance from the current state
+		Instance inst = new Instance(bounds.universe());
+		for(int max=max(), i=min(); i<=max; i++) {
+			Tuple it = factory.tuple(""+i);
+			inst.add(i, factory.range(it, it));
+		}
+		for (Relation r : bounds.relations()) inst.add(r, bounds.lowerBound(r));
+		
+		// retrieve previous steps of the trace
+		List<Instance> instances;
+		if (pre_sol != null)
+			instances = ((TemporalInstance) pre_sol.eval.instance()).states;
+		else
+			instances = new ArrayList<Instance>();
+		instances.add(inst);
+		
+		// create temporal instance
+		TemporalInstance prev = new TemporalInstance(instances, this.loopState);
+		eval = new Evaluator(prev);
+		rename(this, null, null, new UniqueNameGenerator());
+		toStringCache = null;
+		evalCache = new HashMap<>();
+		solved();
+		return this;
+	}
+	
+	/** Solve for the solution if not solved already; if cmd==null for static solutions, should call {@link #solve(A4Reporter, A4Solution)} instead. */
 	A4Solution solve(final A4Reporter rep, Command cmd, Simplifier simp, boolean tryBookExamples) throws Err, IOException {
 		// If already solved, then return this object as is
 		if (solved) return this;
 		// If cmd==null, then all four arguments are ignored, and we simply use the lower bound of each relation
+		// [HASLab] refactored into A4Solution#solve(A4Reporter,A4Solution)
 		if (cmd==null) {
-			Instance inst = new Instance(bounds.universe());
-			for(int max=max(), i=min(); i<=max; i++) {
-				Tuple it = factory.tuple(""+i);
-				inst.add(i, factory.range(it, it));
-			}
-			for (Relation r : bounds.relations()) inst.add(r, bounds.lowerBound(r));
-			eval = new Evaluator(inst, solver.options());
-			rename(this, null, null, new UniqueNameGenerator());
-			solved();
-			return this;
+			throw new RuntimeException("Should not be null, refactored.");
 		}
 		// Otherwise, prepare to do the solve...
 		final A4Options opt = originalOptions;
@@ -1128,7 +1181,7 @@ public final class A4Solution {
 		// If satisfiable, then add/rename the atoms and skolems
 		if (inst!=null) { // [HASLab]
 			// [HASLab] pessoa: if the instance is not null, the loop variables are stored
-			lastState = inst.end;
+			lastState = inst.states.size()-1;
 			loopState = inst.loop;
 			eval = new Evaluator(inst, solver.options());
 			rename(this, null, null, new UniqueNameGenerator());
@@ -1158,7 +1211,7 @@ public final class A4Solution {
 			sb.append("\nloop=");
 			sb.append(((TemporalInstance) sol).loop);
 			sb.append("\nend=");
-			sb.append(((TemporalInstance) sol).end);
+			sb.append(((TemporalInstance) sol).states.size()-1);
 		}
 		sb.append("\nintegers={");
 		boolean firstTuple = true;
@@ -1174,7 +1227,7 @@ public final class A4Solution {
 		}
 		sb.append("}\n");
 		if (sol instanceof TemporalInstance) {
-			for (int i = 0; i <= ((TemporalInstance) sol).end; i++) { // [HASLab]
+			for (int i = 0; i <= ((TemporalInstance) sol).states.size()-1; i++) { // [HASLab]
 				sb.append("------State " + i + "-------\n");
 				try {
 					for (Sig s : sigs) {
@@ -1274,18 +1327,16 @@ public final class A4Solution {
 	//===================================================================================================//
 
 	/** Helper method to write out a full XML file. */
-	// [HASLab] evals to specific state.
-	public void writeXML(String filename, int state) throws Err {
-		writeXML(filename, null, null, state);
+	public void writeXML(String filename) throws Err {
+		writeXML(filename, null, null);
 	}
 
 	/** Helper method to write out a full XML file.*/
-	// [HASLab] evals to specific state.
-	public void writeXML(String filename, Iterable<Func> macros, Map<String,String> sourceFiles, int state) throws Err {
+	public void writeXML(String filename, Iterable<Func> macros, Map<String,String> sourceFiles) throws Err {
 		PrintWriter out=null;
 		try {
 			out=new PrintWriter(filename,"UTF-8");
-			writeXML(out, macros, sourceFiles, state); // [HASLab]
+			writeXML(out, macros, sourceFiles);
 			if (!Util.close(out)) throw new ErrorFatal("Error writing the solution XML file.");
 		} catch(IOException ex) {
 			Util.close(out);
@@ -1294,12 +1345,11 @@ public final class A4Solution {
 	}
 
 	/** Helper method to write out a full XML file. */
-	// [HASLab] evals to specific state.
-	public void writeXML(A4Reporter rep, String filename, Iterable<Func> macros, Map<String,String> sourceFiles, int state) throws Err {
+	public void writeXML(A4Reporter rep, String filename, Iterable<Func> macros, Map<String,String> sourceFiles) throws Err {
 		PrintWriter out=null;
 		try {
 			out=new PrintWriter(filename,"UTF-8");
-			writeXML(rep, out, macros, sourceFiles, state); // [HASLab]
+			writeXML(rep, out, macros, sourceFiles);
 			if (!Util.close(out)) throw new ErrorFatal("Error writing the solution XML file.");
 		} catch(IOException ex) {
 			Util.close(out);
@@ -1308,16 +1358,14 @@ public final class A4Solution {
 	}
 	
 	/** Helper method to write out a full XML file. */
-	// [HASLab] evals to specific state. 
-	public void writeXML(PrintWriter writer, Iterable<Func> macros, Map<String,String> sourceFiles, int state) throws Err {
-		A4SolutionWriter.writeInstance(null, this, writer, macros, sourceFiles, state);
+	public void writeXML(PrintWriter writer, Iterable<Func> macros, Map<String,String> sourceFiles) throws Err {
+		A4SolutionWriter.writeInstance(null, this, writer, macros, sourceFiles);
 		if (writer.checkError()) throw new ErrorFatal("Error writing the solution XML file.");
 	}
 
 	/** Helper method to write out a full XML file. */
-	// [HASLab] evals to specific state.
-	public void writeXML(A4Reporter rep, PrintWriter writer, Iterable<Func> macros, Map<String,String> sourceFiles, int state) throws Err {
-		A4SolutionWriter.writeInstance(rep, this, writer, macros, sourceFiles, state);
+	public void writeXML(A4Reporter rep, PrintWriter writer, Iterable<Func> macros, Map<String,String> sourceFiles) throws Err {
+		A4SolutionWriter.writeInstance(rep, this, writer, macros, sourceFiles);
 		if (writer.checkError()) throw new ErrorFatal("Error writing the solution XML file.");
 	}
 	

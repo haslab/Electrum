@@ -1412,8 +1412,6 @@ public final class SimpleGUI implements ComponentListener, Listener {
         }
         if (arg.startsWith("XML: ")) { // XML: filename
             viz.loadXML(Util.canon(arg.substring(5)), false);
-            viz.getVizState().useOriginalName(true); // [HASLab] the instance show the atoms' original names
-            viz.doShowViz(); // [HASLab]
         }
         return null;
     }
@@ -1529,7 +1527,7 @@ public final class SimpleGUI implements ComponentListener, Listener {
                     SimInstance simInst = convert(root, ans);
                     return simInst.visitThis(e).toString() + (simInst.wasOverflow() ? " (OF)" : "");
                 } else
-                   return ans.eval(e).toString();
+                	return ans.eval(e).toString();
             } catch(HigherOrderDeclException ex) {
                 throw new ErrorType("Higher-order quantification is not allowed in the evaluator.");
             }

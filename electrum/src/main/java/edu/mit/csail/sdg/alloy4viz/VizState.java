@@ -132,6 +132,8 @@ public final class VizState {
     	  if (r.isVar) nodeStyle.put(r, DotStyle.DASHED);
       for (AlloyRelation r : currentModel.getRelations()) // [HASLab] paint variable fields differently
     	  if (r.isVar) edgeStyle.put(r, DotStyle.DASHED);
+      for (AlloySet r : currentModel.getSets()) // [HASLab] paint variable sets differently
+    	  if (r.isVar) nodeStyle.put(r, DotStyle.DASHED);
       // Done
       cache.clear();
       changedSinceLastSave=false;

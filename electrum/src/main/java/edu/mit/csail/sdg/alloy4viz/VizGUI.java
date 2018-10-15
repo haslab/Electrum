@@ -676,9 +676,8 @@ public final class VizGUI implements ComponentListener {
 	   }
 
 	/** Load the XML instance. */
-	// [HASLab] considers initial state and create the temporal navigation panel
 	public void loadXML(final String fileName, boolean forcefully) {
-		loadXML(fileName, forcefully, 0);
+		loadXML(fileName, forcefully, 0); // [HASLab] first state
         repopulateTemporalPanel(); // [HASLab] must only be initially and not whenever the state changes
 	}
 	
@@ -686,13 +685,13 @@ public final class VizGUI implements ComponentListener {
 	   /** Load the XML instance. */
 	   // [HASLab] considers particular state
 	   public void loadXML(final String fileName, boolean forcefully, int state) {
-  	 	  final String xmlFileName = Util.canon(Util.temporize(fileName,state) + ".xml"); // [HASLab] state
+  	 	  final String xmlFileName = Util.canon(fileName); 
 	      File f = new File(xmlFileName);
 	      if (forcefully || !xmlFileName.equals(this.xmlFileName)) {
 	         AlloyInstance myInstance;
 	         try {
 	            if (!f.exists()) throw new IOException("File " + xmlFileName + " does not exist.");
-	            myInstance = StaticInstanceReader.parseInstance(f);
+	            myInstance = StaticInstanceReader.parseInstance(f,state); // [HASLab] state
 	         } catch (Throwable e) {
 	            xmlLoaded.remove(fileName);
 	            xmlLoaded.remove(xmlFileName);
@@ -711,7 +710,7 @@ public final class VizGUI implements ComponentListener {
 	      if (!xmlLoaded.contains(xmlFileName)) xmlLoaded.add(xmlFileName);
 	      if (myGraphPanel != null) myGraphPanel.resetProjectionAtomCombos();
 	      toolbar.setEnabled(true);
-   	      settingsOpen = 0; // [HASLab] this was commented out by us, why?
+   	      settingsOpen = 0;
 	      thememenu.setEnabled(true);
 	      windowmenu.setEnabled(true);
 	      if (frame!=null) {
@@ -987,7 +986,7 @@ public final class VizGUI implements ComponentListener {
 	      } else if (enumerator==null) {
 	         OurDialog.alert("Cannot display the next solution since the analysis engine is not loaded with the visualizer.");
 	      } else {
- 			 final String xmlFileName = Util.canon(Util.temporize(this.xmlFileName,0) + ".xml"); // [HASLab] get xml for current state
+ 			 final String xmlFileName = Util.canon(this.xmlFileName);
 			 try { enumerator.compute(xmlFileName); } catch(Throwable ex) { OurDialog.alert(ex.getMessage()); }
 	      }
 	      return null;
@@ -1144,7 +1143,7 @@ public final class VizGUI implements ComponentListener {
 		
 					xmlLoaded.remove(getXMLfilename());
 					if (comboTime.getSelectedIndex() >= 0)  {
-						loadXML(getXMLfilename(), false, comboTime.getSelectedIndex());
+						loadXML(getXMLfilename(), true, comboTime.getSelectedIndex());
 						if (thmFileName != "") loadThemeFile(thmFileName);
 					}
 				}

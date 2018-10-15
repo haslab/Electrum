@@ -97,10 +97,11 @@ public final class StaticInstanceReader {
    }
 
    /** Create a new AlloySet whose label is unambiguous with any existing one. */
-   private AlloySet makeSet(String label, boolean isPrivate, boolean isMeta, AlloyType type) {
+   // [HASLab] variable info
+   private AlloySet makeSet(String label, boolean isPrivate, boolean isMeta, boolean isVar, AlloyType type) {
       while(label.equals(Sig.UNIV.label) || label.equals(Sig.SIGINT.label) || label.equals(Sig.SEQIDX.label) || label.equals(Sig.STRING.label)) label=label+"'";
       while(true) {
-         AlloySet ans = new AlloySet(label, isPrivate, isMeta, type);
+         AlloySet ans = new AlloySet(label, isPrivate, isMeta, isVar, type); // [HASLab]
          if (!sets.contains(ans)) return ans;
          label=label+"'";
       }
@@ -170,15 +171,16 @@ public final class StaticInstanceReader {
    }
 
    /** Constructs the atoms corresponding to the given sig. */
-   private void atoms(A4Solution sol, PrimSig s) throws Err {
+   private void atoms(A4Solution sol, PrimSig s, int state) throws Err {
       Expr sum=Sig.NONE;
-      for(PrimSig c:s.children()) { sum=sum.plus(c); atoms(sol, c); }
-      A4TupleSet ts = (A4TupleSet) (sol.eval(s.minus(sum))); // This ensures that atoms will be associated with the most specific sig
+      for(PrimSig c:s.children()) { sum=sum.plus(c); atoms(sol, c, state); }
+      A4TupleSet ts = (A4TupleSet) (sol.eval(s.minus(sum),state)); // This ensures that atoms will be associated with the most specific sig
       for(A4Tuple z: ts) {
          String atom = z.atom(0);
          int i, dollar = atom.lastIndexOf('$');
          try { i = Integer.parseInt(dollar>=0 ? atom.substring(dollar+1) : atom); } catch(NumberFormatException ex) { i = Integer.MAX_VALUE; }
-         AlloyAtom at = new AlloyAtom(sig(s), ts.size()==1 ? Integer.MAX_VALUE : i, atom);
+         // [HASLab] do not hide singleton atoms, important for traces
+         AlloyAtom at = new AlloyAtom(sig(s), /*ts.size()==1 ? Integer.MAX_VALUE :*/ i, atom);
          atom2sets.put(at, new LinkedHashSet<AlloySet>());
          string2atom.put(atom, at);
       }
@@ -186,13 +188,13 @@ public final class StaticInstanceReader {
 
    /** Construct an AlloySet or AlloyRelation corresponding to the given expression. */
    // [HASLab] variable info
-   private void setOrRel(A4Solution sol, String label, Expr expr, boolean isPrivate, boolean isMeta, boolean isVar) throws Err {
+   private void setOrRel(A4Solution sol, String label, Expr expr, boolean isPrivate, boolean isMeta, boolean isVar, int state) throws Err {
       for(List<PrimSig> ps:expr.type().fold()) {
          if (ps.size()==1) {
             PrimSig t = ps.get(0);
-            AlloySet set = makeSet(label, isPrivate, isMeta, sig(t));
+            AlloySet set = makeSet(label, isPrivate, isMeta, isVar, sig(t));
             sets.add(set);
-            for(A4Tuple tp: (A4TupleSet)(sol.eval(expr.intersect(t)))) {
+            for(A4Tuple tp: (A4TupleSet)(sol.eval(expr.intersect(t),state))) {
                atom2sets.get(string2atom.get(tp.atom(0))).add(set);
             }
          } else {
@@ -204,7 +206,7 @@ public final class StaticInstanceReader {
             }
             AlloyRelation rel = makeRel(label, isPrivate, isMeta, isVar, types); // [HASLab]
             Set<AlloyTuple> ts = new LinkedHashSet<AlloyTuple>();
-            for(A4Tuple tp: (A4TupleSet)(sol.eval(expr.intersect(mask)))) { 
+            for(A4Tuple tp: (A4TupleSet)(sol.eval(expr.intersect(mask),state))) { 
                AlloyAtom[] atoms = new AlloyAtom[tp.arity()];
                for(int i=0; i<tp.arity(); i++) {
                   atoms[i] = string2atom.get(tp.atom(i));
@@ -219,7 +221,7 @@ public final class StaticInstanceReader {
 
 
    /** Parse the file into an AlloyInstance if possible. */
-   private StaticInstanceReader(XMLNode root) throws Err {
+   private StaticInstanceReader(XMLNode root, int state) throws Err {
       XMLNode inst = null;
       for(XMLNode sub: root) if (sub.is("instance")) { inst=sub; break; }
       if (inst==null) throw new ErrorSyntax("The XML file must contain an <instance> element.");
@@ -238,10 +240,10 @@ public final class StaticInstanceReader {
             string2atom.put(""+i, at);
          }
          for(Sig s:sol.getAllReachableSigs()) if (!s.builtin && s instanceof PrimSig) sig((PrimSig)s);
-         for(Sig s:toplevels)                 if (!s.builtin || s==Sig.STRING)        atoms(sol, (PrimSig)s);
-         for(Sig s:sol.getAllReachableSigs()) if (s instanceof SubsetSig)             setOrRel(sol, s.label, s, s.isPrivate!=null, s.isMeta!=null, s.isVariable!=null); // [HASLab]
-         for(Sig s:sol.getAllReachableSigs()) for(Field f:s.getFields())              setOrRel(sol, f.label, f, f.isPrivate!=null, f.isMeta!=null, f.isVariable!=null); // [HASLab]
-         for(ExprVar s:sol.getAllSkolems())   setOrRel(sol, s.label, s, false, false, false); // [HASLab]
+         for(Sig s:toplevels)                 if (!s.builtin || s==Sig.STRING)        atoms(sol, (PrimSig)s, state);
+         for(Sig s:sol.getAllReachableSigs()) if (s instanceof SubsetSig)             setOrRel(sol, s.label, s, s.isPrivate!=null, s.isMeta!=null, s.isVariable!=null, state); // [HASLab]
+         for(Sig s:sol.getAllReachableSigs()) for(Field f:s.getFields())              setOrRel(sol, f.label, f, f.isPrivate!=null, f.isMeta!=null, f.isVariable!=null, state); // [HASLab]
+         for(ExprVar s:sol.getAllSkolems())   setOrRel(sol, s.label, s, false, false, false, state); // [HASLab]
       }
       if (isMeta) {
          sigMETA(Sig.UNIV);
@@ -296,18 +298,18 @@ public final class StaticInstanceReader {
    }
 
    /** Parse the file into an AlloyInstance if possible. */
-   public static AlloyInstance parseInstance(File file) throws Err {
+   public static AlloyInstance parseInstance(File file, int state) throws Err {
       try {
-         return (new StaticInstanceReader(new XMLNode(file))).ans;
+         return (new StaticInstanceReader(new XMLNode(file), state)).ans;
       } catch(IOException ex) {
          throw new ErrorFatal("Error reading the XML file: " + ex, ex);
       }
    }
 
    /** Parse the file into an AlloyInstance if possible, then close the Reader afterwards. */
-   public static AlloyInstance parseInstance(Reader reader) throws Err {
+   public static AlloyInstance parseInstance(Reader reader, int state) throws Err {
       try {
-         return (new StaticInstanceReader(new XMLNode(reader))).ans;
+         return (new StaticInstanceReader(new XMLNode(reader),state)).ans;
       } catch(IOException ex) {
          throw new ErrorFatal("Error reading the XML file: " + ex, ex);
       }

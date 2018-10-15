@@ -89,7 +89,7 @@ public final class StaticProjector {
          }
          // If it contains only one type, it becomes a new set.
          else if (relTypes.size() == 1) {
-            sets.add(new AlloySet(rel.getName(), rel.isPrivate, rel.isMeta, relTypes.get(0)));
+            sets.add(new AlloySet(rel.getName(), rel.isPrivate, rel.isMeta, rel.isVar, relTypes.get(0))); // [HASLab]
             if (data!=null) data.put(rel, indices);
          }
       }
@@ -148,7 +148,7 @@ public final class StaticProjector {
                   AlloyAtom a=newTuple.get(0);
                   Set<AlloySet> answer=atom2sets.get(a);
                   if (answer==null) atom2sets.put(a, answer=new LinkedHashSet<AlloySet>());
-                  answer.add(new AlloySet(r.getName(), r.isPrivate, r.isMeta, newObj.get(0)));
+                  answer.add(new AlloySet(r.getName(), r.isPrivate, r.isMeta, r.isVar, newObj.get(0))); // [HASLab]
                }
             }
       }

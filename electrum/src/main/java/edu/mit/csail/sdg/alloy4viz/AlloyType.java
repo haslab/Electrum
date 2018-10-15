@@ -74,6 +74,7 @@ public final class AlloyType extends AlloyNodeElement {
    public final boolean isEnum;
 
    /** Records whether this sig is known to be "var"; NOTE: this value is NOT USED during equals() comparison. */
+   // [HASLab]
    public final boolean isVar;
 
    /** When comparing two AlloyType objects, we compare their names.
