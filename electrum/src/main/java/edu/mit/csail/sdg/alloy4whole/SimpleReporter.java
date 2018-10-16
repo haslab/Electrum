@@ -479,6 +479,8 @@ final class SimpleReporter extends A4Reporter {
 				final String tempCNF = tempdir + File.separatorChar + i + ".cnf"; // [HASLab]
                 final Command cmd=cmds.get(i);
                 rep.tempfile=tempCNF;
+                if (cmd.maxtime != -1 && options.solver.external().equals("electrod"))
+                	rep.warning(new ErrorWarning("Complete solver selected, Time scope will be ignored."));
                 cb(out, "bold", "Executing \""+cmd+"\"\n");
                 A4Solution ai=TranslateAlloyToKodkod.execute_commandFromBook(rep, world.getAllReachableSigs(), cmd, options);
                 if (ai==null) result.add(null);

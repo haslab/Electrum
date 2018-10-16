@@ -332,7 +332,7 @@ public final class A4Solution {
 				File tmp = File.createTempFile("tmp", ".cnf", new File(opt.tempDirectory));
 				tmp.deleteOnExit(); 
 //				solver.options().setSolver(SATFactory.externalFactory(ext, tmp.getAbsolutePath(), "", opt.solver.options())); // [HASLab] kodkod 2.0+
-				varOptions.setSolver(SATFactory.externalFactory(ext, tmp.getAbsolutePath(), opt.solver.options()));
+				varOptions.setSolver(SATFactory.externalFactory(ext, tmp.getAbsolutePath(), false, opt.solver.options())); // [HASLab]
 			} catch(IOException ex) { throw new ErrorFatal("Cannot create temporary directory.", ex); }
         } else if (opt.solver.equals(A4Options.SatSolver.LingelingJNI)) {
         	varOptions.setSolver(SATFactory.Lingeling);
