@@ -216,8 +216,8 @@ public final class SimpleCLI {
     static CommandLine clargs = null;	
     
     public static void main(String[] args) throws Exception {
-    		// if no cli args, just launch gui
-            if (args.length == 0)
+    		// if a single cli arg, then must be file name, open gui
+            if (args.length == 1)
     			SimpleGUI.main(args);
     		else {
 	    		try {
