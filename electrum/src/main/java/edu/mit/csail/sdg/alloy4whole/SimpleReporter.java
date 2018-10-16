@@ -29,7 +29,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.regex.Pattern;
 
 import edu.mit.csail.sdg.alloy4.A4Reporter;
 import edu.mit.csail.sdg.alloy4.ConstList;
@@ -276,10 +275,7 @@ final class SimpleReporter extends A4Reporter {
             try {
                 cb("R3", "   Writing the XML file...");
                 if (latestModule!=null) {
-					// writeXML(this, latestModule, filename, sol, latestKodkodSRC);
-					GenerateXmlsFiles generateXmlsFiles = new GenerateXmlsFiles(this, latestModule, latestKodkodSRC,
-							sol, tempfile);
-					generateXmlsFiles.run();
+					 writeXML(this, latestModule, filename, sol, latestKodkodSRC);
                 }
             } catch(Throwable ex) {
                 cb("bold", "\n" + (ex.toString().trim()) + "\nStackTrace:\n" + (MailBug.dump(ex).trim()) + "\n");
@@ -431,13 +427,7 @@ final class SimpleReporter extends A4Reporter {
                 synchronized(SimpleReporter.class) {
                     if (!latestKodkods.add(toString)) if (tries<100) { tries++; continue; }
                     // The counter is needed to avoid a Kodkod bug where sometimes we might repeat the same solution infinitely number of times; this at least allows the user to keep going
-                    //writeXML(null, mod, filename, sol, latestKodkodSRC); 
-                    
-					String[] tempFile = filename.split(Pattern.quote(".")); // [HASLab]
-					GenerateXmlsFiles generateXmlsFiles = new GenerateXmlsFiles(null, mod, latestKodkodSRC, sol,
-							tempFile[0] + "." + tempFile[1]);
-					generateXmlsFiles.run();
-                    
+                    writeXML(null, mod, filename, sol, latestKodkodSRC); 
                     latestKodkod=sol;
                 }
                 cb("declare", filename);
@@ -528,33 +518,4 @@ final class SimpleReporter extends A4Reporter {
             if (rep.warn==1) rep.cb("bold", "Note: There was 1 compilation warning. Please scroll up to see it.\n");
         }
     }
-
-
-	/** Generates n xml files and a dynamic renaming as the time evolves. */
-    // [HASLab]
-	private static class GenerateXmlsFiles implements Runnable {
-		private static ConstMap<String, String> kkSRC;
-		private final String filename;
-		private final A4Solution a4Solution;
-		private final SimpleReporter simpleReporter;
-		private final Module latestModule;
-
-		GenerateXmlsFiles(SimpleReporter reporter, Module module, ConstMap<String, String> kkSRC,
-				A4Solution a4Solution, String filename) {
-			this.filename = filename;
-			this.a4Solution = a4Solution;
-			this.simpleReporter = reporter;
-			this.latestModule = module;
-			GenerateXmlsFiles.kkSRC = kkSRC;
-		}
-
-		public void run() {
-			try {
-				writeXML(simpleReporter, latestModule, filename + ".xml", a4Solution, kkSRC);
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-
-		}
-	}
 }
