@@ -256,7 +256,7 @@ public final class ExprUnary extends Expr {
         ErrorWarning w1=null, w2=null;
         Type s=p;
         switch(op) {
-          case NOT: case AFTER: case ALWAYS: case EVENTUALLY: case PREVIOUS: case HISTORICALLY: case ONCE:
+          case NOT: case AFTER: case ALWAYS: case EVENTUALLY: case PREVIOUS: case HISTORICALLY: case ONCE: // [HASLab]
             s=Type.FORMULA;
             break;
           case TRANSPOSE: case RCLOSURE: case CLOSURE:
