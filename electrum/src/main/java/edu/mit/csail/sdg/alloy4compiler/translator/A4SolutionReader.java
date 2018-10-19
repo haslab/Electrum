@@ -351,7 +351,13 @@ public final class A4SolutionReader {
 		int arity;
 		if (type == null || (arity = type.type().arity()) < 1)
 			throw new IOException("Skolem " + label + " is maltyped.");
-		ExprVar var = ExprVar.make(Pos.UNKNOWN, label, type.type());
+		// [HASLab] try to use previously created expr for skolem, not mapped anywhere
+		ExprVar var = null;
+		for (Expr exp : expr2ts.keySet())
+			if (exp instanceof ExprVar && ((ExprVar) exp).label.equals(label))
+				var = (ExprVar) exp;
+		if (var == null)
+			var = ExprVar.make(Pos.UNKNOWN, label, type.type());
 		TupleSet ts = parseTuples(node, arity);
 		expr2ts.put(var, ts);
 		return var;
@@ -482,7 +488,16 @@ public final class A4SolutionReader {
 				for (Map.Entry<Expr, TupleSet> e : expr2ts.entrySet()) {
 					ExprVar v = (ExprVar) (e.getKey());
 					TupleSet ts = e.getValue();
-					Relation r = sol.addRel(v.label, ts, ts, null);
+					Relation r = null;
+					if (prev == null) r = sol.addRel(v.label, ts, ts, true);
+					else {
+						// [HASLab] try to use previously created relation for skolem, not mapped anywhere
+						for (Expr exp : prev.a2k().keySet())
+							if (exp instanceof ExprVar && ((Relation) prev.a2k(exp)).name().equals(v.label)) {
+								r = (Relation) prev.a2k(exp); break;
+							}
+						sol.addPreRel(v.label, ts, ts, r);
+					}
 					sol.kr2type(r, v.type());
 				}
 				// Done!
