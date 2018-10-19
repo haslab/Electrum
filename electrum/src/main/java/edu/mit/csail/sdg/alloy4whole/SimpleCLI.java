@@ -217,7 +217,7 @@ public final class SimpleCLI {
     
     public static void main(String[] args) throws Exception {
     		// if a single cli arg, then must be file name, open gui
-            if (args.length == 1)
+            if (args.length <= 1)
     			SimpleGUI.main(args);
     		else {
 	    		try {
