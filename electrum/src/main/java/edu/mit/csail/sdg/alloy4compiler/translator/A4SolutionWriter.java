@@ -112,6 +112,9 @@ public final class A4SolutionWriter {
 	        }
 	        // Now, write out the tupleset
 	        A4TupleSet ts = (A4TupleSet)(sol.eval(expr,state)); // [HASLab]
+	        // [HASLab] force printing of element even if empty, otherwise skolems missing from certain steps of the trace
+	        if (ts.size() == 0) {
+	        	out.print(prefix); prefix="";}
 	        for(A4Tuple t: ts) {
 	           if (prefix.length()>0) { out.print(prefix); prefix=""; }
 	           out.print("   <tuple>");
