@@ -344,6 +344,9 @@ public class A4Preferences {
    };
    
    // [HASLab]
+   public static final BooleanPref Unbounded = new BooleanPref("Complete", "Complete model checking", false);
+
+   // [HASLab]
    public static final ChoicePref<Decomposed> DecomposedPref = new ChoicePref<Decomposed>("Decomposed", Decomposed.values(),
 		   Decomposed.OFF) {
 	      @Override protected String serialize(Decomposed value) { return value.id; }

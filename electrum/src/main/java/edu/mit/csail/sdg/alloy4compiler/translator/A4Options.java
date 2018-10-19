@@ -204,6 +204,9 @@ public final class A4Options implements Serializable {
      */
 	// [HASLab]
     public int decomposed_threads = 4;
+
+	// [HASLab]
+	public boolean run_unbounded;
 	
     /** This method makes a copy of this Options object. */
     public A4Options dup() {
