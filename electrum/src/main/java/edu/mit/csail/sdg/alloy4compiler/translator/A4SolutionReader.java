@@ -429,6 +429,7 @@ public final class A4SolutionReader {
 					}
 				
 				nmap.clear();
+				expr2ts.clear();
 				for (XMLNode x : inst) {
 					String id = x.getAttribute("ID");
 					if (id.length() > 0 && (x.is("field") || x.is("skolem") || x.is("sig"))) {

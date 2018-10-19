@@ -330,8 +330,7 @@ public abstract class Sig extends Expr {
 		 * @throws ErrorType if you attempt to extend the builtin sigs NONE, SIGINT, SEQIDX, or STRING
 		 */
 		public PrimSig (String label, PrimSig parent, Attr... attributes) throws Err {
-			// [HASLab] if a sig is variable and its parent is not univ, then its hull is the type parent sig
-			super((((parent!=null && parent.isEnum!=null) || (parent!=UNIV && Attr.VARIABLE.type.find(attributes) != null)) ? parent.type : null), label, Util.append(attributes, Attr.SUBSIG));
+			super(((parent!=null && parent.isEnum!=null) ? parent.type : null), label, Util.append(attributes, Attr.SUBSIG));
 			if (parent==SIGINT) throw new ErrorSyntax(pos, "sig "+label+" cannot extend the builtin \"Int\" signature");
 			if (parent==SEQIDX) throw new ErrorSyntax(pos, "sig "+label+" cannot extend the builtin \"seq/Int\" signature");
 			if (parent==STRING) throw new ErrorSyntax(pos, "sig "+label+" cannot extend the builtin \"String\" signature");
