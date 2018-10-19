@@ -726,7 +726,7 @@ public final class TranslateAlloyToKodkod extends VisitReturn<Object> {
         if (x.op == ExprList.Op.TOTALORDER) {
             Expression elem = cset(x.args.get(0)), first = cset(x.args.get(1)), next = cset(x.args.get(2));
             if (elem instanceof Relation && first instanceof Relation && next instanceof Relation) {
-                Relation lst = frame.addRel(((Relation) elem).name() + "_last", null, frame.query(true, (Relation)elem, false),null); // [HASLab] no unnamed rels for electrod
+                Relation lst = frame.addRel(((Relation) elem).name() + "_last", null, frame.query(true, (Relation)elem, false),false); // [HASLab] no unnamed rels for electrod
                 totalOrderPredicates.add((Relation)elem); totalOrderPredicates.add((Relation)first); totalOrderPredicates.add(lst); totalOrderPredicates.add((Relation)next);
                 return k2pos(((Relation)next).totalOrder((Relation)elem, (Relation)first, lst), x);
             }

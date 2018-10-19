@@ -409,11 +409,9 @@ public final class A4SolutionReader {
 				}
 			}
 
-		int st = -1;
 		for (XMLNode sub : xml) 
 			if (sub.is("instance")) {
 				inst = sub;
-				st++;
 				
 				// [HASLab] if not first step, retrieve already created sigs
 				prev = sol;
@@ -443,9 +441,6 @@ public final class A4SolutionReader {
 				opt.originalFilename = inst.getAttribute("filename");
 				sol = new A4Solution(inst.getAttribute("command"), bitwidth, tracelength, tracelength, maxseq, strings, atoms, null, opt, 1); // [HASLab]
 				factory = sol.getFactory();
-				// [HASLab] only set backloop if that state already processed
-				if (backloop <= st)
-					sol.setBackLoop(backloop); 
 				// parse all the sigs, fields, and skolems
 				for (Map.Entry<String, XMLNode> e : nmap.entrySet())
 					if (e.getValue().is("sig"))
@@ -502,7 +497,7 @@ public final class A4SolutionReader {
 					sol.kr2type(r, v.type());
 				}
 				// Done!
-				sol.solve(null, prev); // [HASLab] merge current solution with previous, if any
+				sol.solve(null, prev, backloop); // [HASLab] merge current solution with previous, if any
 			}
 	}
 

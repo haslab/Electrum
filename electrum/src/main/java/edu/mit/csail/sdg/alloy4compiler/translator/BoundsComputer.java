@@ -129,7 +129,7 @@ final class BoundsComputer {
         TupleSet lower = lb.get(sig).clone(), upper = ub.get(sig).clone();
         if (sum == null) {
             // If sig doesn't have children, then sig should make a fresh relation for itself
-           sum = sol.addRel(sig.label, lower, upper, sig);
+           sum = sol.addRel(sig.label, lower, upper, sig.isVariable!=null); // [HASLab]
         } else if (sig.isAbstract == null) {
            // If sig has children, and sig is not abstract, then create a new relation to act as the remainder.
            for(PrimSig child:sig.children()) {
@@ -141,7 +141,7 @@ final class BoundsComputer {
               lower.removeAll(childTS);
               upper.removeAll(childTS);
            }
-            Expression relation = sol.addRel(sig.label + "_remainder", lower, upper, sig);
+            Expression relation = sol.addRel(sig.label + "_remainder", lower, upper, sig.isVariable!=null); // [HASLab]
             sum = sum.union(relation);
         }
         if (sig.isOne != null) // [HASLab]
@@ -171,7 +171,7 @@ final class BoundsComputer {
         if (sig.exact) { sol.addSig(sig, sum); return sum; }
         // Allocate a relation for this subset sig, then bound it
         rep.bound("Sig "+sig+" in "+ts+"\n");
-        Relation r = sol.addRel(sig.label, null, ts, sig);
+        Relation r = sol.addRel(sig.label, null, ts, sig.isVariable!=null); // [HASLab]
         sol.addSig(sig, r);
         // Add a constraint that it is INDEED a subset of the union of its parents
         // modified  : if A in B then G (A in B)
@@ -273,8 +273,8 @@ final class BoundsComputer {
                  lastTS=TS;
               }
                if (firstTS.size()!=(n>0 ? 1 : 0) || nextTS.size() != n-1) break;
-              sol.addField(f1, sol.addRel(s.label+"."+f1.label, firstTS, firstTS,f1));
-              sol.addField(f2, sol.addRel(s.label+"."+f2.label, nextTS, nextTS,f2));
+              sol.addField(f1, sol.addRel(s.label+"."+f1.label, firstTS, firstTS,f1.isVariable!=null)); // [HASLab]
+              sol.addField(f2, sol.addRel(s.label+"."+f2.label, nextTS, nextTS,f2.isVariable!=null)); // [HASLab]
               rep.bound("Field "+s.label+"."+f1.label+" == "+firstTS+"\n");
               rep.bound("Field "+s.label+"."+f2.label+" == "+nextTS+"\n");
               continue again;
@@ -303,7 +303,7 @@ final class BoundsComputer {
                  }
                  ub.addAll(upper);
               }
-  		 	  Relation r = sol.addRel(s.label + "." + f.label, null, ub, f);
+  		 	  Relation r = sol.addRel(s.label + "." + f.label, null, ub, f.isVariable!=null); // [HASLab]
 
 			  // [HASLab] avoid collapse of var one sigs
 			  sol.addField(f, isOne&&!isVar ? sol.a2k(s).product(r) : r);
