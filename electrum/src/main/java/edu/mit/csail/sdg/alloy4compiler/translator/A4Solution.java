@@ -621,7 +621,7 @@ public final class A4Solution {
 		}
 	}
 
-	/** Returns the back loop instance of this instance (or -1 if finite). */
+	/** Returns the back loop instance of this instance (should always exist). */
 	// [HASLab]
 	public int getLoopState() { return ((TemporalInstance) eval.instance()).loop; }
 
@@ -1005,7 +1005,7 @@ public final class A4Solution {
 		
 		// create temporal instance
 		TemporalInstance prev = new TemporalInstance(instances, loop);
-		eval = new Evaluator(prev);
+		eval = new Evaluator(prev, solver.options());
 		rename(this, null, null, new UniqueNameGenerator());
 		toStringCache = null;
 		evalCache = new HashMap<>();
@@ -1027,7 +1027,7 @@ public final class A4Solution {
 		long time = System.currentTimeMillis();
 		rep.debug("Simplifying the bounds...\n");
 		if (simp!=null && formulas.size()>0 && !simp.simplify(rep, this, formulas)) addFormula(Formula.FALSE, Pos.UNKNOWN);
-		rep.translate(opt.solver.id(), A4Preferences.Decomposed.values()[opt.decomposed_mode].toString(), bitwidth, maxseq, solver.options().skolemDepth(), solver.options().symmetryBreaking());
+		rep.translate(opt.solver.id(), A4Preferences.Decomposed.values()[opt.decomposed_mode].toString(), bitwidth, maxseq, solver.options().skolemDepth(), solver.options().symmetryBreaking()); // [HASLab]
 		Formula fgoal = Formula.and(formulas);
 		rep.debug("Generating the solution...\n");
 		kEnumerator = null;
