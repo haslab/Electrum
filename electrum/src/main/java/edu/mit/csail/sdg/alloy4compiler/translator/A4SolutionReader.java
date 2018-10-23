@@ -150,9 +150,9 @@ public final class A4SolutionReader {
 	/** Parse sig/set. */
 	private Sig parseSig(String id, int depth) throws IOException, Err {
 		Sig ans = id2sig.get(id);
-		// [HASLab] if created in previous steps of the trace re-use sig but must still calculate current atoms
-		// if (ans != null)
-		// 	return ans;
+		// [HASLab] identify that has not been processed in this step (ans  may be != null from previous steps)
+		 if (ans != null && expr2ts.get(ans) != null)
+		 	return ans;
 		XMLNode node = nmap.get(id);
 		if (node == null)
 			throw new IOException("Unknown SigID " + id + " encountered.");
