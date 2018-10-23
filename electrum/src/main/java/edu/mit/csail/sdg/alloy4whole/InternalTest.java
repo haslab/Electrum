@@ -35,7 +35,10 @@ import edu.mit.csail.sdg.alloy4compiler.translator.A4Solution;
 import edu.mit.csail.sdg.alloy4compiler.translator.A4SolutionReader;
 import edu.mit.csail.sdg.alloy4compiler.translator.TranslateAlloyToKodkod;
 
-/** API-specific regression test suite; the larger collection of models that test both the compiler and translator are in models/tests/*.als */
+/** API-specific regression test suite; the larger collection of models that test both the compiler and translator are in models/tests/*.als 
+ * 
+ * @modified: Nuno Macedo // [HASLab] electrum-temporal
+ */
 
 final class InternalTest {
 
@@ -72,6 +75,66 @@ final class InternalTest {
            + "</skolem>"
            + "</instance>"
            + "</alloy>"));
+        String err = "";
+        try { A4SolutionReader.read(null, xml); } catch(Throwable ex) { err=ex.toString(); } // [HASLab]
+        check(err.contains("Missing trace"));
+    }
+
+    static void test2() throws Exception {
+        test1();
+        XMLNode xml = new XMLNode(new StringReader(
+           "<alloy builddate='unknown'>"
+           + "<instance bitwidth='2' maxseq='1' command='Run Deadlock' filename='dijkstra.als'>"
+           + "<sig label='univ' ID='0' builtin='yes'> <atom label='-2'/> <atom label='-1'/> <atom label='0'/> <atom label='1'/> <atom label='State$0'/> <atom label='State$1'/> <atom label='State$2'/> </sig>"
+           + "<sig label='Int' ID='1' parentID='0' builtin='yes'> <atom label='-2'/> <atom label='-1'/> <atom label='0'/> <atom label='1'/> </sig>"
+           + "<sig label='seq/Int' ID='2' parentID='1' builtin='yes'> <atom label='0'/> </sig>"
+           + "<sig label='Act' ID='5' parentID='0'> <atom label='Act$0'/> <atom label='Act$1'/> <atom label='Act$2'/> </sig>"
+           + "<skolem label='$x' ID='16'>"
+           + "   <tuple> <atom label='0'/> <atom label='Act$1'/> </tuple>"
+           + "   <types> <type ID='2'/> <type ID='5'/> </types>"
+           + "</skolem>"
+           + "</instance>"
+           + "</alloy>"));
+        String err = "";
+        try { A4SolutionReader.read(null, xml); } catch(Throwable ex) { err=ex.toString(); } // [HASLab]
+        check(err.contains("Missing trace"));
+    }
+
+    static void test3() throws Exception {
+        XMLNode xml = new XMLNode(new StringReader(
+           "<alloy builddate='unknown'>"
+           + "<instance bitwidth='2' maxseq='1' command='Run Deadlock' filename='dijkstra.als'>"
+           + "<sig label='univ' ID='0' builtin='yes'> <atom label='-2'/> <atom label='-1'/> <atom label='0'/> <atom label='1'/> <atom label='State$0'/> <atom label='State$1'/> <atom label='State$2'/> </sig>"
+           + "<sig label='Int' ID='1' parentID='0' builtin='yes'> <atom label='-2'/> <atom label='-1'/> <atom label='0'/> <atom label='1'/> </sig>"
+           + "<sig label='seq/Int' ID='2' parentID='1' builtin='yes'> <atom label='0'/> </sig>"
+           + "<sig label='State' ID='5' parentID='6'> <atom label='State$0'/> </sig>"
+           + "<sig label='Mutex' ID='6' parentID='5'> <atom label='Mutex$0'/> </sig>"
+           + "</instance>"
+           + "</alloy>"));
+        String err = "";
+        try { A4SolutionReader.read(null, xml); } catch(Throwable ex) { err=ex.toString(); } // [HASLab]
+        check(err.contains("Missing trace"));
+    }
+    
+    static void test1Ele() throws Exception {
+        XMLNode xml = new XMLNode(new StringReader(
+           "<alloy builddate='unknown'>"
+           + "<instance tracelength='1' backloop='0' bitwidth='2' maxseq='1' command='Run Deadlock' filename='dijkstra.als'>"
+           + "<sig label='univ' ID='0' builtin='yes'> <atom label='-2'/> <atom label='-1'/> <atom label='0'/> <atom label='1'/> <atom label='State$0'/> <atom label='State$1'/> <atom label='State$2'/> </sig>"
+           + "<sig label='Int' ID='1' parentID='0' builtin='yes'> <atom label='-2'/> <atom label='-1'/> <atom label='0'/> <atom label='1'/> </sig>"
+           + "<sig label='seq/Int' ID='2' parentID='1' builtin='yes'> <atom label='0'/> </sig>"
+           + "<sig label='State' ID='5' parentID='0'> <atom label='State$0'/> <atom label='State$1'/> <atom label='State$2'/> </sig>"
+           + "<field label='len' parentID='5' ID='17'>"
+           + "   <tuple> <atom label='State$1'/> <atom label='-2'/> </tuple>"
+           + "   <tuple> <atom label='State$1'/> <atom label='-1'/> </tuple>"
+           + "   <types> <type ID='5'/> <type ID='1'/> </types>"
+           + "</field>"
+           + "<skolem label='$Deadlock_s' ID='16'>"
+           + "   <tuple> <atom label='State$0'/> </tuple>"
+           + "   <types> <type ID='5'/> </types>"
+           + "</skolem>"
+           + "</instance>"
+           + "</alloy>"));
         Sig state = new Sig.PrimSig("State");
         A4Solution sol = A4SolutionReader.read(Arrays.asList(state), xml);
         SafeList<ExprVar> skolems = new SafeList<ExprVar>(sol.getAllSkolems());
@@ -89,11 +152,11 @@ final class InternalTest {
         check(""+sol.eval(field2.cardinality()), "-2");
     }
 
-    static void test2() throws Exception {
+    static void test2Ele() throws Exception {
         test1();
         XMLNode xml = new XMLNode(new StringReader(
            "<alloy builddate='unknown'>"
-           + "<instance bitwidth='2' maxseq='1' command='Run Deadlock' filename='dijkstra.als'>"
+           + "<instance tracelength='1' backloop='0' bitwidth='2' maxseq='1' command='Run Deadlock' filename='dijkstra.als'>"
            + "<sig label='univ' ID='0' builtin='yes'> <atom label='-2'/> <atom label='-1'/> <atom label='0'/> <atom label='1'/> <atom label='State$0'/> <atom label='State$1'/> <atom label='State$2'/> </sig>"
            + "<sig label='Int' ID='1' parentID='0' builtin='yes'> <atom label='-2'/> <atom label='-1'/> <atom label='0'/> <atom label='1'/> </sig>"
            + "<sig label='seq/Int' ID='2' parentID='1' builtin='yes'> <atom label='0'/> </sig>"
@@ -112,10 +175,10 @@ final class InternalTest {
         check(skolems.get(0).type(), Sig.SEQIDX.type().product(activity.type()));
     }
 
-    static void test3() throws Exception {
+    static void test3Ele() throws Exception {
         XMLNode xml = new XMLNode(new StringReader(
            "<alloy builddate='unknown'>"
-           + "<instance bitwidth='2' maxseq='1' command='Run Deadlock' filename='dijkstra.als'>"
+           + "<instance tracelength='1' backloop='0' bitwidth='2' maxseq='1' command='Run Deadlock' filename='dijkstra.als'>"
            + "<sig label='univ' ID='0' builtin='yes'> <atom label='-2'/> <atom label='-1'/> <atom label='0'/> <atom label='1'/> <atom label='State$0'/> <atom label='State$1'/> <atom label='State$2'/> </sig>"
            + "<sig label='Int' ID='1' parentID='0' builtin='yes'> <atom label='-2'/> <atom label='-1'/> <atom label='0'/> <atom label='1'/> </sig>"
            + "<sig label='seq/Int' ID='2' parentID='1' builtin='yes'> <atom label='0'/> </sig>"
