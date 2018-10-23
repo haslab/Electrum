@@ -675,13 +675,12 @@ public final class VizGUI implements ComponentListener {
 	      return myGraphPanel.alloyGetViewer();
 	   }
 
-	/** Load the XML instance. */
-	public void loadXML(final String fileName, boolean forcefully) {
-		loadXML(fileName, forcefully, 0); // [HASLab] first state
-        repopulateTemporalPanel(); // [HASLab] must only be initially and not whenever the state changes
-	}
+	   /** Load the XML instance. */
+	   public void loadXML(final String fileName, boolean forcefully) {
+		   loadXML(fileName, forcefully, 0); // [HASLab] first state
+		   repopulateTemporalPanel(); // [HASLab] must only be initially and not whenever the state changes
+	   }
 	
-
 	   /** Load the XML instance. */
 	   // [HASLab] considers particular state
 	   public void loadXML(final String fileName, boolean forcefully, int state) {

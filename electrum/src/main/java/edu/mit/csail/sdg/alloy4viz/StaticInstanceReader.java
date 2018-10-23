@@ -171,10 +171,11 @@ public final class StaticInstanceReader {
    }
 
    /** Constructs the atoms corresponding to the given sig. */
+   // [HASLab] particular state
    private void atoms(A4Solution sol, PrimSig s, int state) throws Err {
       Expr sum=Sig.NONE;
-      for(PrimSig c:s.children()) { sum=sum.plus(c); atoms(sol, c, state); }
-      A4TupleSet ts = (A4TupleSet) (sol.eval(s.minus(sum),state)); // This ensures that atoms will be associated with the most specific sig
+      for(PrimSig c:s.children()) { sum=sum.plus(c); atoms(sol, c, state); }  // [HASLab]
+      A4TupleSet ts = (A4TupleSet) (sol.eval(s.minus(sum),state)); // [HASLab] // This ensures that atoms will be associated with the most specific sig
       for(A4Tuple z: ts) {
          String atom = z.atom(0);
          int i, dollar = atom.lastIndexOf('$');
@@ -192,7 +193,7 @@ public final class StaticInstanceReader {
       for(List<PrimSig> ps:expr.type().fold()) {
          if (ps.size()==1) {
             PrimSig t = ps.get(0);
-            AlloySet set = makeSet(label, isPrivate, isMeta, isVar, sig(t));
+            AlloySet set = makeSet(label, isPrivate, isMeta, isVar, sig(t)); // [HASLab]
             sets.add(set);
             for(A4Tuple tp: (A4TupleSet)(sol.eval(expr.intersect(t),state))) {
                atom2sets.get(string2atom.get(tp.atom(0))).add(set);
@@ -221,6 +222,7 @@ public final class StaticInstanceReader {
 
 
    /** Parse the file into an AlloyInstance if possible. */
+   // [HASLab] particular state
    private StaticInstanceReader(XMLNode root, int state) throws Err {
       XMLNode inst = null;
       for(XMLNode sub: root) if (sub.is("instance")) { inst=sub; break; }
@@ -240,7 +242,7 @@ public final class StaticInstanceReader {
             string2atom.put(""+i, at);
          }
          for(Sig s:sol.getAllReachableSigs()) if (!s.builtin && s instanceof PrimSig) sig((PrimSig)s);
-         for(Sig s:toplevels)                 if (!s.builtin || s==Sig.STRING)        atoms(sol, (PrimSig)s, state);
+         for(Sig s:toplevels)                 if (!s.builtin || s==Sig.STRING)        atoms(sol, (PrimSig)s, state); // [HASLab]
          for(Sig s:sol.getAllReachableSigs()) if (s instanceof SubsetSig)             setOrRel(sol, s.label, s, s.isPrivate!=null, s.isMeta!=null, s.isVariable!=null, state); // [HASLab]
          for(Sig s:sol.getAllReachableSigs()) for(Field f:s.getFields())              setOrRel(sol, f.label, f, f.isPrivate!=null, f.isMeta!=null, f.isVariable!=null, state); // [HASLab]
          for(ExprVar s:sol.getAllSkolems())   setOrRel(sol, s.label, s, false, false, false, state); // [HASLab]
@@ -298,18 +300,20 @@ public final class StaticInstanceReader {
    }
 
    /** Parse the file into an AlloyInstance if possible. */
+   // [HASLab]
    public static AlloyInstance parseInstance(File file, int state) throws Err {
       try {
-         return (new StaticInstanceReader(new XMLNode(file), state)).ans;
+         return (new StaticInstanceReader(new XMLNode(file), state)).ans; // [HASLab]
       } catch(IOException ex) {
          throw new ErrorFatal("Error reading the XML file: " + ex, ex);
       }
    }
 
    /** Parse the file into an AlloyInstance if possible, then close the Reader afterwards. */
+   // [HASLab]
    public static AlloyInstance parseInstance(Reader reader, int state) throws Err {
       try {
-         return (new StaticInstanceReader(new XMLNode(reader),state)).ans;
+         return (new StaticInstanceReader(new XMLNode(reader),state)).ans; // [HASLab]
       } catch(IOException ex) {
          throw new ErrorFatal("Error reading the XML file: " + ex, ex);
       }

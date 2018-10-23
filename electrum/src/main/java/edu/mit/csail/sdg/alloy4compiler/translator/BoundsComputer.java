@@ -111,7 +111,6 @@ final class BoundsComputer {
     //==============================================================================================================//
 
     /** Allocate relations for nonbuiltin PrimSigs bottom-up.*/
-    // [HASLab] temporal formulas.
     private Expression allocatePrimSig(PrimSig sig) throws Err {
         // Recursively allocate all children expressions, and form the union of them
         Expression sum = null;
@@ -141,8 +140,7 @@ final class BoundsComputer {
               lower.removeAll(childTS);
               upper.removeAll(childTS);
            }
-            Expression relation = sol.addRel(sig.label + "_remainder", lower, upper, sig.isVariable!=null); // [HASLab]
-            sum = sum.union(relation);
+            sum = sum.union(sol.addRel(sig.label + "_remainder", lower, upper, sig.isVariable!=null)); // [HASLab]
         }
         if (sig.isOne != null) // [HASLab]
         	sol.addFormula(sum.one().always(), sig.isOne);
@@ -155,7 +153,6 @@ final class BoundsComputer {
     //==============================================================================================================//
 
 	/** Allocate relations for SubsetSig top-down.*/
-    // [HASLab] temporal formulas.
     private Expression allocateSubsetSig(SubsetSig sig) throws Err {
         // We must not visit the same SubsetSig more than once, so if we've been here already, then return the old value right away
         Expression sum = sol.a2k(sig);
@@ -230,7 +227,6 @@ final class BoundsComputer {
     }
 
     /** Computes the bounds for sigs/fields, then construct a BoundsComputer object that you can query.*/
-    // [HASLab] adapted to temporal formulas. 
     private BoundsComputer(A4Reporter rep, A4Solution sol, ScopeComputer sc, Iterable<Sig> sigs) throws Err {
         this.sc = sc;
         this.factory = sol.getFactory();

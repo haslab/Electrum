@@ -439,7 +439,7 @@ final class SimpleReporter extends A4Reporter {
     /** Validate the given filename to see if it is a valid Alloy XML instance file. */
     private static void validate(String filename) throws Exception {
         A4SolutionReader.read(new ArrayList<Sig>(), new XMLNode(new File(filename))).toString();
-        StaticInstanceReader.parseInstance(new File(filename),0);
+        StaticInstanceReader.parseInstance(new File(filename),0); // [HASLab] only validates first
     }
     
     /** Task that perform one command. */
@@ -463,7 +463,7 @@ final class SimpleReporter extends A4Reporter {
             if (rep.warn>0 && !bundleWarningNonFatal) return;
             List<String> result = new ArrayList<String>(cmds.size());
             if (bundleIndex==-2) {
-				final String outf = tempdir + File.separatorChar + "m" + ".xml"; // [HASLab]
+				final String outf = tempdir + File.separatorChar + "m.xml";
                 cb(out, "S2", "Generating the metamodel...\n");
                 PrintWriter of = new PrintWriter(outf, "UTF-8");
                 Util.encodeXMLs(of, "\n<alloy builddate=\"", Version.buildDate(), "\">\n\n");
@@ -475,8 +475,8 @@ final class SimpleReporter extends A4Reporter {
                 synchronized(SimpleReporter.class) { latestMetamodelXML=outf; }
             } else for(int i=0; i<cmds.size(); i++) if (bundleIndex<0 || i==bundleIndex) {
                 synchronized(SimpleReporter.class) { latestModule=world; latestKodkodSRC=ConstMap.make(map); }
-                final String tempXML = tempdir + File.separatorChar + i + ".cnf" + ".xml"; // [HASLab]
-				final String tempCNF = tempdir + File.separatorChar + i + ".cnf"; // [HASLab]
+                final String tempXML = tempdir + File.separatorChar + i + ".cnf.xml";
+				final String tempCNF = tempdir + File.separatorChar + i + ".cnf";
                 final Command cmd=cmds.get(i);
                 rep.tempfile=tempCNF;
                 if (cmd.maxtime != -1 && options.solver.external() != null && options.solver.external().equals("electrod"))

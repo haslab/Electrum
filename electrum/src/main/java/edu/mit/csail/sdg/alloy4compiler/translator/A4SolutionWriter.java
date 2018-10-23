@@ -164,8 +164,6 @@ public final class A4SolutionWriter {
 			Util.encodeXMLs(out, "\" parentID=\"", map(((PrimSig) x).parent));
 		if (x.builtin)
 			out.print("\" builtin=\"yes");
-		if (x.isVariable != null)
-			out.print("\" var=\"yes"); // [HASLab] mark sig as var.
 		if (x.isAbstract != null)
 			out.print("\" abstract=\"yes");
 		if (x.isOne != null)
@@ -182,10 +180,12 @@ public final class A4SolutionWriter {
 			out.print("\" exact=\"yes");
 		if (x.isEnum != null)
 			out.print("\" enum=\"yes");
+		if (x.isVariable != null)
+			out.print("\" var=\"yes"); // [HASLab] mark sig as var.
 		out.print("\">\n");
 		try {
 			if (sol != null && x != Sig.UNIV && x != Sig.SIGINT && x != Sig.SEQIDX) {
-				ts = (A4TupleSet) (sol.eval(x, state));
+				ts = (A4TupleSet) (sol.eval(x, state)); // [HASLab]
 
 				for (A4Tuple t : ts.minus(ts2)) 
 					Util.encodeXMLs(out, "   <atom label=\"", t.toString(), "\"/>\n");
@@ -220,12 +220,12 @@ public final class A4SolutionWriter {
 			if (rep != null)
 				rep.write(x);
 			Util.encodeXMLs(out, "\n<field label=\"", x.label, "\" ID=\"", map(x), "\" parentID=\"", map(x.sig));
-			if (x.isVariable != null)
-				out.print("\" var=\"yes"); // [HASLab]
 			if (x.isPrivate != null)
 				out.print("\" private=\"yes");
 			if (x.isMeta != null)
 				out.print("\" meta=\"yes");
+			if (x.isVariable != null)
+				out.print("\" var=\"yes"); // [HASLab]
 			out.print("\">\n");
 			writeExpr("", x, state); // [HASLab]
 			out.print("</field>\n");
@@ -282,11 +282,10 @@ public final class A4SolutionWriter {
 			out.print("\" metamodel=\"yes");
 		out.print("\">\n");
 
-		// [HASLab] write specific instant.
-		writeSig(Sig.UNIV, state);
+		writeSig(Sig.UNIV, state); // [HASLab]
 		// [HASLab] variable sigs are treated as subset sigs, so must be processed here
-		for (Sig s:sigs) if (s instanceof SubsetSig || s.isVariable != null) writeSig(s, state);
-        if (sol!=null) for (ExprVar s:sol.getAllSkolems()) { if (rep!=null) rep.write(s); writeSkolem(s, state); }
+		for (Sig s:sigs) if (s instanceof SubsetSig || s.isVariable != null) writeSig(s, state); // [HASLab]
+        if (sol!=null) for (ExprVar s:sol.getAllSkolems()) { if (rep!=null) rep.write(s); writeSkolem(s, state); } // [HASLab]
 
 		int m = 0;
 		if (sol != null && extraSkolems != null)
@@ -301,7 +300,7 @@ public final class A4SolutionWriter {
 							rep.write(f.call());
 						StringBuilder sb = new StringBuilder();
 						Util.encodeXMLs(sb, "\n<skolem label=\"", label, "\" ID=\"m" + m + "\">\n");
-						if (writeExpr(sb.toString(), f.call(), state)) {
+						if (writeExpr(sb.toString(), f.call(), state)) { // [HASLab]
 							out.print("</skolem>\n");
 						}
 						m++;
@@ -316,7 +315,6 @@ public final class A4SolutionWriter {
 	 * If this solution is a satisfiable solution, this method will write it out
 	 * in XML format as a sequence of &lt;instance&gt;..&lt;/instance&gt;.
 	 */
- 	// [HASLab] writes all instants as a sequence of instances
 	static void writeInstance(A4Reporter rep, A4Solution sol, PrintWriter out, Iterable<Func> extraSkolems,
 			Map<String, String> sources) throws Err {
 		if (!sol.satisfiable())

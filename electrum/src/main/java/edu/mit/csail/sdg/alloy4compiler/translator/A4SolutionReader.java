@@ -364,7 +364,7 @@ public final class A4SolutionReader {
 	}
 
 	/** Parse everything. */
-	// [HASLab] modified to support sequences of <instance> nodes
+    // [HASLab] heavily modified to support sequences of <instance> nodes
 	private A4SolutionReader(Iterable<Sig> sigs, XMLNode xml) throws IOException, Err {
 		// find <instance>..</instance>
 		if (!xml.is("alloy"))
@@ -383,8 +383,14 @@ public final class A4SolutionReader {
 		// set up the basic values of the A4Solution object
 		final int bitwidth = Integer.parseInt(inst.getAttribute("bitwidth"));
 		final int maxseq = Integer.parseInt(inst.getAttribute("maxseq"));
-		final int tracelength = Integer.parseInt(inst.getAttribute("tracelength"));  // [HASLab]
-		final int backloop = Integer.parseInt(inst.getAttribute("backloop")); 		 // [HASLab]
+		final int tracelength;
+		final int backloop;
+		try {
+			tracelength = Integer.parseInt(inst.getAttribute("tracelength"));  // [HASLab]
+			backloop = Integer.parseInt(inst.getAttribute("backloop")); 	   // [HASLab]
+		} catch (Exception ex) {
+			throw new ErrorSyntax("Missing trace attributes.");
+		}
 		final int max = Util.max(bitwidth), min = Util.min(bitwidth);
 		if (bitwidth >= 1 && bitwidth <= 30)
 			for (int i = min; i <= max; i++) {

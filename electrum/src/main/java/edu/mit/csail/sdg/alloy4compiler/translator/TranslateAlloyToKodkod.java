@@ -191,6 +191,7 @@ public final class TranslateAlloyToKodkod extends VisitReturn<Object> {
 				Expr form = s.isOne == null ? f.forAll(s.decl) : ExprLet.make(null, (ExprVar) (s.decl.get()), s, f);
 				Formula kdorm = cform(form);
 				if (!(kdorm instanceof TotalOrdering)) kdorm = kdorm.always(); // [HASLab] always, avoids over total order predicate
+                // [HASLab] TODO: is this still problematic?
 				frame.addFormula(kdorm, f);
 			}
 		}

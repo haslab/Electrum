@@ -99,8 +99,6 @@ public final class Attr {
    /** ABSTRACT; if a PrimSig is abstract, it is equal to the union of its subsigs. */
    public static final Attr ABSTRACT = new Attr(AttrType.ABSTRACT, null);
 
-   public static final Attr VARIABLE = new Attr(AttrType.VARIABLE, null);
-
    /** SOME; if a Sig is some, it has at least one atom. */
    public static final Attr SOME = new Attr(AttrType.SOME, null);
 
@@ -130,6 +128,10 @@ public final class Attr {
 
    /** ENUM; if a PrimSig has the ENUM attribute, it is toplevel and abstract and has only singleton children. */
    public static final Attr ENUM = new Attr(AttrType.ENUM, null);
+
+   /** VARIABLE; if a Sig is variable, changing in time. */
+   // [HASLab]
+   public static final Attr VARIABLE = new Attr(AttrType.VARIABLE, null);
 
    /** Construct an attribute of the given type with the given position; if pos==null, it is treated as Pos.UNKNOWN. */
    private Attr(AttrType type, Pos pos) {

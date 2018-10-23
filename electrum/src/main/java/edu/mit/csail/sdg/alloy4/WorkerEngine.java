@@ -1,4 +1,5 @@
 /* Alloy Analyzer 4 -- Copyright (c) 2006-2009, Felix Chang
+ * Electrum -- Copyright (c) 2015-present, Nuno Macedo
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files
  * (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify,
@@ -42,6 +43,8 @@ import java.util.Locale;
  * then the same subprocess is reused to execute each subsequent task; however, if the subprocess crashed,
  * the crash will be reported to the parent process via callback, and if we try to execute another task,
  * then a new subprocess will be spawned automatically.
+ * 
+ * @modified Nuno Macedo // [HASLab] electrum-base
  */
 
 public final class WorkerEngine {
