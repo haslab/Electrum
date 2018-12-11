@@ -184,7 +184,7 @@ public final class TranslateKodkodToJava implements VoidVisitor {
 			String name=makename(r);
 			int a=r.arity();
 			String relationType = "Relation";
-			if (r instanceof VarRelation) relationType = "VarRelation";
+			if (r.isVariable()) relationType = "VarRelation";
 			if (a==1)
 				file.printf(relationType + " %s = " + relationType + ".unary(\"%s\");%n", name, r.name());
 			else

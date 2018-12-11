@@ -49,7 +49,6 @@ import kodkod.ast.Formula;
 import kodkod.ast.IntExpression;
 import kodkod.ast.Node;
 import kodkod.ast.Relation;
-import kodkod.ast.VarRelation;
 import kodkod.ast.Variable;
 import kodkod.ast.operator.ExprOperator;
 import kodkod.ast.operator.FormulaOperator;
@@ -471,7 +470,7 @@ public final class A4Solution {
 		if (solved) throw new ErrorFatal("Cannot add a Kodkod relation since solve() has completed.");
 		Relation rel;
 		if (var)
-			rel = VarRelation.nary(label, upper.arity());
+			rel = Relation.variable(label, upper.arity());
 		else
 			rel = Relation.nary(label, upper.arity());
 		
