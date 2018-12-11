@@ -1141,10 +1141,8 @@ public final class VizGUI implements ComponentListener {
 					}
 		
 					xmlLoaded.remove(getXMLfilename());
-					if (comboTime.getSelectedIndex() >= 0)  {
+					if (comboTime.getSelectedIndex() >= 0) 
 						loadXML(getXMLfilename(), true, comboTime.getSelectedIndex());
-						if (thmFileName != "") loadThemeFile(thmFileName);
-					}
 				}
 		
 			});
