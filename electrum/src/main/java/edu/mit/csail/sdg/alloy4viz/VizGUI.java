@@ -709,7 +709,7 @@ public final class VizGUI implements ComponentListener {
 	      if (!xmlLoaded.contains(xmlFileName)) xmlLoaded.add(xmlFileName);
 	      if (myGraphPanel != null) myGraphPanel.resetProjectionAtomCombos();
 	      toolbar.setEnabled(true);
-   	      settingsOpen = 0;
+	      // settingsOpen = 0; // [HASLab] disabled so that eval doesn't disappear between steps
 	      thememenu.setEnabled(true);
 	      windowmenu.setEnabled(true);
 	      if (frame!=null) {
