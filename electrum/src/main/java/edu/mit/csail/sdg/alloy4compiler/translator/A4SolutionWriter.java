@@ -159,8 +159,8 @@ public final class A4SolutionWriter {
 		if (rep != null)
 			rep.write(x);
 		Util.encodeXMLs(out, "\n<sig label=\"", x.label, "\" ID=\"", map(x));
-		// [HASLab] variable sigs are treated as subset sigs, so do not remove atoms from parent
-		if (x instanceof PrimSig && x != Sig.UNIV && x.isVariable == null) 
+		// [HASLab] var sigs are treated as subset sigs, do not add parent ids (unless printing meta-model)
+		if (x instanceof PrimSig && ((x != Sig.UNIV && x.isVariable == null) || state < 0)) 
 			Util.encodeXMLs(out, "\" parentID=\"", map(((PrimSig) x).parent));
 		if (x.builtin)
 			out.print("\" builtin=\"yes");
@@ -196,8 +196,8 @@ public final class A4SolutionWriter {
 		if (x instanceof SubsetSig)
 			for (Sig p : ((SubsetSig) x).parents)
 				Util.encodeXMLs(out, "   <type ID=\"", map(p), "\"/>\n");
-		// [HASLab] variable sigs are treated as subset sigs, so do not remove atoms from parent
-		if (x instanceof PrimSig && x != Sig.UNIV && x.isVariable != null) 
+		// [HASLab] var sigs are treated as subset sigs, add parent as type (unless printing meta-model)
+		if (state >= 0 && (x instanceof PrimSig && x != Sig.UNIV && x.isVariable != null))
 			Util.encodeXMLs(out, "   <type ID=\"", map(((PrimSig) x).parent), "\"/>\n");
 		out.print("</sig>\n");
 		for (Field field : x.getFields())
@@ -357,8 +357,8 @@ public final class A4SolutionWriter {
 	public static void writeMetamodel(ConstList<Sig> sigs, String originalFilename, PrintWriter out)
 			throws Err {
 		try {
-			// [HASLab] write at instant 0.
-			new A4SolutionWriter(null, null, sigs, 4, 4, 10, 0, "show metamodel", originalFilename, out, null, 0); 
+			// [HASLab] -1 identifies metamodel.
+			new A4SolutionWriter(null, null, sigs, 4, 4, 10, 0, "show metamodel", originalFilename, out, null, -1); 
 		} catch (Throwable ex) {
 			if (ex instanceof Err)
 				throw (Err) ex;
