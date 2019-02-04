@@ -1,0 +1,223 @@
+<?xml version="1.0"?>
+<alloy>
+
+<view nodetheme="Martha" edgetheme="Martha" useOriginalAtomNames="yes">
+
+<projection> <type name="VSS_manager"/> </projection>
+
+<defaultnode/>
+
+<defaultedge/>
+
+<node>
+   <type name="Ambiguous"/>
+   <type name="Free"/>
+   <type name="Int"/>
+   <type name="Occupied"/>
+   <type name="String"/>
+   <type name="univ"/>
+   <type name="Unknown"/>
+   <type name="VSS_manager"/>
+   <type name="D/Ord"/>
+   <type name="ordering/Ord"/>
+   <type name="seq/Int"/>
+   <type name="V/Ord"/>
+</node>
+
+<node color="Blue" label="Ambiguous">
+   <set name="$_ambiguous" type="VSS"/>
+</node>
+
+<node color="Blue" label="NonInteger">
+   <set name="$NonInteger" type="Train"/>
+</node>
+
+<node color="Green" label="Free">
+   <set name="$_free" type="VSS"/>
+</node>
+
+<node color="Red" label="Disconnected">
+   <set name="$Disconnected" type="Train"/>
+</node>
+
+<node color="Red" label="Unknown">
+   <set name="$_unknown" type="VSS"/>
+</node>
+
+<node color="Yellow" label="Occupied">
+   <set name="$_occupied" type="VSS"/>
+   <set name="$occupied" type="TTD"/>
+</node>
+
+<node label="DisconnectPropRunning">
+   <set name="this/DisconnectPropRunning" type="VSS"/>
+</node>
+
+<node label="GhostTrainPropRunning">
+   <set name="this/GhostTrainPropRunning" type="TTD"/>
+</node>
+
+<node label="IntegrityLossPropRunning">
+   <set name="this/IntegrityLossPropRunning" type="VSS"/>
+</node>
+
+<node label="IntegrityLost">
+   <set name="this/IntegrityLost" type="Train"/>
+</node>
+
+<node label="MissionEnded">
+   <set name="this/MissionEnded" type="Train"/>
+</node>
+
+<node label="MissionStarted">
+   <set name="this/MissionStarted" type="Train"/>
+</node>
+
+<node label="MuteExpired">
+   <set name="this/MuteExpired" type="Train"/>
+</node>
+
+<node label="ShadowARunning">
+   <set name="this/ShadowARunning" type="TTD"/>
+</node>
+
+<node label="ShadowBRunning">
+   <set name="this/ShadowBRunning" type="TTD"/>
+</node>
+
+<node label="UnknownTrain">
+   <set name="this/UnknownTrain" type="Train"/>
+</node>
+
+<node label="WaitIntegrityExpired">
+   <set name="this/WaitIntegrityExpired" type="Train"/>
+</node>
+
+<node shape="Inv Trapezoid" color="Green">
+   <type name="TTD"/>
+</node>
+
+<node shape="Trapezoid" color="Yellow">
+   <type name="VSS"/>
+</node>
+
+<node showlabel="no">
+   <set name="$DisconnectPropStart" type="VSS"/>
+   <set name="$DisconnectPropStop" type="VSS"/>
+   <set name="$GhostTrainPropStart" type="TTD"/>
+   <set name="$IntegrityLossPropStart" type="VSS"/>
+   <set name="$IntegrityLossPropStop" type="VSS"/>
+   <set name="$S1_tr1" type="Train"/>
+   <set name="$S1_tr2" type="Train"/>
+   <set name="$S1_tr" type="Train"/>
+   <set name="$S2_tr1" type="Train"/>
+   <set name="$S2_tr2" type="Train"/>
+   <set name="$S2_tr" type="Train"/>
+   <set name="$S2a_tr1" type="Train"/>
+   <set name="$S2a_tr2" type="Train"/>
+   <set name="$S2a_tr" type="Train"/>
+   <set name="$S3_tr1" type="Train"/>
+   <set name="$S3_tr2" type="Train"/>
+   <set name="$S3_tr" type="Train"/>
+   <set name="$S4_tr1" type="Train"/>
+   <set name="$S4_tr2" type="Train"/>
+   <set name="$S4_tr" type="Train"/>
+   <set name="$S5_tr1" type="Train"/>
+   <set name="$S5_tr2" type="Train"/>
+   <set name="$S5_tr" type="Train"/>
+   <set name="$S5a_tr1" type="Train"/>
+   <set name="$S5a_tr2" type="Train"/>
+   <set name="$S5a_tr" type="Train"/>
+   <set name="$S6_tr1" type="Train"/>
+   <set name="$S6_tr2" type="Train"/>
+   <set name="$S6_tr" type="Train"/>
+   <set name="$S7_tr1" type="Train"/>
+   <set name="$S7_tr2" type="Train"/>
+   <set name="$S7_tr" type="Train"/>
+   <set name="$S8_tr1" type="Train"/>
+   <set name="$S8_tr2" type="Train"/>
+   <set name="$S8_tr" type="Train"/>
+   <set name="$S9_tr1" type="Train"/>
+   <set name="$S9_tr2" type="Train"/>
+   <set name="$S9_tr" type="Train"/>
+   <set name="$ShadowAStart" type="TTD"/>
+   <set name="$ShadowBStart" type="TTD"/>
+</node>
+
+<node showlabel="no" color="Green">
+   <set name="$ZVizTrainC3" type="Train"/>
+</node>
+
+<node style="Bold" label="IntegrityConfirmed">
+   <set name="this/IntegrityConfirmed" type="Train"/>
+</node>
+
+<node style="Bold" label="Reports">
+   <set name="this/Reports" type="TTD"/>
+</node>
+
+<node style="Dotted" label="DisconnectPropExpired">
+   <set name="this/DisconnectPropExpired" type="VSS"/>
+</node>
+
+<node style="Dotted" label="GhostTrainPropExpired">
+   <set name="this/GhostTrainPropExpired" type="TTD"/>
+</node>
+
+<node style="Dotted" label="IntegrityLossPropExpired">
+   <set name="this/IntegrityLossPropExpired" type="VSS"/>
+</node>
+
+<node style="Dotted" label="ShadowAExpired">
+   <set name="this/ShadowAExpired" type="TTD"/>
+</node>
+
+<node style="Dotted" label="ShadowBExpired">
+   <set name="this/ShadowBExpired" type="TTD"/>
+</node>
+
+<node style="Dotted" shape="Parallelogram" color="Gray">
+   <type name="Train"/>
+</node>
+
+<node style="Solid" label="Reporting">
+   <set name="this/Reporting" type="Train"/>
+</node>
+
+<node visible="no">
+   <type name="State"/>
+</node>
+
+<edge color="Magic" layout="yes" label="VSSs">
+   <relation name="$_VSSs"> <type name="TTD"/> <type name="VSS"/> </relation>
+</edge>
+
+<edge color="Red">
+   <relation name="MA"> <type name="Train"/> <type name="VSS"/> </relation>
+</edge>
+
+<edge style="Dashed">
+   <relation name="state"> <type name="VSS"/> <type name="State"/> </relation>
+</edge>
+
+<edge style="Dashed" layout="yes">
+   <relation name="jumping"> <type name="VSS"/> <type name="Train"/> </relation>
+</edge>
+
+<edge style="Dotted">
+   <relation name="loc_front"> <type name="Train"/> <type name="VSS"/> </relation>
+   <relation name="loc_rear"> <type name="Train"/> <type name="VSS"/> </relation>
+</edge>
+
+<edge visible="no">
+   <relation name="$pos"> <type name="Train"/> <type name="VSS"/> </relation>
+   <relation name="start"> <type name="TTD"/> <type name="VSS"/> </relation>
+</edge>
+
+<edge visible="no" layout="yes">
+   <relation name="end"> <type name="TTD"/> <type name="VSS"/> </relation>
+</edge>
+
+</view>
+
+</alloy>
