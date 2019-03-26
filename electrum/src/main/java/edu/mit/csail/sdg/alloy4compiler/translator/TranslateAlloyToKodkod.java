@@ -567,7 +567,7 @@ public final class TranslateAlloyToKodkod extends VisitReturn<Object> {
           case TRUE: return Formula.TRUE;
           case FALSE: return Formula.FALSE;
           case EMPTYNESS: return Expression.NONE;
-          case IDEN: return Expression.IDEN.intersection(a2k(UNIV).product(Expression.UNIV));
+          case IDEN: return Expression.IDEN.intersection(a2k(UNIV).product(Expression.UNIV)); // [HASLab] this makes bad decompositions, makes static expressions variable
           case STRING:
             Expression ans = s2k(x.string);
             if (ans==null) throw new ErrorFatal(x.pos, "String literal "+x+" does not exist in this instance.\n");
@@ -608,7 +608,7 @@ public final class TranslateAlloyToKodkod extends VisitReturn<Object> {
             case CAST2SIGINT: return cint(x.sub).toExpression();
             case CAST2INT:    return sum(cset(x.sub));
             case RCLOSURE:
-                Expression iden=Expression.IDEN.intersection(a2k(UNIV).product(Relation.UNIV));
+                Expression iden=Expression.IDEN.intersection(a2k(UNIV).product(Relation.UNIV)); // [HASLab] this makes bad decompositions, makes static expressions variable
                 return cset(x.sub).closure().union(iden);
             case CLOSURE: return cset(x.sub).closure();
         }
