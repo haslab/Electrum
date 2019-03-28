@@ -1441,7 +1441,7 @@ public final class SimpleGUI implements ComponentListener, Listener {
                 throw new RuntimeException("Alloy4 is currently executing a SAT solver command. Please wait until that command has finished.");
             SimpleCallback1 cb = new SimpleCallback1(SimpleGUI.this, viz, log, VerbosityPref.get().ordinal(), latestAlloyVersionName, latestAlloyVersion);
             SimpleTask2 task = new SimpleTask2();
-            task.act = arg[1]; // [HASLab] simulator
+//            task.act = arg[1]; // [HASLab] simulator
             task.filename = arg[0]; // [HASLab] simulator
             try {
                 WorkerEngine.run(task, SubMemory.get(), SubStack.get(), alloyHome() + fs + "binary", "", cb);

@@ -210,7 +210,7 @@ final class InternalTest {
                 Thread.sleep(500);
                 long t = Runtime.getRuntime().totalMemory(), f = Runtime.getRuntime().freeMemory(), m = Runtime.getRuntime().maxMemory();
                 System.out.println(hc + " total=" + t + " free=" + f + " max="+m); System.out.flush();
-                ans=ans.next(null);
+                ans=ans.next();
             }
             return;
         }

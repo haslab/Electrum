@@ -140,7 +140,7 @@ final class BoundsComputer {
               lower.removeAll(childTS);
               upper.removeAll(childTS);
            }
-            sum = sum.union(sol.addRel(sig.label + "_remainder", lower, upper, sig.isVariable!=null)); // [HASLab]
+            sum = sum.union(sol.addRel(sig.label + "_remainder", lower, upper, sig.isVariable!=null)); // [HASLab] bug, should be variable if any of the children is
         }
         if (sig.isOne != null) // [HASLab]
         	sol.addFormula(sum.one().always(), sig.isOne);
@@ -306,13 +306,15 @@ final class BoundsComputer {
 
            }
         }
+        
         // [HASLab] Add possible symbolic bounds
-        if (Version.experimental)
-	        for(Sig s:sigs) {
-	        	sol.addSymbolicBound(s);
-	            for(Field f:s.getFields())
-	    		 	sol.addSymbolicBound(f);
-	        }
+        // simulator not working with symbolic
+//        if (Version.experimental)
+//	        for(Sig s:sigs) {
+//	        	sol.addSymbolicBound(s);
+//	            for(Field f:s.getFields())
+//	    		 	sol.addSymbolicBound(f);
+//	        }
 
         // Add any additional SIZE constraints
         for(Sig s:sigs) if (!s.builtin) {
