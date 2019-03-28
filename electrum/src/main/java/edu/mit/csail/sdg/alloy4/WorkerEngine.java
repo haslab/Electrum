@@ -1,4 +1,5 @@
 /* Alloy Analyzer 4 -- Copyright (c) 2006-2009, Felix Chang
+ * Electrum -- Copyright (c) 2015-present, Nuno Macedo
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files
  * (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify,
@@ -28,6 +29,7 @@ import java.io.PrintStream;
 import java.io.Serializable;
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.lang.reflect.Field;
+import java.util.Locale;
 
 /** This class allows you to execute tasks in a subprocess, and receive its outputs via callback.
  *
@@ -41,6 +43,8 @@ import java.lang.reflect.Field;
  * then the same subprocess is reused to execute each subsequent task; however, if the subprocess crashed,
  * the crash will be reported to the parent process via callback, and if we try to execute another task,
  * then a new subprocess will be spawned automatically.
+ * 
+ * @modified Nuno Macedo // [HASLab] electrum-base
  */
 
 public final class WorkerEngine {
@@ -99,18 +103,18 @@ public final class WorkerEngine {
    /** This terminates the subprocess, and prevent any further results from reaching the parent's callback handler. */
    public static void stop() {
       synchronized(WorkerEngine.class) {
-         try { if (latest_sub!=null)
-        	 {
-			try {
-				Field f = latest_sub.getClass().getDeclaredField("pid");
-				f.setAccessible(true);
-				Runtime.getRuntime().exec("kill -SIGTERM "+f.get(latest_sub));
-			} catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException | IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-//        	 latest_sub.destroy();
-        	 }} finally { latest_manager=null; latest_sub=null; }
+         try { if (latest_sub!=null) {
+			if (!System.getProperty("os.name").toLowerCase(Locale.US).startsWith("windows"))
+				try {  // [HASLab]
+					Field f = latest_sub.getClass().getDeclaredField("pid");
+					f.setAccessible(true);
+					Runtime.getRuntime().exec("kill -SIGTERM "+f.get(latest_sub));
+				} catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException | IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			else latest_sub.destroy();
+		}} finally { latest_manager=null; latest_sub=null; }
       }
    }
 

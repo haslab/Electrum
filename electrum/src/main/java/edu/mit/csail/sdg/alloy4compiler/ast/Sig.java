@@ -35,7 +35,7 @@ import edu.mit.csail.sdg.alloy4compiler.ast.Attr.AttrType;
 
 /** Mutable; represents a signature. 
  * 
- * @modified Eduardo Pessoa, Nuno Macedo // [HASLab] temporal model finding
+ * @modified Eduardo Pessoa, Nuno Macedo // [HASLab] electrum-temporal
  */
 
 public abstract class Sig extends Expr {
@@ -186,7 +186,7 @@ public abstract class Sig extends Expr {
 	}
 
 	/** Constructs a new PrimSig or SubsetSig. */
-	// [HASLab] extended with variable sigs. 
+	// [HASLab] extended with variable attribute
 	private Sig(Type type, String label, Attr... attributes) throws Err {
 		super(AttrType.WHERE.find(attributes), type);
 		this.attributes = Util.asList(attributes);
@@ -337,7 +337,7 @@ public abstract class Sig extends Expr {
 			if (parent==NONE)   throw new ErrorSyntax(pos, "sig "+label+" cannot extend the builtin \"none\" signature");
 
 			if (parent==null) parent=UNIV; else if (parent!=UNIV) parent.children.add(this);
-
+			
 			this.parent = parent;
 			if (isEnum!=null && parent!=UNIV) throw new ErrorType(pos, "sig "+label+" is not a toplevel sig, so it cannot be an enum.");
 			for( ; parent!=null ; parent=parent.parent) if (parent.isEnum!=null) {
@@ -484,7 +484,7 @@ public abstract class Sig extends Expr {
 		public Decl decl() { return decl; }
 
 		/** Constructs a new Field object. */
-		// [HASLab] extended with variable fields.
+		// [HASLab] extended with variable attribute
 		private Field(Pos pos, Pos isPrivate, Pos isMeta, Pos isVar, Pos disjoint, Pos disjoint2, Sig sig, String label, Expr bound) throws Err {
 			super(pos, label, sig.type.product(bound.type));
 			this.defined = bound.mult() == ExprUnary.Op.EXACTLYOF;
@@ -582,7 +582,7 @@ public abstract class Sig extends Expr {
 	 * @throws ErrorSyntax  if the bound contains a predicate/function call
 	 * @throws ErrorType    if the bound is not fully typechecked or is not a set/relation
 	 */
-	// [HASLab] extended with variable fields.
+	// [HASLab] extended with variable attribute
 	public final Field[] addTrickyField (Pos pos, Pos isPrivate, Pos isDisjoint, Pos isDisjoint2, Pos isMeta, Pos isVar, String[] labels, Expr bound) throws Err {
 		bound = bound.typecheck_as_set();
 		if (bound.ambiguous) bound = bound.resolve_as_set(null);

@@ -47,7 +47,7 @@ import edu.mit.csail.sdg.alloy4compiler.ast.Sig.Field;
 
 /** Translate an Alloy AST into Kodkod AST then attempt to solve it using Kodkod. 
  * 
- * @modified: Nuno Macedo, Eduardo Pessoa // [HASLab] temporal solving
+ * @modified: Nuno Macedo, Eduardo Pessoa // [HASLab] electrum-temporal
  */
 
 public final class TranslateAlloyToKodkod extends VisitReturn<Object> {
@@ -191,6 +191,7 @@ public final class TranslateAlloyToKodkod extends VisitReturn<Object> {
 				Expr form = s.isOne == null ? f.forAll(s.decl) : ExprLet.make(null, (ExprVar) (s.decl.get()), s, f);
 				Formula kdorm = cform(form);
 				if (!(kdorm instanceof TotalOrdering)) kdorm = kdorm.always(); // [HASLab] always, avoids over total order predicate
+                // [HASLab] TODO: is this still problematic?
 				frame.addFormula(kdorm, f);
 			}
 		}
@@ -398,6 +399,7 @@ public final class TranslateAlloyToKodkod extends VisitReturn<Object> {
     	return execute_commandFromBook(rep, sigs, cmd, opt, null);
     }
     
+    // [HASLab] simulator
     public static A4Solution execute_commandFromBook (A4Reporter rep, Iterable<Sig> sigs, Command cmd, A4Options opt, A4Solution sol_prev) throws Err {
         if (rep==null) rep = A4Reporter.NOP;
         TranslateAlloyToKodkod tr = null;
@@ -406,7 +408,7 @@ public final class TranslateAlloyToKodkod extends VisitReturn<Object> {
        	 	if (cmd.parent!=null || !cmd.getGrowableSigs().isEmpty()) return execute_greedyCommand(rep, sigs, cmd, opt);
     		tr = new TranslateAlloyToKodkod(rep, opt, sigs, cmd);
     		tr.makeFacts(cmd.formula);
-    		sol = tr.frame.solve(rep, cmd, new Simplifier(), true, sol_prev);
+    		sol = tr.frame.solve(rep, cmd, new Simplifier(), true, sol_prev); // [HASLab] simulator
         } catch(UnsatisfiedLinkError ex) {
             throw new ErrorFatal("The required JNI library cannot be found: "+ex.toString().trim(), ex);
         } catch(CapacityExceededException ex) {
@@ -570,7 +572,7 @@ public final class TranslateAlloyToKodkod extends VisitReturn<Object> {
           case TRUE: return Formula.TRUE;
           case FALSE: return Formula.FALSE;
           case EMPTYNESS: return Expression.NONE;
-          case IDEN: return Expression.IDEN.intersection(a2k(UNIV).product(Expression.UNIV));
+          case IDEN: return Expression.IDEN.intersection(a2k(UNIV).product(Expression.UNIV)); // [HASLab] this makes bad decompositions, makes static expressions variable
           case STRING:
             Expression ans = s2k(x.string);
             if (ans==null) throw new ErrorFatal(x.pos, "String literal "+x+" does not exist in this instance.\n");
@@ -611,7 +613,7 @@ public final class TranslateAlloyToKodkod extends VisitReturn<Object> {
             case CAST2SIGINT: return cint(x.sub).toExpression();
             case CAST2INT:    return sum(cset(x.sub));
             case RCLOSURE:
-                Expression iden=Expression.IDEN.intersection(a2k(UNIV).product(Relation.UNIV));
+                Expression iden=Expression.IDEN.intersection(a2k(UNIV).product(Relation.UNIV)); // [HASLab] this makes bad decompositions, makes static expressions variable
                 return cset(x.sub).closure().union(iden);
             case CLOSURE: return cset(x.sub).closure();
         }
@@ -730,7 +732,7 @@ public final class TranslateAlloyToKodkod extends VisitReturn<Object> {
         if (x.op == ExprList.Op.TOTALORDER) {
             Expression elem = cset(x.args.get(0)), first = cset(x.args.get(1)), next = cset(x.args.get(2));
             if (elem instanceof Relation && first instanceof Relation && next instanceof Relation) {
-                Relation lst = frame.addRel(first.toString().split("First")[0]+"Last", null, frame.query(true, (Relation)elem, false),null); // [HASLab] assigned a name to last in order to be pretty printed
+                Relation lst = frame.addRel(((Relation) elem).name() + "_last", null, frame.query(true, (Relation)elem, false),false); // [HASLab] no unnamed rels for electrod
                 totalOrderPredicates.add((Relation)elem); totalOrderPredicates.add((Relation)first); totalOrderPredicates.add(lst); totalOrderPredicates.add((Relation)next);
                 return k2pos(((Relation)next).totalOrder((Relation)elem, (Relation)first, lst), x);
             }

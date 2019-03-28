@@ -35,14 +35,12 @@ import kodkod.instance.TupleSet;
 import kodkod.util.ints.IndexedEntry;
 import kodkod.util.nodes.PrettyPrinter;
 
-
-
 /** Translate a Kodkod formula node to an equivalent Java program that solves the formula.
  *
  * <p> Requirements: atoms must be String objects (since we cannot possibly
  * output a Java source code that can re-generate arbitrary Java objects).
  * 
- * @modified: Nuno Macedo // [HASLab] temporal solving
+ * @modified: Nuno Macedo // [HASLab] electrum-temporal
  */
 
 public final class TranslateKodkodToJava implements VoidVisitor {
@@ -186,7 +184,7 @@ public final class TranslateKodkodToJava implements VoidVisitor {
 			String name=makename(r);
 			int a=r.arity();
 			String relationType = "Relation";
-			if (r instanceof VarRelation) relationType = "VarRelation";
+			if (r.isVariable()) relationType = "VarRelation";
 			if (a==1)
 				file.printf(relationType + " %s = " + relationType + ".unary(\"%s\");%n", name, r.name());
 			else

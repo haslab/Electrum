@@ -23,7 +23,7 @@ import edu.mit.csail.sdg.alloy4.Pos;
 
 /** Immutable; this declaration binds a list of names to an expression. 
  * 
- * @modified Nuno Macedo // [HASLab] temporal model finding
+ * @modified Nuno Macedo // [HASLab] electrum-temporal
  */
 
 public final class Decl {

@@ -74,7 +74,6 @@ import edu.mit.csail.sdg.alloy4.OurUtil;
 import edu.mit.csail.sdg.alloy4.Runner;
 import edu.mit.csail.sdg.alloy4.Util;
 import edu.mit.csail.sdg.alloy4.Version;
-import edu.mit.csail.sdg.alloy4compiler.parser.Action2Alloy;
 import edu.mit.csail.sdg.alloy4graph.GraphViewer;
 
 
@@ -84,7 +83,7 @@ import edu.mit.csail.sdg.alloy4graph.GraphViewer;
  * <p>
  * <b>Thread Safety:</b> Can be called only by the AWT event thread.
  * 
- * @modified: Nuno Macedo, Eduardo Pessoa // [HASLab] temporal instances, file extensions
+ * @modified: Nuno Macedo, Eduardo Pessoa // [HASLab] electrum-temporal, electrum-base
  */
 
 public final class VizGUI implements ComponentListener {
@@ -116,7 +115,7 @@ public final class VizGUI implements ComponentListener {
 	   /** The buttons on the toolbar. */
 	   private final JButton projectionButton, openSettingsButton, closeSettingsButton,
 	   magicLayout, loadSettingsButton, saveSettingsButton, saveAsSettingsButton,
-	   resetSettingsButton, updateSettingsButton, openEvaluatorButton, closeEvaluatorButton, enumerateButton, exploreButton,
+	   resetSettingsButton, updateSettingsButton, openEvaluatorButton, closeEvaluatorButton, enumerateButton, exploreButton, // [HASLab] simulator
 	   vizButton, treeButton, txtButton/*, dotButton, xmlButton*/;
 
 	   /** This list must contain all the display mode buttons (that is, vizButton, xmlButton...) */
@@ -430,8 +429,8 @@ public final class VizGUI implements ComponentListener {
 	         toolbar.add(openEvaluatorButton=OurUtil.button("Evaluator", "Open the evaluator", "images/24_settings.gif", doOpenEvalPanel()));
 	         toolbar.add(closeEvaluatorButton=OurUtil.button("Close Evaluator", "Close the evaluator", "images/24_settings_close2.gif", doCloseEvalPanel()));
 	         toolbar.add(enumerateButton=OurUtil.button("Next", "Show the next solution", "images/24_history.gif", doNext()));
-	         toolbar.add(exploreButton=OurUtil.button("Extend", "Show the next extension", "images/24_history.gif", doScenario()));
-	         addActionJPanel(); // [HASLab] the JPanel for action application
+	         toolbar.add(exploreButton=OurUtil.button("Extend", "Show the next extension", "images/24_history.gif", doScenario())); // [HASLab] simulator
+	         addActionJPanel(); // [HASLab] simulator, the JPanel for action application
 	         toolbar.add(projectionButton);
 	         toolbar.add(loadSettingsButton=OurUtil.button("Load", "Load the theme customization from a theme file", "images/24_open.gif", doLoadTheme()));
 	         toolbar.add(saveSettingsButton=OurUtil.button("Save", "Save the current theme customization", "images/24_save.gif", doSaveTheme()));
@@ -546,6 +545,7 @@ public final class VizGUI implements ComponentListener {
 	      closeEvaluatorButton.setVisible(!isMeta && settingsOpen==2 && evaluator!=null);
 	      enumerateMenu.setEnabled(!isMeta && settingsOpen==0 && enumerator!=null);
 	      enumerateButton.setVisible(!isMeta && settingsOpen==0 && enumerator!=null);
+	      exploreButton.setVisible(!isMeta && settingsOpen==0 && enumerator!=null); // [HASLab] simulator
 	      toolbar.setVisible(true);
 	      // Now, generate the graph or tree or textarea that we want to display on the right
 	      if (frame!=null) frame.setTitle(makeVizTitle());
@@ -678,25 +678,23 @@ public final class VizGUI implements ComponentListener {
 	      return myGraphPanel.alloyGetViewer();
 	   }
 
-	/** Load the XML instance. */
-	// [HASLab] considers initial state and create the temporal navigation panel
-	public void loadXML(final String fileName, boolean forcefully) {
-		loadXML(fileName, forcefully, 0);
-        repopulateTemporalPanel(); // [HASLab] must only be initially and not whenever the state changes
-        repopulateActionPanel(); // [HASLab] must only be initially and not whenever the state changes
-	}
+	   /** Load the XML instance. */
+	   public void loadXML(final String fileName, boolean forcefully) {
+		   loadXML(fileName, forcefully, 0); // [HASLab] first state
+		   repopulateTemporalPanel(); // [HASLab] must only be initially and not whenever the state changes
+	       repopulateActionPanel(); // [HASLab] simulator
+	   }
 	
-
 	   /** Load the XML instance. */
 	   // [HASLab] considers particular state
 	   public void loadXML(final String fileName, boolean forcefully, int state) {
-  	 	  final String xmlFileName = Util.canon(Util.temporize(fileName,state) + ".xml"); // [HASLab] state
+  	 	  final String xmlFileName = Util.canon(fileName); 
 	      File f = new File(xmlFileName);
 	      if (forcefully || !xmlFileName.equals(this.xmlFileName)) {
 	         AlloyInstance myInstance;
 	         try {
 	            if (!f.exists()) throw new IOException("File " + xmlFileName + " does not exist.");
-	            myInstance = StaticInstanceReader.parseInstance(f);
+	            myInstance = StaticInstanceReader.parseInstance(f,state); // [HASLab] state
 	         } catch (Throwable e) {
 	            xmlLoaded.remove(fileName);
 	            xmlLoaded.remove(xmlFileName);
@@ -715,7 +713,7 @@ public final class VizGUI implements ComponentListener {
 	      if (!xmlLoaded.contains(xmlFileName)) xmlLoaded.add(xmlFileName);
 	      if (myGraphPanel != null) myGraphPanel.resetProjectionAtomCombos();
 	      toolbar.setEnabled(true);
-   	      settingsOpen = 0; // [HASLab] this was commented out by us, why?
+	      // settingsOpen = 0; // [HASLab] disabled so that eval doesn't disappear between steps
 	      thememenu.setEnabled(true);
 	      windowmenu.setEnabled(true);
 	      if (frame!=null) {
@@ -991,25 +989,26 @@ public final class VizGUI implements ComponentListener {
 	      } else if (enumerator==null) {
 	         OurDialog.alert("Cannot display the next solution since the analysis engine is not loaded with the visualizer.");
 	      } else {
- 			 final String xmlFileName = Util.canon(Util.temporize(this.xmlFileName,0) + ".xml"); // [HASLab] get xml for current state
-			 try { enumerator.compute(new String[] {xmlFileName, null}); } catch(Throwable ex) { OurDialog.alert(ex.getMessage()); }
+ 			 final String xmlFileName = Util.canon(this.xmlFileName);
+			 try { enumerator.compute(new String[] {xmlFileName, null}); } catch(Throwable ex) { OurDialog.alert(ex.getMessage()); } // [HASLab] simualtor
 	      }
 	      return null;
 	   }
 	   
+	   // [HASLab] simulator
 	   private Runner doScenario() {
-		      if (wrap) return wrapMe();
-		      if (settingsOpen!=0) return null;
-		      if (xmlFileName.length()==0) {
-		         OurDialog.alert("Cannot display the next solution since no instance is currently loaded.");
-		      } else if (enumerator==null) {
-		         OurDialog.alert("Cannot display the next solution since the analysis engine is not loaded with the visualizer.");
-		      } else { // [HASLab]
-	 			 final String xmlFileName = Util.canon(Util.temporize(this.xmlFileName,0) + ".xml"); // [HASLab] get xml for current state
-				 try { enumerator.compute(new String[] {xmlFileName, comboAction.getSelectedItem().toString()}); } catch(Throwable ex) { OurDialog.alert(ex.getMessage()); }
-		      }
-		      return null;
-		   }
+	      if (wrap) return wrapMe();
+	      if (settingsOpen!=0) return null;
+	      if (xmlFileName.length()==0) {
+	         OurDialog.alert("Cannot display the next solution since no instance is currently loaded.");
+	      } else if (enumerator==null) {
+	         OurDialog.alert("Cannot display the next solution since the analysis engine is not loaded with the visualizer.");
+	      } else {
+ 			 final String xmlFileName = Util.canon(this.xmlFileName);
+			 try { enumerator.compute(new String[] {xmlFileName, comboAction.getSelectedItem().toString()}); } catch(Throwable ex) { OurDialog.alert(ex.getMessage()); }
+	      }
+	      return null;
+	   }
 
 	   /** This method updates the graph with the current theme customization. */
 	   private Runner doApply() {
@@ -1077,13 +1076,13 @@ public final class VizGUI implements ComponentListener {
 		// ========================================ACTIONS=====================================================//
 
 		/** Trace navigation combo box. */
-		// [HASLab]
+	    // [HASLab] simulator
 		private JComboBox<Object> comboAction;
 
 		/**
 		 * Populates the JPanel with the objects for trace navigation.
 		 */
-		// [HASLab] 
+		// [HASLab] simulator
 		private final void addActionJPanel() {
 
 			final String[] atomnames = this.createTimeAtoms(0);
@@ -1099,7 +1098,7 @@ public final class VizGUI implements ComponentListener {
 		/** 
 		 * Updates the state of trace navigation pane given a new trace length.
 		 */
-		// [HASLab]
+		// [HASLab] simulator
 		private final void repopulateActionPanel() {
 			
 			AlloyType r = null;
@@ -1200,10 +1199,8 @@ public final class VizGUI implements ComponentListener {
 					}
 		
 					xmlLoaded.remove(getXMLfilename());
-					if (comboTime.getSelectedIndex() >= 0)  {
-						loadXML(getXMLfilename(), false, comboTime.getSelectedIndex());
-						if (thmFileName != "") loadThemeFile(thmFileName);
-					}
+					if (comboTime.getSelectedIndex() >= 0) 
+						loadXML(getXMLfilename(), true, comboTime.getSelectedIndex());
 				}
 		
 			});

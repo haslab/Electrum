@@ -1,4 +1,5 @@
 /* Alloy Analyzer 4 -- Copyright (c) 2006-2009, Felix Chang
+ * Electrum -- Copyright (c) 2015-present, Nuno Macedo
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files
  * (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify,
@@ -12,7 +13,6 @@
  * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF
  * OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-
 package edu.mit.csail.sdg.alloy4;
 
 import java.awt.Color;
@@ -36,8 +36,10 @@ import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 
-/** This class asks the user for permission to email a bug report when an uncaught exception occurs. */
-
+/** This class asks the user for permission to email a bug report when an uncaught exception occurs. 
+ * 
+ * @modified Nuno Macedo // [HASLab] electrum-base
+ * */
 public final class MailBug implements UncaughtExceptionHandler, Runnable {
 
    /** The version number of the most recent Alloy4 (as queried from alloy.mit.edu); -1 if alloy.mit.edu has not replied yet. */
@@ -103,6 +105,7 @@ public final class MailBug implements UncaughtExceptionHandler, Runnable {
    private static String prepareCrashReport (Thread thread, Throwable ex, String email, String problem) {
       StringWriter sw = new StringWriter();
       PrintWriter pw = new PrintWriter(sw);
+      // [HASLab]
       pw.printf("Alloy Analyzer %s (Electrum Analyzer %s) crash report (Build Date = %s)\n", Version.version(), Version.eleVersion(), Version.buildDate());
       pw.printf("\n========================= Email ============================\n%s\n", Util.convertLineBreak(email).trim());
       pw.printf("\n========================= Problem ==========================\n%s\n", Util.convertLineBreak(problem).trim());

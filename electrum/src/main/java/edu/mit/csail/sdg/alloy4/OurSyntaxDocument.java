@@ -38,7 +38,11 @@ import javax.swing.text.TabStop;
  *
  * <p><b>Thread Safety:</b> Can be called only by the AWT event thread
  *
+<<<<<<< HEAD
  * @modified: Nuno Macedo, Eduardo Pessoa // [HASLab] temporal and action keywords
+=======
+ * @modified: Nuno Macedo, Eduardo Pessoa // [HASLab] electrum-temporal
+>>>>>>> master
  */
 
 class OurSyntaxDocument extends DefaultStyledDocument {

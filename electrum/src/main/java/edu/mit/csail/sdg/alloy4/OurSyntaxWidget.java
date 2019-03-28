@@ -50,7 +50,7 @@ import edu.mit.csail.sdg.alloy4.Listener.Event;
  *
  * <p><b>Thread Safety:</b> Can be called only by the AWT event thread
  * 
- * @modified Nuno Macedo // [HASLab] file extensions
+ * @modified Nuno Macedo // [HASLab] electrum-base
  */
 
 public final class OurSyntaxWidget {

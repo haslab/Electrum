@@ -72,7 +72,7 @@ import edu.mit.csail.sdg.alloy4compiler.ast.VisitQuery;
  *
  * <p> Please see ScopeComputer.java for the exact rules for deriving the missing scopes.
  * 
- * @modified Nuno Macedo // [HASLab] temporal model finding
+ * @modified Nuno Macedo // [HASLab] electrum-temporal
  */
 
 final class ScopeComputer {
