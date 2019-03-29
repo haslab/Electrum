@@ -1003,7 +1003,7 @@ public final class A4Solution {
 			loop = instances.size()-1;
 		
 		// create temporal instance
-		TemporalInstance prev = new TemporalInstance(instances, loop);
+		TemporalInstance prev = new TemporalInstance(instances, loop, 1);
 		eval = new Evaluator(prev, solver.options());
 		rename(this, null, null, new UniqueNameGenerator());
 		toStringCache = null;
