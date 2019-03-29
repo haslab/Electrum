@@ -34,6 +34,7 @@ import edu.mit.csail.sdg.alloy4compiler.ast.Sig.Field;
 import edu.mit.csail.sdg.alloy4compiler.ast.Sig.PrimSig;
 import edu.mit.csail.sdg.alloy4compiler.ast.Sig.SubsetSig;
 import edu.mit.csail.sdg.alloy4compiler.ast.Type;
+import kodkod.ast.Relation;
 
 /**
  * This helper class contains helper routines for writing an A4Solution object
@@ -104,7 +105,11 @@ public final class A4SolutionWriter {
 	           A4TupleSet ts = (A4TupleSet)(sol.eval(expr.minus(sum),state)); // [HASLab]
 	           int n = ts.size();
 	           if (n<=0) break;
-	           if (lastSize>0 && lastSize<=n) throw new ErrorFatal("An internal error occurred in the evaluator.");
+	           if (lastSize>0 && lastSize<=n) 
+	        	   if (!(sol.a2k(expr) instanceof Relation) && // [HASLab] hack to support skolems that may not exist in every state
+	        			   !((Relation) sol.a2k(expr)).isSkolem())
+	        	   	throw new ErrorFatal("An internal error occurred in the evaluator.");
+	        	   else break;
 	           lastSize=n;
 	           Type extra = ts.iterator().next().type();
 	           type = type.merge(extra);
