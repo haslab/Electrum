@@ -19,7 +19,9 @@ import edu.mit.csail.sdg.alloy4.A4Reporter;
 import edu.mit.csail.sdg.alloy4.Err;
 import edu.mit.csail.sdg.alloy4.ErrorWarning;
 import edu.mit.csail.sdg.alloy4compiler.ast.Command;
+import edu.mit.csail.sdg.alloy4compiler.ast.ExprConstant;
 import edu.mit.csail.sdg.alloy4compiler.ast.Module;
+import edu.mit.csail.sdg.alloy4compiler.ast.Sig;
 import edu.mit.csail.sdg.alloy4compiler.parser.CompUtil;
 import edu.mit.csail.sdg.alloy4compiler.translator.A4Options;
 import edu.mit.csail.sdg.alloy4compiler.translator.A4Solution;
@@ -47,57 +49,169 @@ public final class ExampleUsingTheCompiler {
         // The visualizer (We will initialize it to nonnull when we visualize an Alloy solution)
         VizGUI viz = null;
 
-        // Alloy4 sends diagnostic messages and progress reports to the A4Reporter.
-        // By default, the A4Reporter ignores all these events (but you can extend the A4Reporter to display the event for the user)
         A4Reporter rep = new A4Reporter() {
-            // For example, here we choose to display each "warning" by printing it to System.out
-            @Override public void warning(ErrorWarning msg) {
-                System.out.print("Relevance Warning:\n"+(msg.toString().trim())+"\n\n");
-                System.out.flush();
+            
+            @Override public void translate (String solver, String strat, int bitwidth, int maxseq, int skolemDepth, int symmetry) {
+            	
             }
+            
+            @Override public void solve (int primaryVars, int totalVars, int clauses) {
+            
+            }
+            
         };
-        String filename = "model.ele";
-        //for(String filename:args) {
-            // Parse+typecheck the model
-            System.out.println("=========== Parsing+Typechecking "+filename+" =============");
-            //Module world = CompUtil.parseEverything_fromFile(rep, null, filename);
+        args = new String[] {"/Users/nmm/hotel_event.ele"};
+        for(String filename:args) {
 
-             Module world = CompUtil.parseEverything_fromFile(rep, null, filename);
-
+            Module world = CompUtil.parseEverything_fromFile(rep, null, filename);
+            Sig en = world.getAllSigs().get(6);
+            Sig ci = world.getAllSigs().get(7);
+            Sig co = world.getAllSigs().get(8);
 
             // Choose some default options for how you want to execute the commands
             A4Options options = new A4Options();
-            options.solver = A4Options.SatSolver.SAT4J;
+            options.solver = A4Options.SatSolver.GlucoseJNI;
+            options.originalFilename = filename;
 
             for (Command command: world.getAllCommands()) {
                 // Execute the command
 
-                System.out.println("============ Command "+command+": ============");
-                A4Solution ans = TranslateAlloyToKodkod.execute_command(rep, world.getAllReachableSigs(), command, options);
-                //A4Solution ans = new A4Solution();
-                System.out.println(TranslateAlloyToKodkod.alloy2kodkod(ans,world.getAllReachableFacts()).toString());
-                //(rep, world.getAllReachableSigs(), command, options);
-                //System.out.println("KODKOD: "+TranslateAlloyToKodkod.alloy2kodkod(ans,).toString());
-                System.out.println(ans.getAllAtoms().toString());
-                // Print the outcome
-//                System.out.println(ans.formulas.toString());
-                System.out.println(ans.getAllReachableSigs().toString());
-                // If satisfiable...
-                /*if (ans.satisfiable()) {
-                    // You can query "ans" to find out the values of each set or type.
-                    // This can be useful for debugging.
-                    //
-                    // You can also write the outcome to an XML file
-                    ans.writeXML("alloy_example_output.xml");
-                    //
-                    // You can then visualize the XML file by calling this:
-                    if (viz==null) {
-                        viz = new VizGUI(false, "alloy_example_output.xml", null);
-                    } else {
-                        viz.loadXML("alloy_example_output.xml", true);
-                    }
-                }*/
-       //     }
+            	long now; float tot=0;
+            	A4Solution ans = null;
+            	
+            	for (int i = 0; i<10; i++) {
+	            	now = System.currentTimeMillis();
+	                ans = TranslateAlloyToKodkod.execute_command(rep, world.getAllReachableSigs(), command, options);
+	                tot += System.currentTimeMillis()-now;
+            	}
+                System.out.println("base (l"+(ans.getLastState()+1)+"): "+tot/10/1000);
+                
+                A4Solution base = ans.next().next();
+                
+                base.writeXML("alloy_example_output.xml");
+                new VizGUI(false, "alloy_example_output.xml", null);
+                
+                tot = 0;
+            	for (int i = 0; i<10; i++) {
+	                now = System.currentTimeMillis();
+	                ans = base.next(en.prime().some(), 3);
+	                tot+= System.currentTimeMillis()-now;
+            	}
+                System.out.println("entry at 4? "+ans.satisfiable()+(ans.satisfiable()?" (l"+(ans.getLastState()+1)+"): ":": ")+tot/10/1000);
+
+                ans.writeXML("alloy_example_output.xml");
+                new VizGUI(false, "alloy_example_output.xml", null);
+                
+                tot = 0;
+            	for (int i = 0; i<10; i++) {
+	                now = System.currentTimeMillis();
+	                ans = base.next(ci.prime().some(), 3);
+	                tot+= System.currentTimeMillis()-now;
+            	}
+                System.out.println("checkin at 4? "+ans.satisfiable()+(ans.satisfiable()?" (l"+(ans.getLastState()+1)+"): ":": ")+tot/10/1000);
+
+                tot = 0;
+            	for (int i = 0; i<10; i++) {
+	                now = System.currentTimeMillis();
+	                ans = base.next(co.prime().some(), 3);
+	                tot+= System.currentTimeMillis()-now;
+            	}
+                System.out.println("checkout at 4? "+ans.satisfiable()+(ans.satisfiable()?" (l"+(ans.getLastState()+1)+"): ":": ")+tot/10/1000);
+
+
+                
+                tot = 0;
+            	for (int i = 0; i<10; i++) {
+	                now = System.currentTimeMillis();
+	                ans = base.next(ci.prime().some(), 4);
+	                tot+= System.currentTimeMillis()-now;
+            	}
+                System.out.println("checkin at 5? "+ans.satisfiable()+(ans.satisfiable()?" (l"+(ans.getLastState()+1)+"): ":": ")+tot/10/1000);
+
+                tot = 0;
+            	for (int i = 0; i<10; i++) {
+	                now = System.currentTimeMillis();
+	                ans = base.next(co.prime().some(), 4);
+	                tot+= System.currentTimeMillis()-now;
+            	}
+                System.out.println("checkout at 5? "+ans.satisfiable()+(ans.satisfiable()?" (l"+(ans.getLastState()+1)+"): ":": ")+tot/10/1000);
+
+                tot = 0;
+            	for (int i = 0; i<10; i++) {
+	                now = System.currentTimeMillis();
+	                ans = base.next(en.prime().some(), 4);
+	                tot+= System.currentTimeMillis()-now;
+            	}
+                System.out.println("entry at 5? "+ans.satisfiable()+(ans.satisfiable()?" (l"+(ans.getLastState()+1)+"): ":": ")+tot/10/1000);
+                System.out.println("");
+
+            	for (int i = 0; i<10; i++) {
+	            	now = System.currentTimeMillis();
+	                ans = base.next();
+	                tot += System.currentTimeMillis()-now;
+            	}
+                System.out.println("base (l"+(ans.getLastState()+1)+"): "+tot/10/1000);
+                base = ans.next();
+
+                tot = 0;
+            	for (int i = 0; i<10; i++) {
+	                now = System.currentTimeMillis();
+	                ans = base.next(ci.prime().some(), 3);
+	                tot+= System.currentTimeMillis()-now;
+            	}
+                System.out.println("checkin at 4? "+ans.satisfiable()+(ans.satisfiable()?" (l"+(ans.getLastState()+1)+"): ":": ")+tot/10/1000);
+
+                tot = 0;
+            	for (int i = 0; i<10; i++) {
+	                now = System.currentTimeMillis();
+	                ans = base.next(co.prime().some(), 3);
+	                tot+= System.currentTimeMillis()-now;
+            	}
+                System.out.println("checkout at 4? "+ans.satisfiable()+(ans.satisfiable()?" (l"+(ans.getLastState()+1)+"): ":": ")+tot/10/1000);
+
+                tot = 0;
+            	for (int i = 0; i<10; i++) {
+	                now = System.currentTimeMillis();
+	                ans = base.next(en.prime().some(), 3);
+	                tot+= System.currentTimeMillis()-now;
+            	}
+                System.out.println("entry at 4? "+ans.satisfiable()+(ans.satisfiable()?" (l"+(ans.getLastState()+1)+"): ":": ")+tot/10/1000);
+
+                
+                tot = 0;
+            	for (int i = 0; i<10; i++) {
+	                now = System.currentTimeMillis();
+	                ans = base.next(ci.prime().some(), 4);
+	                tot+= System.currentTimeMillis()-now;
+            	}
+                System.out.println("checkin at 5? "+ans.satisfiable()+(ans.satisfiable()?" (l"+(ans.getLastState()+1)+"): ":": ")+tot/10/1000);
+
+                tot = 0;
+            	for (int i = 0; i<10; i++) {
+	                now = System.currentTimeMillis();
+	                ans = base.next(co.prime().some(), 4);
+	                tot+= System.currentTimeMillis()-now;
+            	}
+                System.out.println("checkout at 5? "+ans.satisfiable()+(ans.satisfiable()?" (l"+(ans.getLastState()+1)+"): ":": ")+tot/10/1000);
+
+                tot = 0;
+            	for (int i = 0; i<10; i++) {
+	                now = System.currentTimeMillis();
+	                ans = base.next(en.prime().some(), 4);
+	                tot+= System.currentTimeMillis()-now;
+            	}
+                System.out.println("entry at 5? "+ans.satisfiable()+(ans.satisfiable()?" (l"+(ans.getLastState()+1)+"): ":": ")+tot/10/1000);
+
+                
+//                if (ans.satisfiable()) {
+//                    ans.writeXML("alloy_example_output.xml");
+//                    if (viz==null) {
+//                        viz = new VizGUI(false, "alloy_example_output.xml", null);
+//                    } else {
+//                        viz.loadXML("alloy_example_output.xml", true);
+//                    }
+//                }
+            }
         }
     }
 }
