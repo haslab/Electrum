@@ -34,7 +34,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -1260,7 +1259,7 @@ public final class A4Solution {
 	public A4Solution next(Expr f, int p) throws Err { // [HASLab] simulator
 		if (!solved) throw new ErrorAPI("This solution is not yet solved, so next() is not allowed.");
 		if (eval==null) return this;
-		if (nextCache==null) nextCache=new A4Solution(this,f,p); // [HASLab] simulator
+		nextCache=new A4Solution(this,f,p); // [HASLab] simulator, do not cache, may have changed
 		return nextCache;
 	}
 
