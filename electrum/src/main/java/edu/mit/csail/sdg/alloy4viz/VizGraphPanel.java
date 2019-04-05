@@ -275,6 +275,9 @@ public final class VizGraphPanel extends JPanel {
 					p.setLayout(new BoxLayout(p, BoxLayout.LINE_AXIS));
 					JPanel aux = new JPanel();
 					JButton branch = new JButton(new String(Character.toChars(0x21dd)));
+					branch.setPreferredSize(new Dimension(60, 30));
+					branch.setMinimumSize(new Dimension(60, 30));
+
 					actionMenu = new JPopupMenu("Menu");
 					branch.addMouseListener(new MouseAdapter() {
 						public void mouseReleased(MouseEvent e) {
@@ -284,8 +287,11 @@ public final class VizGraphPanel extends JPanel {
 						}
 					});
 					
-					JLabel action = new JLabel("Action[arg1,arg2]", SwingConstants.CENTER);
+					JLabel action = new JLabel("Action[ar1,ar2]", SwingConstants.CENTER);
 					action.setFont(action.getFont().deriveFont(Font.BOLD));
+					action.setMinimumSize(action.getPreferredSize());
+					action.setMaximumSize(action.getPreferredSize());
+					action.setPreferredSize(action.getPreferredSize());
 					this.actionLabel.add(action);
 					
 					aux.add(action);
@@ -353,6 +359,7 @@ public final class VizGraphPanel extends JPanel {
 		return diagramScrollPanel;
 	}
 	
+	// TODO: push this back up to vizgui, avoids passing vizgui here
 	private JPanel createTempPanel(int i) {
 		JPanel tmpPanel = new JPanel();
 		tmpPanel.setLayout(new BoxLayout(tmpPanel, BoxLayout.LINE_AXIS));
@@ -363,17 +370,21 @@ public final class VizGraphPanel extends JPanel {
 		this.rightTime.add(rightTime);
 		leftTime.setEnabled(false);
 		rightTime.setEnabled(false);
-		rightTime.setMaximumSize(rightTime.getPreferredSize());
-		leftTime.setMaximumSize(leftTime.getPreferredSize());
+		rightTime.setMaximumSize(new Dimension(1,1));
+		leftTime.setMaximumSize(new Dimension(1,1));
+		rightTime.setMinimumSize(new Dimension(1,1));
+		leftTime.setMinimumSize(new Dimension(1,1));
 		JLabel comboTime = new JLabel("State 99 (99) 999", SwingConstants.CENTER);
+		comboTime.setFont(comboTime.getFont().deriveFont(Font.BOLD));
+		comboTime.setMinimumSize(comboTime.getPreferredSize());
+		comboTime.setMaximumSize(comboTime.getPreferredSize());
+		comboTime.setPreferredSize(comboTime.getPreferredSize());
 		this.timeLabel.add(comboTime);
 		JLabel tempMsg = new JLabel("");
 		this.tempMsg.add(tempMsg);
 
 		JButton nextButton = new JButton(new String(Character.toChars(0x21ba)));
 		nextButton.setPreferredSize(new Dimension(40, rightTime.getHeight()));
-		rightTime.setPreferredSize(new Dimension(40, rightTime.getHeight()));
-		leftTime.setPreferredSize(new Dimension(40, rightTime.getHeight()));
 
 		nextButton.addActionListener(new ActionListener() {
 			public final void actionPerformed(ActionEvent e) {
@@ -398,14 +409,16 @@ public final class VizGraphPanel extends JPanel {
 		JPanel aux = new JPanel();
 		aux.setLayout(new GridLayout());
 		aux.add(leftTime);
-		aux.setPreferredSize(new Dimension(40, rightTime.getHeight()));
+		aux.setPreferredSize(new Dimension(60, 30));
+		aux.setMaximumSize(new Dimension(60,30));
 		tmpPanel.add(aux);
 		tmpPanel.add(comboTime);
 		tmpPanel.add(nextButton);
 		aux = new JPanel();
 		aux.setLayout(new GridLayout());
 		aux.add(rightTime);
-		aux.setPreferredSize(new Dimension(40, rightTime.getHeight()));
+		aux.setPreferredSize(new Dimension(60, 30));
+		aux.setMaximumSize(new Dimension(60,30));
 		tmpPanel.add(aux);
 
 		if (i != vizState.size() - 1)
