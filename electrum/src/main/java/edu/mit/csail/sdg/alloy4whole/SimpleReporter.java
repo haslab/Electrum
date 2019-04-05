@@ -394,11 +394,10 @@ final class SimpleReporter extends A4Reporter {
     static final class SimpleTask2 implements WorkerTask {
         private static final long serialVersionUID = 0;
         public String filename = "";
-//        public String act = null; // [HASLab] simulator
+        public int index = -1; // [HASLab] simulator
         public transient WorkerCallback out = null;
         private void cb(Object... objs) throws Exception { out.callback(objs); }
         public void run(WorkerCallback out) throws Exception {
-    		System.out.println("aaaa");
             this.out = out;
             cb("S2", "Enumerating...\n");
             A4Solution sol;
@@ -420,8 +419,7 @@ final class SimpleReporter extends A4Reporter {
                 "Currently only MiniSat and SAT4J are supported."); return;}
             int tries=0;
             while(true) {
-//                sol=sol.next(act); // [HASLab] simulator
-                sol=sol.next();
+                sol=sol.next(this.index); // [HASLab] simulator
                 if (!sol.satisfiable())
                    {cb("pop", "There are no more satisfying instances.\n\n" +
                    "Note: due to symmetry breaking and other optimizations,\n" +
