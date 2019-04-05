@@ -463,38 +463,6 @@ public final class VizGraphPanel extends JPanel {
 				}
 			}
 			
-			AlloyModel model = vizState.get(0).getOriginalModel();
-			AlloyType event = model.hasType(Action2Alloy.ACTION_SIG); 
-			if (event != null) {
-				List<AlloyType> events = model.getSubTypes(event);
-				if (i < vizState.size() - 1) {
-					for (AlloyType ev : events) {
-						actionMenu.add(new JMenuItem(ev.getName()));
-					}
-					
-					AlloyInstance inst = vizState.get(i).getOriginalInstance();
-					// find the type of the event fired in this instance
-					AlloyRelation fired = null;
-					for(AlloyRelation r:model.getRelations()) 
-						if (r.getName().equals(Action2Alloy.FIRED_REL) && !inst.relation2tuples(r).isEmpty()) fired = r;
-					
-					StringBuilder sb = new StringBuilder();
-					AlloyType firedtype = fired.getTypes().get(1);					
-					sb.append(firedtype.getName());
-					sb.append('[');
-					// find the actual arguments of the fired event
-					AlloyTuple firedargs = inst.relation2tuples(fired).iterator().next();
-					for (int j = 2; j < firedargs.getArity(); j++) {
-						sb.append(firedargs.getAtoms().get(j).toString());
-						if (j < firedargs.getArity()-1)
-							sb.append(',');
-					}
-					sb.append(']');
-					actionLabel.get(i).setText(sb.toString());
-				}
-			}
-			
-
 			AlloyInstance myInstance;
 			File f = new File(vizGUI.getXMLfilename());
 			try {
@@ -505,6 +473,40 @@ public final class VizGraphPanel extends JPanel {
 			} catch (Throwable e) {
 				System.out.println("a");
 			}
+			
+			AlloyModel model = vizState.get(0).getOriginalModel();
+			AlloyType event = model.hasType(Action2Alloy.ACTION_SIG); 
+			if (event != null) {
+				List<AlloyType> events = model.getSubTypes(event);
+				if (i < vizState.size() - 1) {
+					for (AlloyType ev : events) {
+						actionMenu.add(new JMenuItem(ev.getName().substring(1)));
+					}
+					
+					AlloyInstance inst = vizState.get(c).getOriginalInstance();
+					// find the type of the event fired in this instance
+					AlloyRelation fired = null;
+					for(AlloyRelation r:model.getRelations()) 
+						if (r.getName().equals(Action2Alloy.FIRED_REL) && !inst.relation2tuples(r).isEmpty()) fired = r;
+					
+					StringBuilder sb = new StringBuilder();
+					AlloyType firedtype = fired.getTypes().get(1);					
+					sb.append(firedtype.getName().substring(1));
+					sb.append('[');
+					// find the actual arguments of the fired event
+					AlloyTuple firedargs = inst.relation2tuples(fired).iterator().next();
+					for (int j = 2; j < firedargs.getArity(); j++) {
+						if (!firedargs.getAtoms().get(j).toString().equals("_Dummy0")) {
+						sb.append(firedargs.getAtoms().get(j).toString());
+							if (j < firedargs.getArity()-1)
+								sb.append(',');
+						}
+					}
+					sb.append(']');
+					actionLabel.get(i).setText(sb.toString());
+				}
+			}
+			
 
 		}
 		remakeAll();

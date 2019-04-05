@@ -423,7 +423,9 @@ final class SimpleReporter extends A4Reporter {
                 if (!sol.satisfiable())
                    {cb("pop", "There are no more satisfying instances.\n\n" +
                    "Note: due to symmetry breaking and other optimizations,\n" +
-                   "some equivalent solutions may have been omitted."); return;}
+                   "some equivalent solutions may have been omitted."); 
+//                   cb("declare", filename); // [HASLab] simulator, this pops the viz back up, why?
+                   return;}
                 String toString = sol.toString();
                 synchronized(SimpleReporter.class) {
                     if (!latestKodkods.add(toString)) if (tries<100) { tries++; continue; }
