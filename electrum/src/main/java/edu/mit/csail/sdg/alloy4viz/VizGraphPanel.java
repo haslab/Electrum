@@ -20,6 +20,8 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -43,6 +45,7 @@ import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
+import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
@@ -57,6 +60,7 @@ import edu.mit.csail.sdg.alloy4.OurBorder;
 import edu.mit.csail.sdg.alloy4.OurCombobox;
 import edu.mit.csail.sdg.alloy4.OurUtil;
 import edu.mit.csail.sdg.alloy4.Util;
+import edu.mit.csail.sdg.alloy4compiler.parser.Action2Alloy;
 import edu.mit.csail.sdg.alloy4graph.GraphViewer;
 
 /**
@@ -223,6 +227,8 @@ public final class VizGraphPanel extends JPanel {
 
 	final VizGUI vizGUI;
 
+	private JPopupMenu actionMenu;
+
 	/**
 	 * Create a splitpane showing the graph on top, as well as projection comboboxes
 	 * on the bottom.
@@ -242,64 +248,64 @@ public final class VizGraphPanel extends JPanel {
 		setMaximumSize(new Dimension(Short.MAX_VALUE, Short.MAX_VALUE));
 		navPanel = new JPanel();
 		JScrollPane navscroll = OurUtil.scrollpane(navPanel);
-		JPanel diagramsScrollPanel = new JPanel();
-		diagramsScrollPanel.setLayout(new BoxLayout(diagramsScrollPanel, BoxLayout.LINE_AXIS));
-		Dimension d = null;
+		JPanel diagramsScrollPanel1 = new JPanel();
+		diagramsScrollPanel1.setLayout(new BoxLayout(diagramsScrollPanel1, BoxLayout.LINE_AXIS));
 		for (int i = 0; i < vizState.size(); i++) {
 
-			JPanel split_ = createGraphPanel(i);
-			diagramsScrollPanel.add(split_);
-
+			JScrollPane split_ = createGraphPanel(i);
+			diagramsScrollPanel1.add(split_);
 			split_.setPreferredSize(new Dimension(0,0));
 			
-			if (i < vizState.size() - 1) {
-				JPanel p = new JPanel();
-				p.setLayout(new BoxLayout(p, BoxLayout.PAGE_AXIS));
-				JPanel aux = new JPanel();
-				JLabel action = new JLabel("[Action]");
-				action.setFont(action.getFont().deriveFont(Font.BOLD));
-				JButton branch = new JButton(new String(Character.toChars(0x21dd)));
-				branch.setPreferredSize(new Dimension(40, branch.getPreferredSize().height));
+		}
 
-				final JPopupMenu menu = new JPopupMenu("Menu");
-				menu.add("[Type1]");
-				menu.add("[Type2]");
-				menu.add("[Type3]");
-				menu.getComponent(0).setForeground(new Color(0,128,0));
-				menu.getComponent(1).setForeground(new Color(178,34,34));
-				menu.getComponent(2).setForeground(new Color(255,215,0));
-				menu.getComponent(1).setEnabled(false);
-				branch.addMouseListener(new MouseAdapter() {
-					public void mouseReleased(MouseEvent e) {
-						if (e.getButton() == 1) {
-							menu.show(e.getComponent(), e.getX(), e.getY());
+		JPanel diagramsScrollPanel2 = new JPanel();
+		diagramsScrollPanel2.add(Box.createHorizontalGlue());
+		diagramsScrollPanel2.setLayout(new BoxLayout(diagramsScrollPanel2, BoxLayout.LINE_AXIS));
+		for (int i = 0; i < vizState.size(); i++) {
+
+			JPanel split2_ = createTempPanel(i);
+			diagramsScrollPanel2.add(split2_);
+
+			AlloyModel model = vizState.get(0).getOriginalModel();
+			AlloyType event = model.hasType(Action2Alloy.ACTION_SIG); 
+			if (event != null) {
+				if (i < vizState.size() - 1) {
+					diagramsScrollPanel2.add(Box.createHorizontalGlue());
+					JPanel p = new JPanel();
+					p.setLayout(new BoxLayout(p, BoxLayout.LINE_AXIS));
+					JPanel aux = new JPanel();
+					JButton branch = new JButton(new String(Character.toChars(0x21dd)));
+					actionMenu = new JPopupMenu("Menu");
+					branch.addMouseListener(new MouseAdapter() {
+						public void mouseReleased(MouseEvent e) {
+							if (e.getButton() == 1) {
+								actionMenu.show(e.getComponent(), e.getX(), e.getY());
+							}
 						}
-					}
-				});
+					});
+					
+					JLabel action = new JLabel("Action[arg1,arg2]", SwingConstants.CENTER);
+					action.setFont(action.getFont().deriveFont(Font.BOLD));
+					this.actionLabel.add(action);
+					
+					aux.add(action);
+					aux.add(branch);
+					aux.setLayout(new BoxLayout(aux, BoxLayout.LINE_AXIS));
+					p.add(aux);
 
-				action.setMaximumSize(action.getPreferredSize());
-				aux.add(action);
-				aux.add(branch);
-				aux.setLayout(new BoxLayout(aux, BoxLayout.LINE_AXIS));
-				p.add(aux);
-				for (String[] s : new String[][] { new String[] { "[arg1]", "[val1]" }, new String[] { "[arg2]", "[val2]" },
-						new String[] { "[arg3]", "[val3]" } }) {
-					JPanel auxx = new JPanel();
-					JLabel params1 = new JLabel("\t" + s[0] + ": ");
-					params1.setFont(params1.getFont().deriveFont(Font.BOLD));
-					JLabel params2 = new JLabel(s[1]);
-					auxx.add(params1);
-					auxx.add(params2);
-					p.add(auxx);
-					auxx.setLayout(new BoxLayout(auxx, BoxLayout.LINE_AXIS));
-					auxx.setAlignmentX(Component.LEFT_ALIGNMENT);
+					diagramsScrollPanel2.add(p);
+					diagramsScrollPanel2.add(Box.createHorizontalGlue());
 				}
-				aux.setAlignmentX(Component.LEFT_ALIGNMENT);
-
-//				diagramsScrollPanel.add(p);
 			}
 
 		}
+		diagramsScrollPanel2.add(Box.createHorizontalGlue());
+
+		diagramsScrollPanel1.setPreferredSize(new Dimension(Integer.MAX_VALUE,Integer.MAX_VALUE));
+		JSplitPane diagramsScrollPanel = OurUtil.splitpane(JSplitPane.VERTICAL_SPLIT, diagramsScrollPanel1, diagramsScrollPanel2, 0);
+		diagramsScrollPanel.setLayout(new BoxLayout(diagramsScrollPanel, BoxLayout.PAGE_AXIS));
+		diagramsScrollPanel.setResizeWeight(1.0);
+		diagramsScrollPanel.setDividerSize(0);
 		split = OurUtil.splitpane(JSplitPane.VERTICAL_SPLIT, diagramsScrollPanel, navscroll, 0);
 		split.setResizeWeight(1.0);
 		split.setDividerSize(0);
@@ -308,9 +314,46 @@ public final class VizGraphPanel extends JPanel {
 		remakeAll();
 	}
 
-	private JPanel createGraphPanel(int i) {
+	private JScrollPane createGraphPanel(int i) {
 		Border b = new EmptyBorder(0, 0, 0, 0);
 
+		JPanel graphPanel = OurUtil.make(new JPanel(), Color.BLACK, Color.WHITE, b);
+		graphPanels.add(graphPanel);
+		graphPanel.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mousePressed(MouseEvent ev) {
+				// We let Ctrl+LeftClick bring up the popup menu, just like RightClick,
+				// since many Mac mouses do not have a right button.
+				if (viewer == null)
+					return;
+				else if (ev.getButton() == MouseEvent.BUTTON3) {
+				} else if (ev.getButton() == MouseEvent.BUTTON1 && ev.isControlDown()) {
+				} else
+					return;
+				viewer.alloyPopup(graphPanel, ev.getX(), ev.getY());
+			}
+		});
+
+		JScrollPane diagramScrollPanel = OurUtil.scrollpane(graphPanel, new OurBorder(true, true, true, false));
+		diagramScrollPanel.getVerticalScrollBar().addAdjustmentListener(new AdjustmentListener() {
+			public void adjustmentValueChanged(AdjustmentEvent e) {
+				diagramScrollPanel.invalidate();
+				diagramScrollPanel.repaint();
+				diagramScrollPanel.validate();
+			}
+		});
+		diagramScrollPanel.getHorizontalScrollBar().addAdjustmentListener(new AdjustmentListener() {
+			public void adjustmentValueChanged(AdjustmentEvent e) {
+				diagramScrollPanel.invalidate();
+				diagramScrollPanel.repaint();
+				diagramScrollPanel.validate();
+			}
+		});
+		diagramScrollPanels.add(diagramScrollPanel);
+		return diagramScrollPanel;
+	}
+	
+	private JPanel createTempPanel(int i) {
 		JPanel tmpPanel = new JPanel();
 		tmpPanel.setLayout(new BoxLayout(tmpPanel, BoxLayout.LINE_AXIS));
 
@@ -323,22 +366,14 @@ public final class VizGraphPanel extends JPanel {
 		rightTime.setMaximumSize(rightTime.getPreferredSize());
 		leftTime.setMaximumSize(leftTime.getPreferredSize());
 		JLabel comboTime = new JLabel("State 99 (99) 999", SwingConstants.CENTER);
-		comboTime.setMinimumSize(comboTime.getPreferredSize());
-		comboTime.setPreferredSize(comboTime.getPreferredSize());
-		comboTime.setMaximumSize(comboTime.getPreferredSize());
-		comboTime.setAlignmentY(Component.CENTER_ALIGNMENT);
 		this.timeLabel.add(comboTime);
 		JLabel tempMsg = new JLabel("");
 		this.tempMsg.add(tempMsg);
-		if (i == 0)
-			rightTime.setVisible(false);
-		if (i == vizState.size() - 1)
-			leftTime.setVisible(false);
 
 		JButton nextButton = new JButton(new String(Character.toChars(0x21ba)));
 		nextButton.setPreferredSize(new Dimension(40, rightTime.getHeight()));
-
-//		comboTime.setRenderer(new TimePainter()); // color back loop and last time differently
+		rightTime.setPreferredSize(new Dimension(40, rightTime.getHeight()));
+		leftTime.setPreferredSize(new Dimension(40, rightTime.getHeight()));
 
 		nextButton.addActionListener(new ActionListener() {
 			public final void actionPerformed(ActionEvent e) {
@@ -360,73 +395,31 @@ public final class VizGraphPanel extends JPanel {
 			}
 		});
 
-//		comboTime.setMaximumSize(comboTime.getPreferredSize());
-		tmpPanel.add(Box.createHorizontalGlue());
-//		tmpPanel.add(tempMsg);
 		JPanel aux = new JPanel();
-		aux.setLayout(new BoxLayout(aux, BoxLayout.LINE_AXIS));
-		aux.setPreferredSize(leftTime.getPreferredSize());
+		aux.setLayout(new GridLayout());
 		aux.add(leftTime);
-//	    aux.setBorder(BorderFactory.createLineBorder(Color.black));
+		aux.setPreferredSize(new Dimension(40, rightTime.getHeight()));
 		tmpPanel.add(aux);
 		tmpPanel.add(comboTime);
 		tmpPanel.add(nextButton);
 		aux = new JPanel();
-		aux.setLayout(new BoxLayout(aux, BoxLayout.LINE_AXIS));
-		aux.setPreferredSize(rightTime.getPreferredSize());
+		aux.setLayout(new GridLayout());
 		aux.add(rightTime);
-//	    aux.setBorder(BorderFactory.createLineBorder(Color.black));
+		aux.setPreferredSize(new Dimension(40, rightTime.getHeight()));
 		tmpPanel.add(aux);
-		tmpPanel.add(Box.createHorizontalGlue());
-		tmpPanel.setPreferredSize(new Dimension(Integer.MAX_VALUE, leftTime.getPreferredSize().height));
-//		tmpPanel.setBorder(BorderFactory.createLineBorder(Color.black));
 
-//		tmpPanel.setBorder(new EmptyBorder(0, 0, 0, 10));
+		if (i != vizState.size() - 1)
+			rightTime.setVisible(false);
+		if (i != 0)
+			leftTime.setVisible(false);
 
-		JPanel graphPanel = OurUtil.make(new JPanel(), Color.BLACK, Color.WHITE, b);
-		graphPanels.add(graphPanel);
-		graphPanel.addMouseListener(new MouseAdapter() {
-			@Override
-			public void mousePressed(MouseEvent ev) {
-				// We let Ctrl+LeftClick bring up the popup menu, just like RightClick,
-				// since many Mac mouses do not have a right button.
-				if (viewer == null)
-					return;
-				else if (ev.getButton() == MouseEvent.BUTTON3) {
-				} else if (ev.getButton() == MouseEvent.BUTTON1 && ev.isControlDown()) {
-				} else
-					return;
-				viewer.alloyPopup(graphPanel, ev.getX(), ev.getY());
-			}
-		});
-
-		JScrollPane diagramScrollPanel = OurUtil.scrollpane(graphPanel, new OurBorder(true, true, true, false));
-//		diagramScrollPanel.setBorder(BorderFactory.createLineBorder(Color.black));
-		diagramScrollPanel.getVerticalScrollBar().addAdjustmentListener(new AdjustmentListener() {
-			public void adjustmentValueChanged(AdjustmentEvent e) {
-				diagramScrollPanel.invalidate();
-				diagramScrollPanel.repaint();
-				diagramScrollPanel.validate();
-			}
-		});
-		diagramScrollPanel.getHorizontalScrollBar().addAdjustmentListener(new AdjustmentListener() {
-			public void adjustmentValueChanged(AdjustmentEvent e) {
-				diagramScrollPanel.invalidate();
-				diagramScrollPanel.repaint();
-				diagramScrollPanel.validate();
-			}
-		});
-		diagramScrollPanels.add(diagramScrollPanel);
-		JPanel split_ = new JPanel();
-		split_.setLayout(new BoxLayout(split_, BoxLayout.PAGE_AXIS));
-		split_.add(diagramScrollPanel);
-		split_.add(tmpPanel);
-		return split_;
+		return tmpPanel;
 	}
 
 	private void updateTmps() {
 		int backindex = vizState.get(0).getOriginalInstance().originalA4.getLoopState();
 		int length = 1 + vizState.get(0).getOriginalInstance().originalA4.getLastState();
+		if (actionMenu!=null) actionMenu.removeAll();
 
 		for (int i = 0; i < timeLabel.size(); i++) {
 			int c = current + i;
@@ -469,6 +462,38 @@ public final class VizGraphPanel extends JPanel {
 					tempMsg.get(i).setText("");
 				}
 			}
+			
+			AlloyModel model = vizState.get(0).getOriginalModel();
+			AlloyType event = model.hasType(Action2Alloy.ACTION_SIG); 
+			if (event != null) {
+				List<AlloyType> events = model.getSubTypes(event);
+				if (i < vizState.size() - 1) {
+					for (AlloyType ev : events) {
+						actionMenu.add(new JMenuItem(ev.getName()));
+					}
+					
+					AlloyInstance inst = vizState.get(i).getOriginalInstance();
+					// find the type of the event fired in this instance
+					AlloyRelation fired = null;
+					for(AlloyRelation r:model.getRelations()) 
+						if (r.getName().equals(Action2Alloy.FIRED_REL) && !inst.relation2tuples(r).isEmpty()) fired = r;
+					
+					StringBuilder sb = new StringBuilder();
+					AlloyType firedtype = fired.getTypes().get(1);					
+					sb.append(firedtype.getName());
+					sb.append('[');
+					// find the actual arguments of the fired event
+					AlloyTuple firedargs = inst.relation2tuples(fired).iterator().next();
+					for (int j = 2; j < firedargs.getArity(); j++) {
+						sb.append(firedargs.getAtoms().get(j).toString());
+						if (j < firedargs.getArity()-1)
+							sb.append(',');
+					}
+					sb.append(']');
+					actionLabel.get(i).setText(sb.toString());
+				}
+			}
+			
 
 			AlloyInstance myInstance;
 			File f = new File(vizGUI.getXMLfilename());
@@ -504,6 +529,8 @@ public final class VizGraphPanel extends JPanel {
 
 	/** Trace navigation buttons. */
 	private List<JButton> leftTime = new ArrayList<JButton>(), rightTime = new ArrayList<JButton>();
+
+	private List<JLabel> actionLabel = new ArrayList<JLabel>();
 
 	/** Optional message to be displayed. */
 	// [HASLab]

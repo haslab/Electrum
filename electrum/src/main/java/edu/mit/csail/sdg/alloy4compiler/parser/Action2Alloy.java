@@ -49,6 +49,9 @@ import edu.mit.csail.sdg.alloy4compiler.translator.ConvToConjunction;
  */
 public class Action2Alloy {
 
+	static public final String ACTION_SIG = "_Action";
+	static public final String FIRED_REL = "_event";
+	
 	/** the arguments of each defined action */
 	private Map<String,List<Decl>> acts_args = new HashMap<String, List<Decl>>();
 	/** the actions that modify each element */
@@ -58,7 +61,7 @@ public class Action2Alloy {
 		if (acts_args.isEmpty()) return;
 		
 		// create the parent Action signature
-		Sig action_sig = root.addSig("_Action", null, null, null, null, Attr.ABSTRACT, Attr.PRIVATE);
+		Sig action_sig = root.addSig(ACTION_SIG, null, null, null, null, Attr.ABSTRACT, Attr.PRIVATE);
 		System.out.println("Created sig "+action_sig.label+" with "+action_sig.attributes+".");
 		// create the Dummy argument signature
 		Sig dummy_sig = root.addSig("_Dummy", null, null, null, null, Attr.ONE, Attr.PRIVATE);
@@ -107,7 +110,7 @@ public class Action2Alloy {
 		
 		// create the sig E and field events with type from each action sig to the padded type
 		List<ExprHasName> ev_names = new ArrayList<ExprHasName>();
-		ev_names.add(ExprVar.make(null, "_event"));
+		ev_names.add(ExprVar.make(null, FIRED_REL));
 		Expr ev_expr = padded_act_types;
 		Decl ev = new Decl(Pos.UNKNOWN, Pos.UNKNOWN, null, null, ev_names, ev_expr);
 		System.out.println("Field "+ev_names.get(0)+ " defined with "+ ev_expr+".");	
@@ -119,7 +122,7 @@ public class Action2Alloy {
 
 		final ExprVar e_var = ExprVar.make(null, e_sig.label);
 
-		Expr mult = e_var.join(ExprVar.make(null, "_event")).one().always();
+		Expr mult = e_var.join(ExprVar.make(null, FIRED_REL)).one().always();
 		root.addFact(null, "_e_mult", mult);
 		System.out.println("Added event multiplicity fact: "+mult+".");
 
@@ -255,7 +258,7 @@ public class Action2Alloy {
 	 */
 	public void expandAction(CompModule root, Pos p, Pos isPrivate, String n, List<Decl> decls, Expr body, List<ExprVar> mods) throws Err {
 		// creates a singleton sig representing th action, extending Action
-		List<ExprVar> sig_action = Util.asList(ExprVar.make(null, "_Action"));
+		List<ExprVar> sig_action = Util.asList(ExprVar.make(null, ACTION_SIG));
 		Sig sig_this = root.addSig(actSigName(n), ExprVar.make(null, "extends"), sig_action, null, null, Attr.ONE, Attr.PRIVATE);
 		System.out.println("Created sig "+sig_this.label+" with "+sig_this.attributes+".");
 

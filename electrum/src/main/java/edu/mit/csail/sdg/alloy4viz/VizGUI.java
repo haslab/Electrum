@@ -80,6 +80,9 @@ import edu.mit.csail.sdg.alloy4graph.GraphViewer;
  */
 
 public final class VizGUI implements ComponentListener {
+	
+	   // [HASLab] simulator
+	   private static final int STATEPANES = 2;
 
 	   /** The background color for the toolbar. */
 	   private static final Color background = new Color(0.9f, 0.9f, 0.9f);
@@ -587,7 +590,7 @@ public final class VizGUI implements ComponentListener {
 	      if (!Util.onMac()) { instanceTopBox.setBackground(background); instanceArea.setBackground(background); }
 	      JComponent left = null;
 	      if (settingsOpen==1) {
-	         if (myCustomPanel==null) myCustomPanel = new VizCustomizationPanel(splitpane,myStates.get(0)); else myCustomPanel.remakeAll();
+	         if (myCustomPanel==null) myCustomPanel = new VizCustomizationPanel(splitpane,myStates.get(0)); else myCustomPanel.remakeAll(); // [HASLab] simulator
 	         left = myCustomPanel;
 	      } else if (settingsOpen>1) {
 	         if (myEvaluatorPanel==null)
@@ -680,7 +683,7 @@ public final class VizGUI implements ComponentListener {
   	 	  final String xmlFileName = Util.canon(fileName); 
 	      File f = new File(xmlFileName);
 	      if (forcefully || !xmlFileName.equals(this.xmlFileName)) {
-	    	  for (int i = 0; i < 2; i++) {
+	    	  for (int i = 0; i < STATEPANES; i++) {
 		         AlloyInstance myInstance;
 		         try {
 		            if (!f.exists()) throw new IOException("File " + xmlFileName + " does not exist.");
