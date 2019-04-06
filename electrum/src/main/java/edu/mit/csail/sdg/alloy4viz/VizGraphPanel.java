@@ -27,6 +27,9 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.AdjustmentEvent;
 import java.awt.event.AdjustmentListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
@@ -316,6 +319,23 @@ public final class VizGraphPanel extends JPanel {
 		split.setResizeWeight(1.0);
 		split.setDividerSize(0);
 		add(split);
+		
+		addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyPressed(KeyEvent e) {
+				int key = e.getKeyCode();
+				if (key == KeyEvent.VK_LEFT) {
+					if (current > 0)
+						current--;
+					updateTmps();
+				}
+				if (key == KeyEvent.VK_RIGHT) {
+					current++;
+					updateTmps();
+				}
+			}
+		});
+		
 		updateTmps();
 		remakeAll();
 	}
