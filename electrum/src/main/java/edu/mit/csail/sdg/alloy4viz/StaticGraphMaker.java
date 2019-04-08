@@ -191,7 +191,8 @@ public final class StaticGraphMaker {
       for (AlloySet set: instance.atom2sets(atom)) {
          String x = view.label.get(set); if (x.length()==0) continue;
          Boolean showLabel = view.showAsLabel.get(set);
-         if ((showLabel==null && showLabelByDefault) || (showLabel!=null && showLabel.booleanValue()))
+         // [HASLab] do not show labels of private sets
+         if (!(hidePrivate && set.isPrivate) && ((showLabel==null && showLabelByDefault) || (showLabel!=null && showLabel.booleanValue())))
             setsLabel += ((setsLabel.length()>0?", ":"")+x);
       }
       if (setsLabel.length()>0) {
