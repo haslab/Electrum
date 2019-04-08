@@ -16,6 +16,7 @@
 package edu.mit.csail.sdg.alloy4viz;
 
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
@@ -54,6 +55,7 @@ import javax.swing.SwingConstants;
 import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
 
+import edu.mit.csail.sdg.alloy4.A4Reporter;
 import edu.mit.csail.sdg.alloy4.ConstList;
 import edu.mit.csail.sdg.alloy4.OurBorder;
 import edu.mit.csail.sdg.alloy4.OurCombobox;
@@ -286,7 +288,7 @@ public final class VizGraphPanel extends JPanel {
 						}
 					});
 					
-					JLabel action = new JLabel("Action[ar1,ar2]", SwingConstants.CENTER);
+					JLabel action = new JLabel("ActionAction[arg1,arg2]", SwingConstants.CENTER);
 					action.setFont(action.getFont().deriveFont(Font.BOLD));
 					action.setMinimumSize(action.getPreferredSize());
 					action.setMaximumSize(action.getPreferredSize());
@@ -445,6 +447,14 @@ public final class VizGraphPanel extends JPanel {
 
 		return tmpPanel;
 	}
+	
+	void enableAct(String k, boolean enab) {
+		for (Component m : actionMenu.getComponents())
+			if (((JMenuItem) m).getText().equals(k.substring(1))) {
+				m.setEnabled(enab);
+				if (enab) m.setForeground(new Color(0,128,0));
+			}
+	}
 
 	private void updateTmps() {
 		int backindex = vizState.get(0).getOriginalInstance().originalA4.getLoopState();
@@ -521,18 +531,27 @@ public final class VizGraphPanel extends JPanel {
 						actionMenu.add(item);
 					}
 					
+					final int jj = current + i;
+					Thread thread = new Thread() {
+						public void run() {
+							String[] as = (String[]) events.stream().map(e -> e.getName()).toArray(String[]::new);
+							vizGUI.hasNexts(jj,as);
+						}
+					};
+					thread.start();
+					
 					AlloyInstance inst = vizState.get(i).getOriginalInstance();
-					// find the type of the event fired in this instance
-					AlloyRelation fired = null;
+					// find the type of the event fired in this instance, may be more than one due to args
+					AlloyTuple firedargs = null;
 					for(AlloyRelation r:model.getRelations()) 
-						if (r.getName().equals(Action2Alloy.FIRED_REL) && !inst.relation2tuples(r).isEmpty()) fired = r;
+						if (r.getName().equals(Action2Alloy.FIRED_REL) && !inst.relation2tuples(r).isEmpty()) 
+							firedargs = inst.relation2tuples(r).iterator().next();
 					
 					StringBuilder sb = new StringBuilder();
-					AlloyType firedtype = fired.getTypes().get(1);					
+					AlloyType firedtype = firedargs.getAtoms().get(1).getType();					
 					sb.append(firedtype.getName().substring(1));
 					sb.append('[');
 					// find the actual arguments of the fired event
-					AlloyTuple firedargs = inst.relation2tuples(fired).iterator().next();
 					for (int j = 2; j < firedargs.getArity(); j++) {
 						if (!firedargs.getAtoms().get(j).toString().equals("_Dummy0")) {
 						sb.append(firedargs.getAtoms().get(j).toString());

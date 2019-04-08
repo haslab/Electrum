@@ -882,6 +882,11 @@ public final class A4Solution {
 		public T branch(int i, Map<Relation, TupleSet> force) {
 			return iterator.branch(i,force);
 		}
+		@Override
+		// [HASLab] simulator
+		public boolean hasNext(int i, Map<Relation, TupleSet> force) {
+			return iterator.hasNext(i,force);
+		}
 
 	}
 
@@ -1267,6 +1272,29 @@ public final class A4Solution {
 		if (!solved) throw new ErrorAPI("This solution is not yet solved, so next() is not allowed.");
 		if (eval==null) return this;
 		return new A4Solution(this,p,a); // [HASLab] simulator, do not cache, may have changed arguments
+	}
+	
+	public boolean hasNext(int p,String a) throws Err { // [HASLab] simulator
+		if (!solved) throw new ErrorAPI("This solution is not yet solved, so next() is not allowed.");
+		
+		Relation ac = null, ev = null;
+		StringBuilder sb = new StringBuilder();
+		for (Relation r : this.bounds.relations()) {
+			sb.append(r.toString());
+			if (r.toString().equals("this/"+a))
+				ac = r;
+			else if (r.toString().equals("this/_E._event"))
+				ev = r;
+		}
+		if (ev == null || ac == null)
+			throw new RuntimeException(sb.toString());
+		TupleSet restricted = this.bounds.universe().factory().noneOf(ev.arity());
+		for (Tuple t : this.bounds.upperBound(ev))
+			if (this.bounds.upperBound(ac).iterator().next().atom(0).equals(t.atom(0)))
+				restricted.add(t);
+		Map<Relation,TupleSet> rest = Collections.singletonMap(ev, restricted);
+		
+		return kEnumerator.hasNext(p, rest);
 	}
 	
 	/** If this solution is UNSAT, return itself; else return the next solution (which could be SAT or UNSAT).

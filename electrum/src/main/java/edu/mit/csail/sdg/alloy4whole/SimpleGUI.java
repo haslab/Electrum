@@ -72,6 +72,7 @@ import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -1036,6 +1037,15 @@ public final class SimpleGUI implements ComponentListener, Listener {
         return null;
     }
 
+    /** This method stops the current run or check (how==0 means DONE, how==1 means FAIL, how==2 means STOP). */
+    Runner doEnable(String act, boolean enab) {
+//        if (wrap) return wrapMe(act,enab);
+        if (latestAutoInstance.length()>0) {
+           if (subrunningTask==2) viz.enable(act,enab);
+        }
+        return null;
+    }
+    
     /** This method executes the latest command. */
     private Runner doExecuteLatest() {
         if (wrap) return wrapMe();
@@ -1443,9 +1453,15 @@ public final class SimpleGUI implements ComponentListener, Listener {
             SimpleTask2 task = new SimpleTask2();
             task.filename = arg[0]; // [HASLab] simulator
             task.index = Integer.valueOf(arg[1]); // [HASLab] simulator
-            task.action = arg[2]; // [HASLab] simulator
+            if (arg.length > 3) {
+            	task.action = Arrays.copyOfRange(arg, 2, arg.length);
+            	task.dry = true;
+            } else {
+            	task.action = new String[] {arg[2]}; // [HASLab] simulator
+            	task.dry = false; // [HASLab] simulator
+            }
             try {
-                if ("yes".equals(System.getProperty("debug")) && VerbosityPref.get()==Verbosity.FULLDEBUG)
+                if (("yes".equals(System.getProperty("debug")) && VerbosityPref.get()==Verbosity.FULLDEBUG))
                     WorkerEngine.runLocally(task, cb);
                 else
                 	WorkerEngine.run(task, SubMemory.get(), SubStack.get(), alloyHome() + fs + "binary", "", cb);

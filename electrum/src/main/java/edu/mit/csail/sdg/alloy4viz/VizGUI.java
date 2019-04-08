@@ -676,6 +676,12 @@ public final class VizGUI implements ComponentListener {
 	   public void loadXML(final String fileName, boolean forcefully) {
 		   loadXML(fileName, forcefully, myGraphPanel!=null?myGraphPanel.currentState():0); // [HASLab] first state
 	   }
+	   
+	   // [HASLab] simulator
+	   public void enable(String act, boolean enab) {
+		   myGraphPanel.enableAct(act,enab);
+		   frame.toFront();
+	   }
 	
 	   /** Load the XML instance. */
 	   // [HASLab] considers particular state
@@ -1011,6 +1017,27 @@ public final class VizGUI implements ComponentListener {
 	      } else {
  			 final String xmlFileName = Util.canon(this.xmlFileName);
 			 try { enumerator.compute(new String[] {xmlFileName, i+"", act}); } catch(Throwable ex) { OurDialog.alert(ex.getMessage()); } // [HASLab] simualtor
+	      }
+	      return null;
+	   }
+	   
+	   /** This method attempts to derive the next satisfying instance. */
+	   // [HASLab] simulator
+	   protected Runner hasNexts(Integer i, String[] acts) {
+	      if (wrap) return wrapMe();
+	      if (settingsOpen!=0) return null;
+	      if (xmlFileName.length()==0) {
+	         OurDialog.alert("Cannot display the next solution since no instance is currently loaded.");
+	      } else if (enumerator==null) {
+	         OurDialog.alert("Cannot display the next solution since the analysis engine is not loaded with the visualizer.");
+	      } else {
+ 			 final String xmlFileName = Util.canon(this.xmlFileName);
+ 			 
+ 	        String[] result = new String[2 + acts.length];
+ 	        System.arraycopy(new String[] {xmlFileName, i+""}, 0, result, 0, 2);
+ 	        System.arraycopy(acts, 0, result, 2, acts.length);
+ 	        
+			 try { enumerator.compute(result); } catch(Throwable ex) { OurDialog.alert(ex.getMessage()); } // [HASLab] simualtor
 	      }
 	      return null;
 	   }
