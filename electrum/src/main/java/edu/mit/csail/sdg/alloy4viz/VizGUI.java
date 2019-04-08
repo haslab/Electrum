@@ -680,7 +680,6 @@ public final class VizGUI implements ComponentListener {
 	   // [HASLab] simulator
 	   public void enable(String act, boolean enab) {
 		   myGraphPanel.enableAct(act,enab);
-		   frame.toFront();
 	   }
 	
 	   /** Load the XML instance. */

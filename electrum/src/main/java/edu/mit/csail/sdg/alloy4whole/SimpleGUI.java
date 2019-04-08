@@ -1037,15 +1037,6 @@ public final class SimpleGUI implements ComponentListener, Listener {
         return null;
     }
 
-    /** This method stops the current run or check (how==0 means DONE, how==1 means FAIL, how==2 means STOP). */
-    Runner doEnable(String act, boolean enab) {
-//        if (wrap) return wrapMe(act,enab);
-        if (latestAutoInstance.length()>0) {
-           if (subrunningTask==2) viz.enable(act,enab);
-        }
-        return null;
-    }
-    
     /** This method executes the latest command. */
     private Runner doExecuteLatest() {
         if (wrap) return wrapMe();
@@ -1446,7 +1437,7 @@ public final class SimpleGUI implements ComponentListener, Listener {
     private final Computer enumerator = new Computer() {
         public String compute(Object input) {
             final String[] arg = (String[]) input; // [HASLab] simulator
-            OurUtil.show(frame);
+            if (arg[1] == null) OurUtil.show(frame); // [HASLab] simulator
             if (WorkerEngine.isBusy())
                 throw new RuntimeException("Alloy4 is currently executing a SAT solver command. Please wait until that command has finished.");
             SimpleCallback1 cb = new SimpleCallback1(SimpleGUI.this, viz, log, VerbosityPref.get().ordinal(), latestAlloyVersionName, latestAlloyVersion);
