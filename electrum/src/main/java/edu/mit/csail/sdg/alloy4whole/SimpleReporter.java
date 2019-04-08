@@ -395,6 +395,7 @@ final class SimpleReporter extends A4Reporter {
         private static final long serialVersionUID = 0;
         public String filename = "";
         public int index = -1; // [HASLab] simulator
+        public String action = null; // [HASLab] simulator
         public transient WorkerCallback out = null;
         private void cb(Object... objs) throws Exception { out.callback(objs); }
         public void run(WorkerCallback out) throws Exception {
@@ -419,7 +420,12 @@ final class SimpleReporter extends A4Reporter {
                 "Currently only MiniSat and SAT4J are supported."); return;}
             int tries=0;
             while(true) {
-                sol=sol.next(this.index); // [HASLab] simulator
+            	if (this.index >= 0 && this.action != null)
+            		sol=sol.next(this.index,this.action); // [HASLab] simulator
+            	else if (this.index >= 0)
+            		sol=sol.next(this.index); // [HASLab] simulator
+            	else
+            		sol=sol.next();
                 if (!sol.satisfiable())
                    {cb("pop", "There are no more satisfying instances.\n\n" +
                    "Note: due to symmetry breaking and other optimizations,\n" +

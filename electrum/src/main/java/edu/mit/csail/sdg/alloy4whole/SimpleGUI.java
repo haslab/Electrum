@@ -1443,8 +1443,12 @@ public final class SimpleGUI implements ComponentListener, Listener {
             SimpleTask2 task = new SimpleTask2();
             task.filename = arg[0]; // [HASLab] simulator
             task.index = Integer.valueOf(arg[1]); // [HASLab] simulator
+            task.action = arg[2]; // [HASLab] simulator
             try {
-                WorkerEngine.run(task, SubMemory.get(), SubStack.get(), alloyHome() + fs + "binary", "", cb);
+                if ("yes".equals(System.getProperty("debug")) && VerbosityPref.get()==Verbosity.FULLDEBUG)
+                    WorkerEngine.runLocally(task, cb);
+                else
+                	WorkerEngine.run(task, SubMemory.get(), SubStack.get(), alloyHome() + fs + "binary", "", cb);
 //                task.run(cb);
             } catch(Throwable ex) {
                 WorkerEngine.stop();

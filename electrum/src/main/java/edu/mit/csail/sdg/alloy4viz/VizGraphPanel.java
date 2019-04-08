@@ -16,12 +16,9 @@
 package edu.mit.csail.sdg.alloy4viz;
 
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -29,7 +26,6 @@ import java.awt.event.AdjustmentEvent;
 import java.awt.event.AdjustmentListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
@@ -394,12 +390,12 @@ public final class VizGraphPanel extends JPanel {
 		leftTime.setMaximumSize(new Dimension(1,1));
 		rightTime.setMinimumSize(new Dimension(1,1));
 		leftTime.setMinimumSize(new Dimension(1,1));
-		JLabel comboTime = new JLabel("State 99 (99) 999", SwingConstants.CENTER);
-		comboTime.setFont(comboTime.getFont().deriveFont(Font.BOLD));
-		comboTime.setMinimumSize(comboTime.getPreferredSize());
-		comboTime.setMaximumSize(comboTime.getPreferredSize());
-		comboTime.setPreferredSize(comboTime.getPreferredSize());
-		this.timeLabel.add(comboTime);
+		JLabel timeLabel = new JLabel("State 99 (99) 999", SwingConstants.CENTER);
+		timeLabel.setFont(timeLabel.getFont().deriveFont(Font.BOLD));
+		timeLabel.setMinimumSize(timeLabel.getPreferredSize());
+		timeLabel.setMaximumSize(timeLabel.getPreferredSize());
+		timeLabel.setPreferredSize(timeLabel.getPreferredSize());
+		this.timeLabel.add(timeLabel);
 		JLabel tempMsg = new JLabel("");
 		this.tempMsg.add(tempMsg);
 
@@ -425,6 +421,7 @@ public final class VizGraphPanel extends JPanel {
 				updateTmps();
 			}
 		});
+		
 
 		JPanel aux = new JPanel();
 		aux.setLayout(new GridLayout());
@@ -432,7 +429,7 @@ public final class VizGraphPanel extends JPanel {
 		aux.setPreferredSize(new Dimension(60, 30));
 		aux.setMaximumSize(new Dimension(60,30));
 		tmpPanel.add(aux);
-		tmpPanel.add(comboTime);
+		tmpPanel.add(timeLabel);
 		tmpPanel.add(nextButton);
 		aux = new JPanel();
 		aux.setLayout(new GridLayout());
@@ -513,10 +510,18 @@ public final class VizGraphPanel extends JPanel {
 				List<AlloyType> events = model.getSubTypes(event);
 				if (i < vizState.size() - 1) {
 					for (AlloyType ev : events) {
-						actionMenu.add(new JMenuItem(ev.getName().substring(1)));
+						final int j = i;
+						JMenuItem item = new JMenuItem(ev.getName().substring(1));
+						item.addActionListener(new ActionListener() {
+							@Override
+							public void actionPerformed(ActionEvent e) {
+								vizGUI.doNext(j,ev.getName());
+							}
+						});
+						actionMenu.add(item);
 					}
 					
-					AlloyInstance inst = vizState.get(c).getOriginalInstance();
+					AlloyInstance inst = vizState.get(i).getOriginalInstance();
 					// find the type of the event fired in this instance
 					AlloyRelation fired = null;
 					for(AlloyRelation r:model.getRelations()) 

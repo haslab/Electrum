@@ -988,22 +988,20 @@ public final class VizGUI implements ComponentListener {
 	   
 	   /** This method attempts to derive the next satisfying instance. */
 	   private Runner doNext() {
-	      if (wrap) return wrapMe();
-	      if (settingsOpen!=0) return null;
-	      if (xmlFileName.length()==0) {
-	         OurDialog.alert("Cannot display the next solution since no instance is currently loaded.");
-	      } else if (enumerator==null) {
-	         OurDialog.alert("Cannot display the next solution since the analysis engine is not loaded with the visualizer.");
-	      } else {
- 			 final String xmlFileName = Util.canon(this.xmlFileName);
-			 try { enumerator.compute(new String[] {xmlFileName, null}); } catch(Throwable ex) { OurDialog.alert(ex.getMessage()); } // [HASLab] simualtor
-	      }
+	      doNext(null,null);
 	      return null;
 	   }
 
 	   /** This method attempts to derive the next satisfying instance. */
 	   // [HASLab] simulator
 	   protected Runner doNext(int i) {
+	      doNext(i,null);
+	      return null;
+	   }
+	   
+	   /** This method attempts to derive the next satisfying instance. */
+	   // [HASLab] simulator
+	   protected Runner doNext(Integer i, String act) {
 	      if (wrap) return wrapMe();
 	      if (settingsOpen!=0) return null;
 	      if (xmlFileName.length()==0) {
@@ -1012,7 +1010,7 @@ public final class VizGUI implements ComponentListener {
 	         OurDialog.alert("Cannot display the next solution since the analysis engine is not loaded with the visualizer.");
 	      } else {
  			 final String xmlFileName = Util.canon(this.xmlFileName);
-			 try { enumerator.compute(new String[] {xmlFileName, i+""}); } catch(Throwable ex) { OurDialog.alert(ex.getMessage()); } // [HASLab] simualtor
+			 try { enumerator.compute(new String[] {xmlFileName, i+"", act}); } catch(Throwable ex) { OurDialog.alert(ex.getMessage()); } // [HASLab] simualtor
 	      }
 	      return null;
 	   }
