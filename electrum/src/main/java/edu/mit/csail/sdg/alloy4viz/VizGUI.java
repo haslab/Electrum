@@ -1471,58 +1471,9 @@ public final class VizGUI implements ComponentListener {
 				AlloyModel model = getVizState().get(0).getOriginalModel();
 				AlloyType event = model.hasType(Action2Alloy.ACTION_SIG); 
 				if (event != null) {
-					List<AlloyType> events = model.getSubTypes(event);
+					List<AlloyType> events = new ArrayList<AlloyType>(model.getSubTypes(event));
 					if (i < getVizState().size() - 1) {
-						int ie;
-						for (ie = 0; ie < events.size(); ie++) {
-							AlloyType ev = events.get(ie);
-							final int j = i;
-							JMenuItem item;
-							if (ie<actionMenu.getComponentCount())
-								item = (JMenuItem) actionMenu.getComponent(ie);
-							else {
-								item = new JMenuItem();
-								actionMenu.add(item);
-								item.addActionListener(new ActionListener() {
-									@Override
-									public void actionPerformed(ActionEvent e) {
-										for (Component m : actionMenu.getComponents()) {
-											JMenuItem mi = (JMenuItem) m;
-											mi.setEnabled(false);
-											mi.setBackground(new Color(255,255,220));
-										}
-										pending = -1;
-										updateTmpButtons();
-										doNext(j,ev.getName());
-									}
-								});
-							}
-							item.setText(ev.getName().substring(1));
-							item.setEnabled(false);
-							item.setBackground(new Color(255,255,230));
-						}
-						for (; ie<actionMenu.getComponentCount();ie++)
-							actionMenu.remove(ie);
-						
-						final int jj = current + i;
-
-						pending = events.size();
-
-						Thread thread = new Thread(new Runnable() {
-							@Override
-							public void run() {
-								try {
-									Thread.sleep(200);
-								} catch (InterruptedException e1) {
-									// TODO Auto-generated catch block
-									e1.printStackTrace();
-								}
-								String[] as = (String[]) events.stream().map(e -> e.getName()).toArray(String[]::new);
-								hasNexts(jj,as);							
-							}
-						});
-						thread.start();
-						
+				
 						AlloyInstance inst = getVizState().get(i).getOriginalInstance();
 						// find the type of the event fired in this instance, may be more than one due to args
 						AlloyTuple firedargs = null;
@@ -1544,6 +1495,53 @@ public final class VizGUI implements ComponentListener {
 						sb.deleteCharAt(sb.length()-1);
 						sb.append(']');
 						actionLabel.get(i).setText(sb.toString());
+				
+						int ie;
+						for (ie = 0; ie < events.size(); ie++) {
+							AlloyType ev = events.get(ie);
+							final int j = i+current;
+							JMenuItem item;
+							if (ie<actionMenu.getComponentCount()) {
+								item = (JMenuItem) actionMenu.getComponent(ie);
+								item.removeActionListener(item.getActionListeners()[0]);
+							}	
+							else {
+								item = new JMenuItem();
+								actionMenu.add(item);
+							}
+							item.addActionListener(new ActionListener() {
+								@Override
+								public void actionPerformed(ActionEvent e) {
+									for (Component m : actionMenu.getComponents()) {
+										JMenuItem mi = (JMenuItem) m;
+										mi.setEnabled(false);
+										mi.setBackground(new Color(255,255,220));
+									}
+									pending = -1;
+									updateTmpButtons();
+									doNext(j,ev.getName());
+								}
+							});
+							item.setText(ev.getName().substring(1));
+							item.setEnabled(false);
+							item.setBackground(new Color(255,255,230));
+						}
+						for (; ie<actionMenu.getComponentCount();ie++)
+							actionMenu.remove(ie);
+						
+						final int jj = current + i;
+
+						pending = events.size();
+
+						Thread thread = new Thread(new Runnable() {
+							@Override
+							public void run() {
+								String[] as = (String[]) events.stream().map(e -> e.getName()).toArray(String[]::new);
+								hasNexts(jj,as);							
+							}
+						});
+						thread.start();
+						
 					}
 				}
 			}
