@@ -425,7 +425,6 @@ final class SimpleReporter extends A4Reporter {
             	for (String act : action) {
 	            	boolean has = sol.hasNext(this.index,act); // [HASLab] simulator
 	            	cb("enable",act,has);
-//	            	cb("declare", filename); // [HASLab] simulator, this pops the viz back up, why?
             	}
             	return;
             }
@@ -440,7 +439,6 @@ final class SimpleReporter extends A4Reporter {
                    {cb("pop", "There are no more satisfying instances.\n\n" +
                    "Note: due to symmetry breaking and other optimizations,\n" +
                    "some equivalent solutions may have been omitted."); 
-//                   cb("declare", filename); // [HASLab] simulator, this pops the viz back up, why?
                    return;}
                 String toString = sol.toString();
                 synchronized(SimpleReporter.class) {

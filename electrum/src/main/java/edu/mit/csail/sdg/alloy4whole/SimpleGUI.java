@@ -1438,6 +1438,13 @@ public final class SimpleGUI implements ComponentListener, Listener {
         public String compute(Object input) {
             final String[] arg = (String[]) input; // [HASLab] simulator
             if (arg[1] == null) OurUtil.show(frame); // [HASLab] simulator
+            if (WorkerEngine.isBusy() && arg.length > 3)
+				try {
+					Thread.sleep(5000);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
             if (WorkerEngine.isBusy())
                 throw new RuntimeException("Alloy4 is currently executing a SAT solver command. Please wait until that command has finished.");
             SimpleCallback1 cb = new SimpleCallback1(SimpleGUI.this, viz, log, VerbosityPref.get().ordinal(), latestAlloyVersionName, latestAlloyVersion);
@@ -1448,8 +1455,8 @@ public final class SimpleGUI implements ComponentListener, Listener {
             	task.action = Arrays.copyOfRange(arg, 2, arg.length);
             	task.dry = true;
             } else {
-            	task.action = new String[] {arg[2]}; // [HASLab] simulator
-            	task.dry = false; // [HASLab] simulator
+	        	task.action = new String[] {arg[2]}; // [HASLab] simulator
+	        	task.dry = false; // [HASLab] simulator
             }
             try {
                 if (("yes".equals(System.getProperty("debug")) && VerbosityPref.get()==Verbosity.FULLDEBUG))

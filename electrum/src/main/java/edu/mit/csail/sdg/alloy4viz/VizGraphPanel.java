@@ -16,7 +16,6 @@
 package edu.mit.csail.sdg.alloy4viz;
 
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
@@ -25,12 +24,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.AdjustmentEvent;
 import java.awt.event.AdjustmentListener;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -44,10 +39,7 @@ import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
-import javax.swing.JLabel;
-import javax.swing.JMenuItem;
 import javax.swing.JPanel;
-import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTextArea;
@@ -55,13 +47,11 @@ import javax.swing.SwingConstants;
 import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
 
-import edu.mit.csail.sdg.alloy4.A4Reporter;
 import edu.mit.csail.sdg.alloy4.ConstList;
 import edu.mit.csail.sdg.alloy4.OurBorder;
 import edu.mit.csail.sdg.alloy4.OurCombobox;
 import edu.mit.csail.sdg.alloy4.OurUtil;
 import edu.mit.csail.sdg.alloy4.Util;
-import edu.mit.csail.sdg.alloy4compiler.parser.Action2Alloy;
 import edu.mit.csail.sdg.alloy4graph.GraphViewer;
 
 /**
@@ -226,10 +216,6 @@ public final class VizGraphPanel extends JPanel {
 		}
 	}
 
-	final VizGUI vizGUI;
-
-	private JPopupMenu actionMenu;
-
 	/**
 	 * Create a splitpane showing the graph on top, as well as projection comboboxes
 	 * on the bottom.
@@ -240,7 +226,6 @@ public final class VizGraphPanel extends JPanel {
 	 * @param vizGUI
 	 */
 	public VizGraphPanel(List<VizState> vizState, boolean seeDot, VizGUI vizGUI) {
-		this.vizGUI = vizGUI;
 		Border b = new EmptyBorder(0, 0, 0, 0);
 		OurUtil.make(this, Color.BLACK, Color.WHITE, b);
 		this.seeDot = seeDot;
@@ -258,83 +243,12 @@ public final class VizGraphPanel extends JPanel {
 			split_.setPreferredSize(new Dimension(0,0));
 			
 		}
-
-		JPanel diagramsScrollPanel2 = new JPanel();
-		diagramsScrollPanel2.add(Box.createHorizontalGlue());
-		diagramsScrollPanel2.setLayout(new BoxLayout(diagramsScrollPanel2, BoxLayout.LINE_AXIS));
-		for (int i = 0; i < vizState.size(); i++) {
-
-			JPanel split2_ = createTempPanel(i);
-			diagramsScrollPanel2.add(split2_);
-
-			AlloyModel model = vizState.get(0).getOriginalModel();
-			AlloyType event = model.hasType(Action2Alloy.ACTION_SIG); 
-			if (event != null) {
-				if (i < vizState.size() - 1) {
-					diagramsScrollPanel2.add(Box.createHorizontalGlue());
-					JPanel p = new JPanel();
-					p.setLayout(new BoxLayout(p, BoxLayout.LINE_AXIS));
-					JPanel aux = new JPanel();
-					JButton branch = new JButton(new String(Character.toChars(0x21dd)));
-					branch.setPreferredSize(new Dimension(60, 30));
-					branch.setMinimumSize(new Dimension(60, 30));
-
-					actionMenu = new JPopupMenu("Menu");
-					branch.addMouseListener(new MouseAdapter() {
-						public void mouseReleased(MouseEvent e) {
-							if (e.getButton() == 1) {
-								actionMenu.show(e.getComponent(), e.getX(), e.getY());
-							}
-						}
-					});
-					
-					JLabel action = new JLabel("ActionAction[arg1,arg2]", SwingConstants.CENTER);
-					action.setFont(action.getFont().deriveFont(Font.BOLD));
-					action.setMinimumSize(action.getPreferredSize());
-					action.setMaximumSize(action.getPreferredSize());
-					action.setPreferredSize(action.getPreferredSize());
-					this.actionLabel.add(action);
-					
-					aux.add(action);
-					aux.add(branch);
-					aux.setLayout(new BoxLayout(aux, BoxLayout.LINE_AXIS));
-					p.add(aux);
-
-					diagramsScrollPanel2.add(p);
-					diagramsScrollPanel2.add(Box.createHorizontalGlue());
-				}
-			}
-
-		}
-		diagramsScrollPanel2.add(Box.createHorizontalGlue());
-
-		diagramsScrollPanel1.setPreferredSize(new Dimension(Integer.MAX_VALUE,Integer.MAX_VALUE));
-		JSplitPane diagramsScrollPanel = OurUtil.splitpane(JSplitPane.VERTICAL_SPLIT, diagramsScrollPanel1, diagramsScrollPanel2, 0);
-		diagramsScrollPanel.setLayout(new BoxLayout(diagramsScrollPanel, BoxLayout.PAGE_AXIS));
-		diagramsScrollPanel.setResizeWeight(1.0);
-		diagramsScrollPanel.setDividerSize(0);
-		split = OurUtil.splitpane(JSplitPane.VERTICAL_SPLIT, diagramsScrollPanel, navscroll, 0);
+		split = OurUtil.splitpane(JSplitPane.VERTICAL_SPLIT, diagramsScrollPanel1, navscroll, 0);
 		split.setResizeWeight(1.0);
 		split.setDividerSize(0);
+		split.setPreferredSize(new Dimension(Integer.MAX_VALUE,Integer.MAX_VALUE));
 		add(split);
 		
-		addKeyListener(new KeyAdapter() {
-			@Override
-			public void keyPressed(KeyEvent e) {
-				int key = e.getKeyCode();
-				if (key == KeyEvent.VK_LEFT) {
-					if (current > 0)
-						current--;
-					updateTmps();
-				}
-				if (key == KeyEvent.VK_RIGHT) {
-					current++;
-					updateTmps();
-				}
-			}
-		});
-		
-		updateTmps();
 		remakeAll();
 	}
 
@@ -377,223 +291,9 @@ public final class VizGraphPanel extends JPanel {
 		return diagramScrollPanel;
 	}
 	
-	// TODO: push this back up to vizgui, avoids passing vizgui here
-	private JPanel createTempPanel(int i) {
-		JPanel tmpPanel = new JPanel();
-		tmpPanel.setLayout(new BoxLayout(tmpPanel, BoxLayout.LINE_AXIS));
 
-		JButton leftTime = new JButton(new String(Character.toChars(0x2190)));
-		this.leftTime.add(leftTime);
-		JButton rightTime = new JButton(new String(Character.toChars(0x2192)));
-		this.rightTime.add(rightTime);
-		leftTime.setEnabled(false);
-		rightTime.setEnabled(false);
-		rightTime.setMaximumSize(new Dimension(1,1));
-		leftTime.setMaximumSize(new Dimension(1,1));
-		rightTime.setMinimumSize(new Dimension(1,1));
-		leftTime.setMinimumSize(new Dimension(1,1));
-		JLabel timeLabel = new JLabel("State 99 (99) 999", SwingConstants.CENTER);
-		timeLabel.setFont(timeLabel.getFont().deriveFont(Font.BOLD));
-		timeLabel.setMinimumSize(timeLabel.getPreferredSize());
-		timeLabel.setMaximumSize(timeLabel.getPreferredSize());
-		timeLabel.setPreferredSize(timeLabel.getPreferredSize());
-		this.timeLabel.add(timeLabel);
-		JLabel tempMsg = new JLabel("");
-		this.tempMsg.add(tempMsg);
-
-		JButton nextButton = new JButton(new String(Character.toChars(0x21ba)));
-		nextButton.setPreferredSize(new Dimension(40, rightTime.getHeight()));
-
-		nextButton.addActionListener(new ActionListener() {
-			public final void actionPerformed(ActionEvent e) {
-				vizGUI.doNext(current+i);
-				updateTmps();
-			}
-		});
-		leftTime.addActionListener(new ActionListener() {
-			public final void actionPerformed(ActionEvent e) {
-				if (current > 0)
-					current--;
-				updateTmps();
-			}
-		});
-		rightTime.addActionListener(new ActionListener() {
-			public final void actionPerformed(ActionEvent e) {
-				current++;
-				updateTmps();
-			}
-		});
-		
-
-		JPanel aux = new JPanel();
-		aux.setLayout(new GridLayout());
-		aux.add(leftTime);
-		aux.setPreferredSize(new Dimension(60, 30));
-		aux.setMaximumSize(new Dimension(60,30));
-		tmpPanel.add(aux);
-		tmpPanel.add(timeLabel);
-		tmpPanel.add(nextButton);
-		aux = new JPanel();
-		aux.setLayout(new GridLayout());
-		aux.add(rightTime);
-		aux.setPreferredSize(new Dimension(60, 30));
-		aux.setMaximumSize(new Dimension(60,30));
-		tmpPanel.add(aux);
-
-		if (i != vizState.size() - 1)
-			rightTime.setVisible(false);
-		if (i != 0)
-			leftTime.setVisible(false);
-
-		return tmpPanel;
-	}
-	
-	void enableAct(String k, boolean enab) {
-		for (Component m : actionMenu.getComponents())
-			if (((JMenuItem) m).getText().equals(k.substring(1))) {
-				m.setEnabled(enab);
-				if (enab) m.setForeground(new Color(0,128,0));
-			}
-	}
-
-	private void updateTmps() {
-		int backindex = vizState.get(0).getOriginalInstance().originalA4.getLoopState();
-		int length = 1 + vizState.get(0).getOriginalInstance().originalA4.getLastState();
-		if (actionMenu!=null) actionMenu.removeAll();
-
-		for (int i = 0; i < timeLabel.size(); i++) {
-			int c = current + i;
-			int llen = length - backindex;
-			if (c>backindex) c = ((c-backindex)%llen)+backindex;
-			timeLabel.get(i).setText("State " + (current + i) + (c==(current+i)? "" : " (" + new String(Character.toChars(0x2261)) + c + ")"));
-			if (current+i > 0) {
-				leftTime.get(i).setEnabled(true);
-				leftTime.get(i).setText(new String(Character.toChars(0x2190)));
-			} else {
-				leftTime.get(i).setEnabled(false);
-				leftTime.get(i).setText(new String(Character.toChars(0x21e4)));
-			}
-			rightTime.get(i).setEnabled(true);
-
-			if (c == length - 1) {
-				rightTime.get(i).setText(new String(Character.toChars(0x21b6)) + backindex);
-				timeLabel.get(i).setFont(timeLabel.get(i).getFont().deriveFont(Font.BOLD));
-				if (c == backindex) {
-					timeLabel.get(i).setForeground(new Color(13, 152, 186));
-					tempMsg.get(i).setText("Loop starts and ends here.");
-					timeLabel.get(i).setText(timeLabel.get(i).getText()+new String(Character.toChars(0x21c5)));
-				}
-				else {
-					timeLabel.get(i).setForeground(new Color(65,105,225));
-					tempMsg.get(i).setText("Last state before looping.");
-					timeLabel.get(i).setText(timeLabel.get(i).getText()+new String(Character.toChars(0x2191)));
-				}
-			} else {
-				rightTime.get(i).setText(new String(Character.toChars(0x2192)));
-				// change text when loop state
-				if (c == backindex) {
-					timeLabel.get(i).setFont(timeLabel.get(i).getFont().deriveFont(Font.BOLD));
-					timeLabel.get(i).setForeground(new Color(0,128,0));
-					timeLabel.get(i).setText(timeLabel.get(i).getText()+new String(Character.toChars(0x2193)));
-					tempMsg.get(i).setText("Loop starts here.");
-				} else {
-					timeLabel.get(i).setFont(timeLabel.get(i).getFont().deriveFont(Font.PLAIN));
-					timeLabel.get(i).setForeground(Color.BLACK);
-					tempMsg.get(i).setText("");
-				}
-			}
-			
-			AlloyInstance myInstance;
-			File f = new File(vizGUI.getXMLfilename());
-			try {
-				if (!f.exists())
-					throw new IOException("File " + vizGUI.getXMLfilename() + " does not exist.");
-				myInstance = StaticInstanceReader.parseInstance(f, current + i); 
-				vizState.get(i).loadInstance(myInstance);
-			} catch (Throwable e) {
-				System.out.println("a");
-			}
-			
-			AlloyModel model = vizState.get(0).getOriginalModel();
-			AlloyType event = model.hasType(Action2Alloy.ACTION_SIG); 
-			if (event != null) {
-				List<AlloyType> events = model.getSubTypes(event);
-				if (i < vizState.size() - 1) {
-					for (AlloyType ev : events) {
-						final int j = i;
-						JMenuItem item = new JMenuItem(ev.getName().substring(1));
-						item.addActionListener(new ActionListener() {
-							@Override
-							public void actionPerformed(ActionEvent e) {
-								vizGUI.doNext(j,ev.getName());
-							}
-						});
-						actionMenu.add(item);
-					}
-					
-					final int jj = current + i;
-					Thread thread = new Thread() {
-						public void run() {
-							String[] as = (String[]) events.stream().map(e -> e.getName()).toArray(String[]::new);
-							vizGUI.hasNexts(jj,as);
-						}
-					};
-					thread.start();
-					
-					AlloyInstance inst = vizState.get(i).getOriginalInstance();
-					// find the type of the event fired in this instance, may be more than one due to args
-					AlloyTuple firedargs = null;
-					for(AlloyRelation r:model.getRelations()) 
-						if (r.getName().equals(Action2Alloy.FIRED_REL) && !inst.relation2tuples(r).isEmpty()) 
-							firedargs = inst.relation2tuples(r).iterator().next();
-					
-					StringBuilder sb = new StringBuilder();
-					AlloyType firedtype = firedargs.getAtoms().get(1).getType();					
-					sb.append(firedtype.getName().substring(1));
-					sb.append('[');
-					// find the actual arguments of the fired event
-					for (int j = 2; j < firedargs.getArity(); j++) {
-						if (!firedargs.getAtoms().get(j).toString().equals("_Dummy0")) {
-						sb.append(firedargs.getAtoms().get(j).toString());
-							if (j < firedargs.getArity()-1)
-								sb.append(',');
-						}
-					}
-					sb.append(']');
-					actionLabel.get(i).setText(sb.toString());
-				}
-			}
-			
-
-		}
-		remakeAll();
-	}
 
 	// ========================================TRACES=====================================================//
-
-	private int current = 0;
-	
-	public int currentState() {
-		return current;
-	}
-	
-	public void rollback(int state) {
-		current = state;
-		updateTmps();
-	}
-	
-	/** Trace navigation combo box. */
-	// [HASLab]
-	private List<JLabel> timeLabel = new ArrayList<JLabel>();
-
-	/** Trace navigation buttons. */
-	private List<JButton> leftTime = new ArrayList<JButton>(), rightTime = new ArrayList<JButton>();
-
-	private List<JLabel> actionLabel = new ArrayList<JLabel>();
-
-	/** Optional message to be displayed. */
-	// [HASLab]
-	private List<JLabel> tempMsg = new ArrayList<JLabel>();
 
 	/** Regenerate the comboboxes and the graph. */
 	public void remakeAll() {

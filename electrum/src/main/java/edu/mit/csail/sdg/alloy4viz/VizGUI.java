@@ -19,16 +19,30 @@ package edu.mit.csail.sdg.alloy4viz;
 import static edu.mit.csail.sdg.alloy4.OurUtil.menu;
 import static edu.mit.csail.sdg.alloy4.OurUtil.menuItem;
 
+import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.GridLayout;
+import java.awt.Polygon;
+import java.awt.RenderingHints;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Ellipse2D;
+import java.awt.geom.Path2D;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Method;
@@ -40,10 +54,12 @@ import java.util.Set;
 import java.util.prefs.Preferences;
 
 import javax.swing.Box;
+import javax.swing.BoxLayout;
 import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
@@ -53,10 +69,12 @@ import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTextArea;
 import javax.swing.JToolBar;
+import javax.swing.SwingConstants;
 import javax.swing.plaf.basic.BasicSplitPaneUI;
 
 import edu.mit.csail.sdg.alloy4.A4Preferences.IntPref;
 import edu.mit.csail.sdg.alloy4.A4Preferences.StringPref;
+import edu.mit.csail.sdg.alloy4compiler.parser.Action2Alloy;
 import edu.mit.csail.sdg.alloy4.Computer;
 import edu.mit.csail.sdg.alloy4.ConstList;
 import edu.mit.csail.sdg.alloy4.OurBorder;
@@ -148,6 +166,8 @@ public final class VizGUI implements ComponentListener {
 
 	   /** The graphical panel to the right; null if it is not yet loaded. */
 	   private VizGraphPanel myGraphPanel=null;
+	   
+	   private JSplitPane mySplitTemporal=null;
 
 	   /** The splitpane between the customization panel and the graph panel. */
 	   private final JSplitPane splitpane;
@@ -430,6 +450,89 @@ public final class VizGUI implements ComponentListener {
 	         toolbar.add(saveSettingsButton=OurUtil.button("Save", "Save the current theme customization", "images/24_save.gif", doSaveTheme()));
 	         toolbar.add(saveAsSettingsButton=OurUtil.button("Save As", "Save the current theme customization as a new theme file", "images/24_save.gif", doSaveThemeAs()));
 	         toolbar.add(resetSettingsButton=OurUtil.button("Reset", "Reset the theme customization", "images/24_settings_close2.gif", doResetTheme()));
+	         if (frame!=null) addDivider();
+	         toolbar.add(Box.createHorizontalGlue());
+	         JPanel trace = new JPanel() {
+	        	  @Override
+	        	    public void paintComponent(Graphics g) {
+   	        		    Graphics2D g2 = (Graphics2D) g;
+   	        		    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+	        		  	
+   	        		    List<Ellipse2D> states = new ArrayList<Ellipse2D>();
+	        		  	int radius = 12;
+	        		  	int offsety = 30;
+	        		  	int offsetx = 20;
+	        		  	int dist = 50;
+	        		  	int lst = getVizState().get(0).getOriginalInstance().originalA4.getLastState();
+	        		  	int lop = getVizState().get(0).getOriginalInstance().originalA4.getLoopState();
+	        		  	Ellipse2D loop = null, last = null;
+	        		    for (int i = 0; i <= lst; i++) {
+	        		    	g2.setStroke(new BasicStroke(2));
+		        		    Ellipse2D circl = new Ellipse2D.Double(i*dist+offsetx - radius, offsety - radius, 2.0 * radius, 2.0 * radius);
+		        		    if (i == lst) {
+		        		    	last = circl;
+		        		    	if (i == lop) {
+			        		    	loop = circl;
+			        		    	g2.setColor(new Color(13, 152, 186));
+		        		    	} else 
+		        		    		g2.setColor(new Color(65,105,225));
+		        		    }
+		        		    else if (i == lop) {
+		        		    	loop = circl;
+		        		    	g2.setColor(new Color(0,128,0));
+		        		    }
+		        		    Color tmp = g2.getColor();
+		        		    int llen = lst + 1 - lop;
+		        		    int max = (current+STATEPANES-1)>lop? (((current+STATEPANES-1-lop)%llen)+lop) : (current+STATEPANES-1);
+		        		    int min = (current)>lop? (((current-lop)%llen)+lop) : (current);
+		        		    if ((min <= max && i >= min && i <= max) || (min > max && (i >= min || (i <= max && i >= lop)))) {
+		        		  		g2.setColor(new Color (255,255,255));
+		        		    } else {
+		        		  		g2.setColor(new Color (100,100,100));
+		        		    }
+		        		    g2.fill(circl);
+		        		    g2.setColor(tmp);
+		        		    g2.draw(circl);
+		        		    states.add(circl);
+		        		    g2.setStroke(new BasicStroke(1));
+	        		  		g2.setColor(new Color (0,0,0));
+	           		  	}
+
+	        		  	Polygon arrowHead = new Polygon();
+	        		  	arrowHead.addPoint(0,4);
+	        		  	arrowHead.addPoint(-4,-4);
+	        		  	arrowHead.addPoint(4,-4);
+	        		  	
+	        		    for (int i = 0; i < lst; i++) {
+		        		  	Path2D path = new Path2D.Double();
+		        		  	path.moveTo(states.get(i).getMaxX(),states.get(i).getCenterY());
+		        		  	path.lineTo(states.get(i+1).getMinX(),states.get(i+1).getCenterY());
+		        		  	g2.draw(path);
+		        		  	
+		        		  	AffineTransform tx = new AffineTransform();
+		        		  	tx.setToIdentity();
+		        		    double angle = Math.atan2(0, 1);
+		        		    tx.translate(states.get(i+1).getMinX(),states.get(i+1).getCenterY());
+		        		    tx.rotate((angle-Math.PI/2d));  
+		        		    g2.fill(tx.createTransformedShape(arrowHead));   
+
+	        		    }
+	        		    
+	        		  	Path2D path = new Path2D.Double();
+	        		  	path.moveTo(states.get(states.size()-1).getCenterX(), states.get(states.size()-1).getMinY());
+	        		  	path.curveTo(last.getCenterX()-25, 0, loop.getCenterX()+25, 0, loop.getCenterX(), loop.getMinY());
+	        		  	g2.draw(path);
+
+	        		  	AffineTransform tx = new AffineTransform();
+	        		  	tx.setToIdentity();
+	        		    double angle = Math.atan2(loop.getMinY()-0, loop.getCenterX()-40);
+	        		    tx.translate(loop.getCenterX(), loop.getMinY());
+	        		    tx.rotate((angle-Math.PI/2d));  
+	        		    g2.fill(tx.createTransformedShape(arrowHead));   
+	        	}
+          };
+	      
+	      toolbar.add(trace);
 		  } finally {
 		     wrap = false;
   		  }
@@ -460,6 +563,23 @@ public final class VizGUI implements ComponentListener {
 	         frame.addComponentListener(this);
 	      }
 	      if (xmlFileName.length()>0) doLoadInstance(xmlFileName);
+	      
+	      frame.addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyPressed(KeyEvent e) {
+				int key = e.getKeyCode();
+				if (key == KeyEvent.VK_LEFT) {
+					if (current > 0)
+						current--;
+					updateTmps();
+				}
+				if (key == KeyEvent.VK_RIGHT) {
+					current++;
+					updateTmps();
+				}
+			}
+	      });
+	      
 	   }
 	   
 	   /** Invoked when the Visualizationwindow is resized. */
@@ -565,13 +685,20 @@ public final class VizGUI implements ComponentListener {
 //	         }
 	         default: {
 	            if (myGraphPanel==null) {
-	                myGraphPanel=new VizGraphPanel(myStates, false, this);
+	            	myGraphPanel = new VizGraphPanel(myStates, false, this);
+	            	JPanel diagramsScrollPanel2 = createTempPanel();
+	        		mySplitTemporal = OurUtil.splitpane(JSplitPane.VERTICAL_SPLIT, myGraphPanel, diagramsScrollPanel2, 0);
+	        		mySplitTemporal.setLayout(new BoxLayout(mySplitTemporal, BoxLayout.PAGE_AXIS));
+	        		mySplitTemporal.setResizeWeight(1.0);
+	        		mySplitTemporal.setDividerSize(0);
+	                updateTmps();
 	            } else {
+	            	updateTmps();
 	                myGraphPanel.seeDot(false);
 	                myGraphPanel.remakeAll();
 	            }
 	         }
-	         content=myGraphPanel;
+	         content=mySplitTemporal;
 	      }
 	      // Now that we've re-constructed "content", let's set its font size
 	      if (currentMode != VisualizerMode.Tree) {
@@ -674,12 +801,28 @@ public final class VizGUI implements ComponentListener {
 
 	   /** Load the XML instance. */
 	   public void loadXML(final String fileName, boolean forcefully) {
-		   loadXML(fileName, forcefully, myGraphPanel!=null?myGraphPanel.currentState():0); // [HASLab] first state
+		   loadXML(fileName, forcefully, myGraphPanel!=null?current:0); // [HASLab] first state
 	   }
 	   
 	   // [HASLab] simulator
-	   public void enable(String act, boolean enab) {
-		   myGraphPanel.enableAct(act,enab);
+	   public synchronized void enable(String act, boolean enab) {
+			for (Component m : actionMenu.getComponents()) {
+				JMenuItem mi = (JMenuItem) m;
+				if (mi.getText().equals(act.substring(1))) {
+					if (enab)
+						mi.setBackground(new Color(240,255,240));
+					else mi.setBackground(new Color(255,240,240));
+				}
+			}
+			pending--;
+			if (pending == 0) {
+				for (Component m : actionMenu.getComponents()) {
+					JMenuItem mi = (JMenuItem) m;
+					if (mi.getBackground().equals(new Color(240,255,240)))
+						mi.setEnabled(true);
+				}
+				updateTmpButtons();
+			}
 	   }
 	
 	   /** Load the XML instance. */
@@ -715,7 +858,6 @@ public final class VizGUI implements ComponentListener {
 	      if (!xmlLoaded.contains(xmlFileName)) xmlLoaded.add(xmlFileName);
 	      if (myGraphPanel != null) {
 	    	  myGraphPanel.resetProjectionAtomCombos();
-	    	  myGraphPanel.rollback(state);
 	      }
 	      toolbar.setEnabled(true);
 	      // settingsOpen = 0; // [HASLab] disabled so that eval doesn't disappear between steps
@@ -1110,5 +1252,286 @@ public final class VizGUI implements ComponentListener {
 //		      if (!wrap) { currentMode=VisualizerMode.XML; updateDisplay(); return null; }
 //		      return wrapMe();
 		//   }
+	    
+	    
+	    
+	    
+	    
+	    
+	    
+	    
+		/** Trace navigation combo box. */
+		// [HASLab]
+		private List<JLabel> timeLabel = new ArrayList<JLabel>();
+
+		/** Trace navigation buttons. */
+		private List<JButton> leftTime = new ArrayList<JButton>(), rightTime = new ArrayList<JButton>(), nextTime = new ArrayList<JButton>();
+
+		private List<JLabel> actionLabel = new ArrayList<JLabel>();
+
+		/** Optional message to be displayed. */
+		// [HASLab]
+		private List<JLabel> tempMsg = new ArrayList<JLabel>();
+
+		private JPopupMenu actionMenu;
+		
+		private int current = 0;
+
+		protected int pending = 0;
+		
+		private JPanel createTempPanel() {
+			JPanel diagramsScrollPanel2 = new JPanel();
+			diagramsScrollPanel2.add(Box.createHorizontalGlue());
+			diagramsScrollPanel2.setLayout(new BoxLayout(diagramsScrollPanel2, BoxLayout.LINE_AXIS));
+			for (int i = 0; i < getVizState().size(); i++) {
+
+				JPanel split2_ = createTempPanel(i);
+				diagramsScrollPanel2.add(split2_);
+
+				AlloyModel model = getVizState().get(0).getOriginalModel();
+				AlloyType event = model.hasType(Action2Alloy.ACTION_SIG); 
+				if (event != null) {
+					if (i < getVizState().size() - 1) {
+						diagramsScrollPanel2.add(Box.createHorizontalGlue());
+						JPanel p = new JPanel();
+						p.setLayout(new BoxLayout(p, BoxLayout.LINE_AXIS));
+						JPanel aux = new JPanel();
+						JButton branch = new JButton(new String(Character.toChars(0x21dd)));
+						branch.setPreferredSize(new Dimension(60, 30));
+						branch.setMinimumSize(new Dimension(60, 30));
+
+						actionMenu = new JPopupMenu("Menu");
+						branch.addMouseListener(new MouseAdapter() {
+							public void mouseReleased(MouseEvent e) {
+								if (e.getButton() == 1) {
+									actionMenu.show(e.getComponent(), e.getX(), e.getY());
+								}
+							}
+						});
+						
+						JLabel action = new JLabel("ActionActionAction[arg1,arg2]", SwingConstants.CENTER);
+						action.setMinimumSize(action.getPreferredSize());
+						action.setMaximumSize(action.getPreferredSize());
+						action.setPreferredSize(action.getPreferredSize());
+						this.actionLabel.add(action);
+						
+						aux.add(action);
+						aux.add(branch);
+						aux.setLayout(new BoxLayout(aux, BoxLayout.LINE_AXIS));
+						p.add(aux);
+
+						diagramsScrollPanel2.add(p);
+						diagramsScrollPanel2.add(Box.createHorizontalGlue());
+					}
+				}
+
+			}
+			diagramsScrollPanel2.add(Box.createHorizontalGlue());
+			return diagramsScrollPanel2;
+		}
+		
+		
+		// TODO: push this back up to vizgui, avoids passing vizgui here
+		private JPanel createTempPanel(int i) {
+			JPanel tmpPanel = new JPanel();
+			tmpPanel.setLayout(new BoxLayout(tmpPanel, BoxLayout.LINE_AXIS));
+
+			JButton leftTime = new JButton(new String(Character.toChars(0x2190)));
+			this.leftTime.add(leftTime);
+			JButton rightTime = new JButton(new String(Character.toChars(0x2192)));
+			this.rightTime.add(rightTime);
+			leftTime.setEnabled(false);
+			rightTime.setEnabled(false);
+			rightTime.setMaximumSize(new Dimension(1,1));
+			leftTime.setMaximumSize(new Dimension(1,1));
+			rightTime.setMinimumSize(new Dimension(1,1));
+			leftTime.setMinimumSize(new Dimension(1,1));
+			JLabel timeLabel = new JLabel("State 99 (99) 999", SwingConstants.CENTER);
+			timeLabel.setFont(timeLabel.getFont().deriveFont(Font.BOLD));
+			timeLabel.setMinimumSize(timeLabel.getPreferredSize());
+			timeLabel.setMaximumSize(timeLabel.getPreferredSize());
+			timeLabel.setPreferredSize(timeLabel.getPreferredSize());
+			this.timeLabel.add(timeLabel);
+			JLabel tempMsg = new JLabel("");
+			this.tempMsg.add(tempMsg);
+
+			JButton nextButton = new JButton(new String(Character.toChars(0x21ba)));
+			nextButton.setPreferredSize(new Dimension(40, rightTime.getHeight()));
+			this.nextTime.add(nextButton);
+			
+			nextButton.addActionListener(new ActionListener() {
+				public final void actionPerformed(ActionEvent e) {
+					doNext(current+i);
+					updateDisplay();
+				}
+			});
+			leftTime.addActionListener(new ActionListener() {
+				public final void actionPerformed(ActionEvent e) {
+					if (current > 0)
+						current--;
+					updateDisplay();
+				}
+			});
+			rightTime.addActionListener(new ActionListener() {
+				public final void actionPerformed(ActionEvent e) {
+					current++;
+					updateDisplay();
+				}
+			});
+			
+
+			JPanel aux = new JPanel();
+			aux.setLayout(new GridLayout());
+			aux.add(leftTime);
+			aux.setPreferredSize(new Dimension(60, 30));
+			aux.setMaximumSize(new Dimension(60,30));
+			tmpPanel.add(aux);
+			tmpPanel.add(timeLabel);
+			tmpPanel.add(nextButton);
+			aux = new JPanel();
+			aux.setLayout(new GridLayout());
+			aux.add(rightTime);
+			aux.setPreferredSize(new Dimension(60, 30));
+			aux.setMaximumSize(new Dimension(60,30));
+			tmpPanel.add(aux);
+
+			if (i != getVizState().size() - 1)
+				rightTime.setVisible(false);
+			if (i != 0)
+				leftTime.setVisible(false);
+
+			return tmpPanel;
+		}
+
+		private void updateTmpButtons() {
+			int backindex = getVizState().get(0).getOriginalInstance().originalA4.getLoopState();
+			int length = 1 + getVizState().get(0).getOriginalInstance().originalA4.getLastState();
+
+			for (int i = 0; i < timeLabel.size(); i++) {
+				int c = current + i;
+				int llen = length - backindex;
+				if (c>backindex) c = ((c-backindex)%llen)+backindex;
+				timeLabel.get(i).setText("State " + (current + i) + (c==(current+i)? "" : " (" + new String(Character.toChars(0x2261)) + c + ")"));
+				if (current+i > 0) {
+					leftTime.get(i).setEnabled(pending==0);
+					leftTime.get(i).setText(new String(Character.toChars(0x2190)));
+				} else {
+					leftTime.get(i).setEnabled(false);
+					leftTime.get(i).setText(new String(Character.toChars(0x21e4)));
+				}
+				rightTime.get(i).setEnabled(pending==0);
+				
+				nextTime.get(i).setEnabled(pending==0);
+
+				if (c == length - 1) {
+					rightTime.get(i).setText(new String(Character.toChars(0x21b6)) + backindex);
+					timeLabel.get(i).setFont(timeLabel.get(i).getFont().deriveFont(Font.BOLD));
+					if (c == backindex) {
+						timeLabel.get(i).setForeground(new Color(13, 152, 186));
+						tempMsg.get(i).setText("Loop starts and ends here.");
+						timeLabel.get(i).setText(timeLabel.get(i).getText()+new String(Character.toChars(0x21c5)));
+					}
+					else {
+						timeLabel.get(i).setForeground(new Color(65,105,225));
+						tempMsg.get(i).setText("Last state before looping.");
+						timeLabel.get(i).setText(timeLabel.get(i).getText()+new String(Character.toChars(0x2191)));
+					}
+				} else {
+					rightTime.get(i).setText(new String(Character.toChars(0x2192)));
+					// change text when loop state
+					if (c == backindex) {
+						timeLabel.get(i).setFont(timeLabel.get(i).getFont().deriveFont(Font.BOLD));
+						timeLabel.get(i).setForeground(new Color(0,128,0));
+						timeLabel.get(i).setText(timeLabel.get(i).getText()+new String(Character.toChars(0x2193)));
+						tempMsg.get(i).setText("Loop starts here.");
+					} else {
+						timeLabel.get(i).setFont(timeLabel.get(i).getFont().deriveFont(Font.PLAIN));
+						timeLabel.get(i).setForeground(Color.BLACK);
+						tempMsg.get(i).setText("");
+					}
+				}
+			}
+				
+		}
+		
+		private void updateTmps() {
+			if (actionMenu!=null) actionMenu.removeAll();
+
+			for (int i = 0; i < timeLabel.size(); i++) {
+				AlloyInstance myInstance;
+				File f = new File(getXMLfilename());
+				try {
+					if (!f.exists())
+						throw new IOException("File " + getXMLfilename() + " does not exist.");
+					myInstance = StaticInstanceReader.parseInstance(f, current + i); 
+					getVizState().get(i).loadInstance(myInstance);
+				} catch (Throwable e) {
+					System.out.println("a");
+				}
+				
+				AlloyModel model = getVizState().get(0).getOriginalModel();
+				AlloyType event = model.hasType(Action2Alloy.ACTION_SIG); 
+				if (event != null) {
+					List<AlloyType> events = model.getSubTypes(event);
+					if (i < getVizState().size() - 1) {
+						for (AlloyType ev : events) {
+							final int j = i;
+							JMenuItem item = new JMenuItem(ev.getName().substring(1));
+							item.setEnabled(false);
+							item.setBackground(new Color(255,255,230));
+							item.addActionListener(new ActionListener() {
+								@Override
+								public void actionPerformed(ActionEvent e) {
+									doNext(j,ev.getName());
+								}
+							});
+							actionMenu.add(item);
+						}
+						
+						final int jj = current + i;
+
+						pending = events.size();
+
+						Thread thread = new Thread(new Runnable() {
+							@Override
+							public void run() {
+								try {
+									Thread.sleep(200);
+								} catch (InterruptedException e1) {
+									// TODO Auto-generated catch block
+									e1.printStackTrace();
+								}
+								String[] as = (String[]) events.stream().map(e -> e.getName()).toArray(String[]::new);
+								hasNexts(jj,as);							
+							}
+						});
+						thread.start();
+						
+						AlloyInstance inst = getVizState().get(i).getOriginalInstance();
+						// find the type of the event fired in this instance, may be more than one due to args
+						AlloyTuple firedargs = null;
+						for(AlloyRelation r:model.getRelations()) 
+							if (r.getName().equals(Action2Alloy.FIRED_REL) && !inst.relation2tuples(r).isEmpty()) 
+								firedargs = inst.relation2tuples(r).iterator().next();
+						
+						StringBuilder sb = new StringBuilder();
+						AlloyType firedtype = firedargs.getAtoms().get(1).getType();					
+						sb.append(firedtype.getName().substring(1));
+						sb.append('[');
+						// find the actual arguments of the fired event
+						for (int j = 2; j < firedargs.getArity(); j++) {
+							if (!firedargs.getAtoms().get(j).toString().equals("_Dummy0")) {
+								sb.append(firedargs.getAtoms().get(j).toString());
+								sb.append(',');
+							}
+						}
+						sb.deleteCharAt(sb.length()-1);
+						sb.append(']');
+						actionLabel.get(i).setText(sb.toString());
+					}
+				}
+			}
+			updateTmpButtons();
+		}
 
 }
