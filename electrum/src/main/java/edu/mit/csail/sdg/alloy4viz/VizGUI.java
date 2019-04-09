@@ -810,15 +810,15 @@ public final class VizGUI implements ComponentListener {
 				JMenuItem mi = (JMenuItem) m;
 				if (mi.getText().equals(act.substring(1))) {
 					if (enab)
-						mi.setBackground(new Color(240,255,240));
-					else mi.setBackground(new Color(255,240,240));
+						mi.setBackground(new Color(230,255,230));
+					else mi.setBackground(new Color(255,230,230));
 				}
 			}
 			pending--;
 			if (pending == 0) {
 				for (Component m : actionMenu.getComponents()) {
 					JMenuItem mi = (JMenuItem) m;
-					if (mi.getBackground().equals(new Color(240,255,240)))
+					if (mi.getBackground().equals(new Color(230,255,230)))
 						mi.setEnabled(true);
 				}
 				updateTmpButtons();
@@ -868,6 +868,7 @@ public final class VizGUI implements ComponentListener {
 	         frame.setTitle("Alloy Visualizer "+Version.version() + " (Electrum Analyzer "+Version.eleVersion()+")"+" loading... Please wait..."); // [HASLab]
 	         OurUtil.show(frame);
 	      }
+	      pending = 0;
 	      updateDisplay();
 	   }
 
@@ -1455,8 +1456,6 @@ public final class VizGUI implements ComponentListener {
 		}
 		
 		private void updateTmps() {
-			if (actionMenu!=null) actionMenu.removeAll();
-
 			for (int i = 0; i < timeLabel.size(); i++) {
 				AlloyInstance myInstance;
 				File f = new File(getXMLfilename());
@@ -1474,19 +1473,36 @@ public final class VizGUI implements ComponentListener {
 				if (event != null) {
 					List<AlloyType> events = model.getSubTypes(event);
 					if (i < getVizState().size() - 1) {
-						for (AlloyType ev : events) {
+						int ie;
+						for (ie = 0; ie < events.size(); ie++) {
+							AlloyType ev = events.get(ie);
 							final int j = i;
-							JMenuItem item = new JMenuItem(ev.getName().substring(1));
+							JMenuItem item;
+							if (ie<actionMenu.getComponentCount())
+								item = (JMenuItem) actionMenu.getComponent(ie);
+							else {
+								item = new JMenuItem();
+								actionMenu.add(item);
+								item.addActionListener(new ActionListener() {
+									@Override
+									public void actionPerformed(ActionEvent e) {
+										for (Component m : actionMenu.getComponents()) {
+											JMenuItem mi = (JMenuItem) m;
+											mi.setEnabled(false);
+											mi.setBackground(new Color(255,255,220));
+										}
+										pending = -1;
+										updateTmpButtons();
+										doNext(j,ev.getName());
+									}
+								});
+							}
+							item.setText(ev.getName().substring(1));
 							item.setEnabled(false);
 							item.setBackground(new Color(255,255,230));
-							item.addActionListener(new ActionListener() {
-								@Override
-								public void actionPerformed(ActionEvent e) {
-									doNext(j,ev.getName());
-								}
-							});
-							actionMenu.add(item);
 						}
+						for (; ie<actionMenu.getComponentCount();ie++)
+							actionMenu.remove(ie);
 						
 						final int jj = current + i;
 
