@@ -1363,7 +1363,6 @@ public final class VizGUI implements ComponentListener {
 			nextButton.addActionListener(new ActionListener() {
 				public final void actionPerformed(ActionEvent e) {
 					doNext(current+i);
-					updateDisplay();
 				}
 			});
 			leftTime.addActionListener(new ActionListener() {

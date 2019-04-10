@@ -125,7 +125,7 @@ final class SimpleReporter extends A4Reporter {
             if (msg instanceof Throwable) { Throwable ex = (Throwable)msg; span.logBold(ex.toString().trim()+"\n"); span.flush(); return; }
             if (!(msg instanceof Object[])) return;
             Object[] array = (Object[]) msg;
-            if (array[0].equals("enable")) { viz.enable((String) array[1], (Boolean) array[2]); }
+            if (array[0].equals("enable")) { viz.enable((String) array[1], (Boolean) array[2]); gui.doStop(0); }
             if (array[0].equals("pop")) { span.setLength(len2); String x=(String)(array[1]); if (viz!=null && x.length()>0) OurDialog.alert(x); }
             if (array[0].equals("declare")) { gui.doSetLatest((String)(array[1])); }
             if (array[0].equals("S2")) { len3=len2=span.getLength(); span.logBold(""+array[1]); }
@@ -429,10 +429,14 @@ final class SimpleReporter extends A4Reporter {
             	return;
             }
             while(true) {
-            	if (this.index >= 0 && this.action != null)
+            	if (this.index >= 0 && this.action != null) {
+            		latestKodkods.clear();
             		sol=sol.next(this.index,this.action[0]); // [HASLab] simulator
-            	else if (this.index >= 0)
+            	}
+            	else if (this.index >= 0) {
+            		latestKodkods.clear();
             		sol=sol.next(this.index); // [HASLab] simulator
+            	}
             	else
             		sol=sol.next();
                 if (!sol.satisfiable())
