@@ -118,15 +118,6 @@ public final class WorkerEngine {
       }
    }
    
-   public static void pause() {
-	   try {
-		latest_manager.join();
-	} catch (InterruptedException e) {
-		// TODO Auto-generated catch block
-		e.printStackTrace();
-	}
-   }
-
    /** This returns true iff the subprocess is still busy processing the last task. */
    public static boolean isBusy() {
       synchronized(WorkerEngine.class) { return latest_manager!=null && latest_manager.isAlive(); }
