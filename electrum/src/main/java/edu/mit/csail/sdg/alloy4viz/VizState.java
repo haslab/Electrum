@@ -141,11 +141,11 @@ public final class VizState {
    // [HASLab]
    void applyDefaultVar() {
       for (AlloyType r : currentModel.getTypes()) // [HASLab] paint variable sigs differently
-    	  if (r.isVar && nodeStyle.get(r) == null) nodeStyle.put(r, DotStyle.DASHED);
+    	  if (r.isVar && !r.isPrivate && nodeStyle.get(r) == null) nodeStyle.put(r, DotStyle.DASHED);
       for (AlloyRelation r : currentModel.getRelations()) // [HASLab] paint variable fields differently
-    	  if (r.isVar && edgeStyle.get(r) == null) edgeStyle.put(r, DotStyle.DASHED);
+    	  if (r.isVar && !r.isPrivate && edgeStyle.get(r) == null) edgeStyle.put(r, DotStyle.DASHED);
       for (AlloySet r : currentModel.getSets()) // [HASLab] paint variable sets differently
-    	  if (r.isVar && nodeStyle.get(r) == null) nodeStyle.put(r, DotStyle.DASHED);
+    	  if (r.isVar && !r.isPrivate && nodeStyle.get(r) == null) nodeStyle.put(r, DotStyle.DASHED);
    }
    
    /** Load a new instance into this VizState object (the input argument is treated as a new unprojected instance);
