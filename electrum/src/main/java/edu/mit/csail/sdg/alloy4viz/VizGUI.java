@@ -454,13 +454,14 @@ public final class VizGUI implements ComponentListener {
 	         toolbar.add(resetSettingsButton=OurUtil.button("Reset", "Reset the theme customization", "images/24_settings_close2.gif", doResetTheme()));
 	         if (frame!=null) addDivider();
 	         
+ 		     List<Ellipse2D> states = new ArrayList<Ellipse2D>();
+
 	         JPanel trace = new JPanel() {
 	        	  @Override
 	        	    public void paintComponent(Graphics g) {
    	        		    Graphics2D g2 = (Graphics2D) g;
    	        		    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 	        		  	
-   	        		    List<Ellipse2D> states = new ArrayList<Ellipse2D>();
 	        		  	int radius = 12;
 	        		  	int offsety = 30;
 	        		  	int offsetx = 90;
@@ -537,16 +538,18 @@ public final class VizGUI implements ComponentListener {
 	        	}
           };
           
-          trace.addMouseListener(new MouseAdapter() {
-			
-//        	  public void mouseClicked(MouseEvent e) {
-//        		   if ((e.getButton() == 1) && oval.contains(e.getX(), e.getY()) ) {
-//        		      repaint();
-//        		    // JOptionPane.showMessageDialog(null,e.getX()+ "\n" + e.getY());
-//        		   }
-//        	  }
-        	  
-          });
+		  trace.addMouseListener(new MouseAdapter() {
+
+				public void mouseClicked(MouseEvent e) {
+					for (int i = 0; i<states.size(); i++)
+						if ((e.getButton() == 1) && states.get(i).contains(e.getX(), e.getY())) {
+							current = i;
+							updateDisplay();
+							break;					
+						}
+				}
+
+		  });
 	      
 	      toolbar.add(trace);
 		  } finally {
@@ -579,26 +582,6 @@ public final class VizGUI implements ComponentListener {
 	         frame.addComponentListener(this);
 	      }
 	      if (xmlFileName.length()>0) doLoadInstance(xmlFileName);
-	      
-	      frame.addKeyListener(new KeyAdapter() {
-			@Override
-			public void keyPressed(KeyEvent e) {
-				int key = e.getKeyCode();
-				if (key == KeyEvent.VK_LEFT) {
-					if (current > 0)
-						current--;
-					updateTmps();
-				}
-				if (key == KeyEvent.VK_RIGHT) {
-        		  	int lst = getVizState().get(0).getOriginalInstance().originalA4.getLastState() + 1;
-        		  	int lop = getVizState().get(0).getOriginalInstance().originalA4.getLoopState();
-        		  	int lmx = getVizState().get(0).getOriginalInstance().originalA4.getMaxTrace();
-        		    int lox = lmx - (lst - lop);
-        		    current = normalize(current+1,lmx,lox);
-					updateTmps();
-				}
-			}
-	      });
 	      
 	   }
 	   
