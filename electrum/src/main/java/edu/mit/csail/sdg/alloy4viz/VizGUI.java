@@ -801,7 +801,7 @@ public final class VizGUI implements ComponentListener {
 
 	   /** Load the XML instance. */
 	   public void loadXML(final String fileName, boolean forcefully) {
-		   loadXML(fileName, forcefully, myGraphPanel!=null?current:0); // [HASLab] first state
+		   loadXML(fileName, forcefully, current); // [HASLab] first state
 	   }
 	   
 	   // [HASLab] simulator
@@ -828,14 +828,17 @@ public final class VizGUI implements ComponentListener {
 	   /** Load the XML instance. */
 	   // [HASLab] considers particular state
 	   public void loadXML(final String fileName, boolean forcefully, int state) {
+		  current = state;
   	 	  final String xmlFileName = Util.canon(fileName); 
 	      File f = new File(xmlFileName);
 	      if (forcefully || !xmlFileName.equals(this.xmlFileName)) {
 	    	  for (int i = 0; i < STATEPANES; i++) {
-		         AlloyInstance myInstance;
 		         try {
 		            if (!f.exists()) throw new IOException("File " + xmlFileName + " does not exist.");
-		            myInstance = StaticInstanceReader.parseInstance(f,state+i); // [HASLab] state
+		            if (i >= myStates.size()) {
+		            	AlloyInstance myInstance = StaticInstanceReader.parseInstance(f,state+i); // [HASLab] state
+		            	myStates.add(new VizState(myInstance));
+		            }
 		         } catch (Throwable e) {
 		            xmlLoaded.remove(fileName);
 		            xmlLoaded.remove(xmlFileName);
@@ -846,10 +849,6 @@ public final class VizGUI implements ComponentListener {
 		            doCloseAll();
 		            return;
 		         }
-		         if (i >= myStates.size()) 
-	        		 myStates.add(new VizState(myInstance));
-		         else 
-	        		 myStates.get(i).loadInstance(myInstance);
 		         repopulateProjectionPopup();
 		         xml2title.put(xmlFileName, makeVizTitle());
 		         this.xmlFileName = xmlFileName;
@@ -1256,23 +1255,14 @@ public final class VizGUI implements ComponentListener {
 	    
 	    
 	    
-	    
-	    
-	    
-	    
-	    
 		/** Trace navigation combo box. */
 		// [HASLab]
-		private List<JLabel> timeLabel = new ArrayList<JLabel>();
+		private List<JLabel> timeLabel = new ArrayList<JLabel>(), actionLabel = new ArrayList<JLabel>();
 
 		/** Trace navigation buttons. */
-		private List<JButton> leftTime = new ArrayList<JButton>(), rightTime = new ArrayList<JButton>(), nextTime = new ArrayList<JButton>();
-
-		private List<JLabel> actionLabel = new ArrayList<JLabel>();
-
-		/** Optional message to be displayed. */
 		// [HASLab]
-		private List<JLabel> tempMsg = new ArrayList<JLabel>();
+		private List<JButton> leftTime = new ArrayList<JButton>(), rightTime = new ArrayList<JButton>(), 
+				nextState = new ArrayList<JButton>(), nextEvent = new ArrayList<JButton>();
 
 		private JPopupMenu actionMenu;
 		
@@ -1354,11 +1344,10 @@ public final class VizGUI implements ComponentListener {
 			timeLabel.setPreferredSize(timeLabel.getPreferredSize());
 			this.timeLabel.add(timeLabel);
 			JLabel tempMsg = new JLabel("");
-			this.tempMsg.add(tempMsg);
 
 			JButton nextButton = new JButton(new String(Character.toChars(0x21ba)));
 			nextButton.setPreferredSize(new Dimension(40, rightTime.getHeight()));
-			this.nextTime.add(nextButton);
+			this.nextState.add(nextButton);
 			
 			nextButton.addActionListener(new ActionListener() {
 				public final void actionPerformed(ActionEvent e) {
@@ -1421,19 +1410,17 @@ public final class VizGUI implements ComponentListener {
 				}
 				rightTime.get(i).setEnabled(pending==0);
 				
-				nextTime.get(i).setEnabled(pending==0);
+				nextState.get(i).setEnabled(pending==0);
 
 				if (c == length - 1) {
 					rightTime.get(i).setText(new String(Character.toChars(0x21b6)) + backindex);
 					timeLabel.get(i).setFont(timeLabel.get(i).getFont().deriveFont(Font.BOLD));
 					if (c == backindex) {
 						timeLabel.get(i).setForeground(new Color(13, 152, 186));
-						tempMsg.get(i).setText("Loop starts and ends here.");
 						timeLabel.get(i).setText(timeLabel.get(i).getText()+new String(Character.toChars(0x21c5)));
 					}
 					else {
 						timeLabel.get(i).setForeground(new Color(65,105,225));
-						tempMsg.get(i).setText("Last state before looping.");
 						timeLabel.get(i).setText(timeLabel.get(i).getText()+new String(Character.toChars(0x2191)));
 					}
 				} else {
@@ -1443,11 +1430,9 @@ public final class VizGUI implements ComponentListener {
 						timeLabel.get(i).setFont(timeLabel.get(i).getFont().deriveFont(Font.BOLD));
 						timeLabel.get(i).setForeground(new Color(0,128,0));
 						timeLabel.get(i).setText(timeLabel.get(i).getText()+new String(Character.toChars(0x2193)));
-						tempMsg.get(i).setText("Loop starts here.");
 					} else {
 						timeLabel.get(i).setFont(timeLabel.get(i).getFont().deriveFont(Font.PLAIN));
 						timeLabel.get(i).setForeground(Color.BLACK);
-						tempMsg.get(i).setText("");
 					}
 				}
 			}
