@@ -383,10 +383,11 @@ public final class A4SolutionReader {
 		// set up the basic values of the A4Solution object
 		final int bitwidth = Integer.parseInt(inst.getAttribute("bitwidth"));
 		final int maxseq = Integer.parseInt(inst.getAttribute("maxseq"));
-		final int tracelength;
-		final int backloop;
+		final int tracelength, mintrace, maxtrace, backloop;
 		try {
 			tracelength = Integer.parseInt(inst.getAttribute("tracelength"));  // [HASLab]
+			mintrace = Integer.parseInt(inst.getAttribute("mintrace"));  // [HASLab]
+			maxtrace = Integer.parseInt(inst.getAttribute("maxtrace"));  // [HASLab]
 			backloop = Integer.parseInt(inst.getAttribute("backloop")); 	   // [HASLab]
 		} catch (Exception ex) {
 			throw new ErrorSyntax("Missing trace attributes.");
@@ -445,7 +446,7 @@ public final class A4SolutionReader {
 				// create the A4Solution object
 				A4Options opt = new A4Options();
 				opt.originalFilename = inst.getAttribute("filename");
-				sol = new A4Solution(inst.getAttribute("command"), bitwidth, tracelength, tracelength, maxseq, strings, atoms, null, opt, 1); // [HASLab]
+				sol = new A4Solution(inst.getAttribute("command"), bitwidth, mintrace, maxtrace, maxseq, strings, atoms, null, opt, 1); // [HASLab]
 				factory = sol.getFactory();
 				// parse all the sigs, fields, and skolems
 				for (Map.Entry<String, XMLNode> e : nmap.entrySet())

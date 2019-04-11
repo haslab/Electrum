@@ -147,6 +147,9 @@ public final class A4Solution {
     /** The maximum allowed sequence length; always between 0 and 2^(bitwidth-1)-1. */
     private final int maxseq;
 
+    // [HASLab]
+    private final int maxtrace, mintrace;
+
     /** The maximum allowed number of loop unrolling and recursion level. */
     private final int unrolls;
 
@@ -241,6 +244,8 @@ public final class A4Solution {
 		this.originalCommand = (originalCommand==null ? "" : originalCommand);
 		this.bitwidth = bitwidth;
 		this.maxseq = maxseq;
+		this.maxtrace = maxTracelength;
+		this.mintrace = minTracelength;
 		if (bitwidth < 0)   throw new ErrorSyntax("Cannot specify a bitwidth less than 0");
 		if (bitwidth > 30)  throw new ErrorSyntax("Cannot specify a bitwidth greater than 30");
 		if (maxseq < 0)     throw new ErrorSyntax("The maximum sequence length cannot be negative.");
@@ -388,6 +393,8 @@ public final class A4Solution {
 		originalOptions = old.originalOptions;
 		originalCommand = old.originalCommand;
 		bitwidth = old.bitwidth;
+		mintrace = old.mintrace;
+		maxtrace = old.maxtrace;
 		maxseq = old.maxseq;
 		kAtoms = old.kAtoms;
 		factory = old.factory;
@@ -446,6 +453,12 @@ public final class A4Solution {
 
 	/** Returns the maximum allowed sequence length; always between 0 and 2^(bitwidth-1)-1. */
 	public int getMaxSeq() { return maxseq; }
+
+	// [HASLab]
+	public int getMaxTrace() { return maxtrace; }
+
+	// [HASLab]
+	public int getMinTrace() { return mintrace; }
 
 	/** Returns the largest allowed integer, or -1 if no integers are allowed. */
 	public int max() { return Util.max(bitwidth); }

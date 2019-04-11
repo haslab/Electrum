@@ -25,6 +25,7 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GridLayout;
@@ -40,6 +41,7 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Path2D;
@@ -451,7 +453,7 @@ public final class VizGUI implements ComponentListener {
 	         toolbar.add(saveAsSettingsButton=OurUtil.button("Save As", "Save the current theme customization as a new theme file", "images/24_save.gif", doSaveThemeAs()));
 	         toolbar.add(resetSettingsButton=OurUtil.button("Reset", "Reset the theme customization", "images/24_settings_close2.gif", doResetTheme()));
 	         if (frame!=null) addDivider();
-	         toolbar.add(Box.createHorizontalGlue());
+	         
 	         JPanel trace = new JPanel() {
 	        	  @Override
 	        	    public void paintComponent(Graphics g) {
@@ -461,38 +463,41 @@ public final class VizGUI implements ComponentListener {
    	        		    List<Ellipse2D> states = new ArrayList<Ellipse2D>();
 	        		  	int radius = 12;
 	        		  	int offsety = 30;
-	        		  	int offsetx = 20;
-	        		  	int dist = 50;
-	        		  	int lst = getVizState().get(0).getOriginalInstance().originalA4.getLastState();
+	        		  	int offsetx = 90;
+	        		  	int dist = 45;
+	        		  	int lst = getVizState().get(0).getOriginalInstance().originalA4.getLastState() + 1;
 	        		  	int lop = getVizState().get(0).getOriginalInstance().originalA4.getLoopState();
+	        		    int lmx = getVizState().get(0).getOriginalInstance().originalA4.getMaxTrace();
+	        		    int lox = lmx - (lst - lop);
 	        		  	Ellipse2D loop = null, last = null;
-	        		    for (int i = 0; i <= lst; i++) {
+	        		    for (int i = 0; i < lmx; i++) {
 	        		    	g2.setStroke(new BasicStroke(2));
 		        		    Ellipse2D circl = new Ellipse2D.Double(i*dist+offsetx - radius, offsety - radius, 2.0 * radius, 2.0 * radius);
-		        		    if (i == lst) {
+		        		    if (i == lmx-1) 
 		        		    	last = circl;
-		        		    	if (i == lop) {
-			        		    	loop = circl;
-			        		    	g2.setColor(new Color(13, 152, 186));
-		        		    	} else 
-		        		    		g2.setColor(new Color(65,105,225));
-		        		    }
-		        		    else if (i == lop) {
+		        		    if (i == lox) 
 		        		    	loop = circl;
+		        		    if (normalize(i,lst,lop) == lst-1) {
+		        		    	if (normalize(i,lst,lop) == lop)
+			        		    	g2.setColor(new Color(13, 152, 186));
+		        		    	else 
+		        		    		g2.setColor(new Color(65,105,225));
+		        		    } else if (normalize(i,lst,lop) == lop)
 		        		    	g2.setColor(new Color(0,128,0));
-		        		    }
 		        		    Color tmp = g2.getColor();
-		        		    int llen = lst + 1 - lop;
-		        		    int max = (current+STATEPANES-1)>lop? (((current+STATEPANES-1-lop)%llen)+lop) : (current+STATEPANES-1);
-		        		    int min = (current)>lop? (((current-lop)%llen)+lop) : (current);
-		        		    if ((min <= max && i >= min && i <= max) || (min > max && (i >= min || (i <= max && i >= lop)))) {
+		        		    int max = normalize(current+STATEPANES-1,lmx,lox);
+		        		    int min = normalize(current,lmx,lox);
+		        		    if ((min <= max && i >= min && i <= max) || (min > max && (i >= min || (i <= max && i >= lox)))) {
 		        		  		g2.setColor(new Color (255,255,255));
 		        		    } else {
-		        		  		g2.setColor(new Color (100,100,100));
+		        		  		g2.setColor(new Color (120,120,120));
 		        		    }
 		        		    g2.fill(circl);
 		        		    g2.setColor(tmp);
 		        		    g2.draw(circl);
+		        		    FontMetrics mets = g2.getFontMetrics();
+		        		    String lbl = normalize(i,lst,lop)+"";
+		        		    g2.drawString(lbl, i*dist+offsetx-(mets.stringWidth(lbl)/2), offsety+(mets.getAscent()/2));
 		        		    states.add(circl);
 		        		    g2.setStroke(new BasicStroke(1));
 	        		  		g2.setColor(new Color (0,0,0));
@@ -503,7 +508,7 @@ public final class VizGUI implements ComponentListener {
 	        		  	arrowHead.addPoint(-4,-4);
 	        		  	arrowHead.addPoint(4,-4);
 	        		  	
-	        		    for (int i = 0; i < lst; i++) {
+	        		    for (int i = 0; i < lmx-1; i++) {
 		        		  	Path2D path = new Path2D.Double();
 		        		  	path.moveTo(states.get(i).getMaxX(),states.get(i).getCenterY());
 		        		  	path.lineTo(states.get(i+1).getMinX(),states.get(i+1).getCenterY());
@@ -525,12 +530,23 @@ public final class VizGUI implements ComponentListener {
 
 	        		  	AffineTransform tx = new AffineTransform();
 	        		  	tx.setToIdentity();
-	        		    double angle = Math.atan2(loop.getMinY()-0, loop.getCenterX()-40);
+	        		    double angle = Math.atan2(loop.getMinY(), -dist/2);
 	        		    tx.translate(loop.getCenterX(), loop.getMinY());
-	        		    tx.rotate((angle-Math.PI/2d));  
+	        		    tx.rotate(angle-Math.PI/2d);  
 	        		    g2.fill(tx.createTransformedShape(arrowHead));   
 	        	}
           };
+          
+          trace.addMouseListener(new MouseAdapter() {
+			
+//        	  public void mouseClicked(MouseEvent e) {
+//        		   if ((e.getButton() == 1) && oval.contains(e.getX(), e.getY()) ) {
+//        		      repaint();
+//        		    // JOptionPane.showMessageDialog(null,e.getX()+ "\n" + e.getY());
+//        		   }
+//        	  }
+        	  
+          });
 	      
 	      toolbar.add(trace);
 		  } finally {
@@ -574,12 +590,21 @@ public final class VizGUI implements ComponentListener {
 					updateTmps();
 				}
 				if (key == KeyEvent.VK_RIGHT) {
-					current++;
+        		  	int lst = getVizState().get(0).getOriginalInstance().originalA4.getLastState() + 1;
+        		  	int lop = getVizState().get(0).getOriginalInstance().originalA4.getLoopState();
+        		  	int lmx = getVizState().get(0).getOriginalInstance().originalA4.getMaxTrace();
+        		    int lox = lmx - (lst - lop);
+        		    current = normalize(current+1,lmx,lox);
 					updateTmps();
 				}
 			}
 	      });
 	      
+	   }
+	   
+	   private int normalize(int idx, int length, int loop) {
+		    int lln = length - loop;
+		    return idx>loop ? (((idx-loop)%lln)+loop) : idx;
 	   }
 	   
 	   /** Invoked when the Visualizationwindow is resized. */
@@ -1262,7 +1287,7 @@ public final class VizGUI implements ComponentListener {
 		/** Trace navigation buttons. */
 		// [HASLab]
 		private List<JButton> leftTime = new ArrayList<JButton>(), rightTime = new ArrayList<JButton>(), 
-				nextState = new ArrayList<JButton>(), nextEvent = new ArrayList<JButton>();
+				nextState = new ArrayList<JButton>(), nextEvent = new ArrayList<JButton>(), branch = new ArrayList<JButton>();
 
 		private JPopupMenu actionMenu;
 		
@@ -1290,7 +1315,6 @@ public final class VizGUI implements ComponentListener {
 						JButton branch = new JButton(new String(Character.toChars(0x21dd)));
 						branch.setPreferredSize(new Dimension(60, 30));
 						branch.setMinimumSize(new Dimension(60, 30));
-
 						actionMenu = new JPopupMenu("Menu");
 						branch.addMouseListener(new MouseAdapter() {
 							public void mouseReleased(MouseEvent e) {
@@ -1299,7 +1323,12 @@ public final class VizGUI implements ComponentListener {
 								}
 							}
 						});
-						
+
+						JButton nextButton = new JButton(new String(Character.toChars(0x21ba)));
+						nextButton.setPreferredSize(new Dimension(40, branch.getHeight()));
+						this.nextEvent.add(nextButton);
+						this.branch.add(branch);
+
 						JLabel action = new JLabel("ActionActionAction[arg1,arg2]", SwingConstants.CENTER);
 						action.setMinimumSize(action.getPreferredSize());
 						action.setMaximumSize(action.getPreferredSize());
@@ -1307,6 +1336,7 @@ public final class VizGUI implements ComponentListener {
 						this.actionLabel.add(action);
 						
 						aux.add(action);
+						aux.add(nextButton);
 						aux.add(branch);
 						aux.setLayout(new BoxLayout(aux, BoxLayout.LINE_AXIS));
 						p.add(aux);
@@ -1343,7 +1373,6 @@ public final class VizGUI implements ComponentListener {
 			timeLabel.setMaximumSize(timeLabel.getPreferredSize());
 			timeLabel.setPreferredSize(timeLabel.getPreferredSize());
 			this.timeLabel.add(timeLabel);
-			JLabel tempMsg = new JLabel("");
 
 			JButton nextButton = new JButton(new String(Character.toChars(0x21ba)));
 			nextButton.setPreferredSize(new Dimension(40, rightTime.getHeight()));
@@ -1363,7 +1392,11 @@ public final class VizGUI implements ComponentListener {
 			});
 			rightTime.addActionListener(new ActionListener() {
 				public final void actionPerformed(ActionEvent e) {
-					current++;
+        		  	int lst = getVizState().get(0).getOriginalInstance().originalA4.getLastState() + 1;
+        		  	int lop = getVizState().get(0).getOriginalInstance().originalA4.getLoopState();
+        		  	int lmx = getVizState().get(0).getOriginalInstance().originalA4.getMaxTrace();
+        		    int lox = lmx - (lst - lop);
+        		    current = normalize(current+1,lmx,lox);
 					updateDisplay();
 				}
 			});
@@ -1395,12 +1428,14 @@ public final class VizGUI implements ComponentListener {
 		private void updateTmpButtons() {
 			int backindex = getVizState().get(0).getOriginalInstance().originalA4.getLoopState();
 			int length = 1 + getVizState().get(0).getOriginalInstance().originalA4.getLastState();
+		  	int lmax = getVizState().get(0).getOriginalInstance().originalA4.getMaxTrace();
+		    int lopx = lmax - (length - backindex);
 
 			for (int i = 0; i < timeLabel.size(); i++) {
 				int c = current + i;
-				int llen = length - backindex;
-				if (c>backindex) c = ((c-backindex)%llen)+backindex;
-				timeLabel.get(i).setText("State " + (current + i) + (c==(current+i)? "" : " (" + new String(Character.toChars(0x2261)) + c + ")"));
+				c = normalize(c,length,backindex);
+				int ci = normalize(current+i,lmax,lopx);
+				timeLabel.get(i).setText("State " + ci + (c==ci? "" : " (" + new String(Character.toChars(0x2261)) + c + ")"));
 				if (current+i > 0) {
 					leftTime.get(i).setEnabled(pending==0);
 					leftTime.get(i).setText(new String(Character.toChars(0x2190)));

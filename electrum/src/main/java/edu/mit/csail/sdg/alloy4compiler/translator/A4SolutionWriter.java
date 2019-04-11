@@ -264,8 +264,9 @@ public final class A4SolutionWriter {
 	 * solution as an XML file. 
 	 */
 	// [HASLab] writes a specific time instant
-	private A4SolutionWriter(A4Reporter rep, A4Solution sol, Iterable<Sig> sigs, int bitwidth, int maxseq, int tracelength, int backloop,
-			String originalCommand, String originalFileName, PrintWriter out, Iterable<Func> extraSkolems, int state)
+	private A4SolutionWriter(A4Reporter rep, A4Solution sol, Iterable<Sig> sigs, int bitwidth, int maxseq, int mintrace,
+			int maxtrace, int tracelength, int backloop, String originalCommand, String originalFileName,
+			PrintWriter out, Iterable<Func> extraSkolems, int state)
 			throws Err {
 
 		this.rep = rep;
@@ -283,6 +284,8 @@ public final class A4SolutionWriter {
 		out.print("\" filename=\""); Util.encodeXML(out, originalFileName);
 		out.print("\" tracelength=\""); out.print(tracelength); // [HASLab] the trace length of the instance
 		out.print("\" backloop=\""); out.print(backloop); // [HASLab] the back loop of the instance
+		out.print("\" mintrace=\""); out.print(mintrace); // [HASLab] the trace length of the instance
+		out.print("\" maxtrace=\""); out.print(maxtrace); // [HASLab] the trace length of the instance
 		if (sol == null)
 			out.print("\" metamodel=\"yes");
 		out.print("\">\n");
@@ -333,11 +336,13 @@ public final class A4SolutionWriter {
 			out.print("\" filename=\""); Util.encodeXML(out, sol.getOriginalFilename());
 			out.print("\" tracelength=\""); out.print(sol.getLastState()); // [HASLab] the trace length of the instance
 			out.print("\" backloop=\""); out.print(sol.getLoopState()); // [HASLab] the back loop of the instance
+			out.print("\" maxtrace=\""); out.print(sol.getMaxTrace()); // [HASLab] the trace length of the instance
+			out.print("\" mintrace=\""); out.print(sol.getMinTrace()); // [HASLab] the trace length of the instance
 			out.print("\">\n\n");
 
 			// [HASLab] write all relevant instances.
 			for (int i = 0; i <= sol.getLastState(); i++)
-				new A4SolutionWriter(rep, sol, sol.getAllReachableSigs(), sol.getBitwidth(), sol.getMaxSeq(),
+				new A4SolutionWriter(rep, sol, sol.getAllReachableSigs(), sol.getBitwidth(), sol.getMaxSeq(), sol.getMinTrace(), sol.getMaxTrace(),
 						sol.getLastState(), sol.getLoopState(), sol.getOriginalCommand(), sol.getOriginalFilename(), out, extraSkolems, i);  
 			
 			if (sources != null)
@@ -363,7 +368,7 @@ public final class A4SolutionWriter {
 			throws Err {
 		try {
 			// [HASLab] -1 identifies metamodel.
-			new A4SolutionWriter(null, null, sigs, 4, 4, 10, 0, "show metamodel", originalFilename, out, null, -1); 
+			new A4SolutionWriter(null, null, sigs, 4, 4, 1, 1, 1, 0, "show metamodel", originalFilename, out, null, -1); 
 		} catch (Throwable ex) {
 			if (ex instanceof Err)
 				throw (Err) ex;
