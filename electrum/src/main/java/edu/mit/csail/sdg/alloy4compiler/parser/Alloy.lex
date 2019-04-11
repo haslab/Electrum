@@ -198,7 +198,7 @@ import java_cup.runtime.*;
 "no"                  { return alloy_sym(yytext(), CompSym.NO          );}
 "one"                 { return alloy_sym(yytext(), CompSym.ONE         );}
 "var"                 { return alloy_sym(yytext(), CompSym.VAR         );} // [HASLab] variable tokens
-"act"                 { return alloy_sym(yytext(), CompSym.ACT         );} // [HASLab] action tokens
+"event"               { return alloy_sym(yytext(), CompSym.ACT         );} // [HASLab] action tokens
 "open"                { return alloy_sym(yytext(), CompSym.OPEN        );}
 "or"                  { return alloy_sym(yytext(), CompSym.OR          );}
 "partition"           { return alloy_sym(yytext(), CompSym.PART        );}

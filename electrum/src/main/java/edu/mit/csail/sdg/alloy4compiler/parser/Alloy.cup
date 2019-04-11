@@ -192,7 +192,7 @@ parser code {:
     ch.put(CompSym.NOTLTE, "!");
     ch.put(CompSym.ONE2, "one");
     ch.put(CompSym.ONE, "one");
-    ch.put(CompSym.ACT, "act"); 					  // [HASLab] action tokens
+    ch.put(CompSym.ACT, "event"); 					  // [HASLab] action tokens
     ch.put(CompSym.VAR, "var");                       // [HASLab] variable tokens
     ch.put(CompSym.ALWAYS, "always");                 // [HASLab] ltl tokens
     ch.put(CompSym.EVENTUALLY, "eventually");         // [HASLab] ltl tokens

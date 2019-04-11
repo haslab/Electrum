@@ -101,7 +101,7 @@ class OurSyntaxDocument extends DefaultStyledDocument {
 		"iff", "implies", "in", "Int", "int", "let", "lone", "module", "no", "none", "not", "one", "open", "or", "part",
 		"partition", "pred", "private", "run", "seq", "set", "sig", "some", "String", "sum", "this", "univ", 
 		"eventually", "always", "after", "once", "historically", "since", "trigger", "previous", "until", "release", "Time", // [HASLab] temporal keywords
-		"act", "modifies" // [HASLab] action keywords
+		"event", "modifies" // [HASLab] action keywords
 	};
 
 	/** Returns true if array[start .. start+len-1] matches one of the reserved keyword. */
