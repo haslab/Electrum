@@ -1494,7 +1494,8 @@ public final class VizGUI implements ComponentListener {
 								sb.append(',');
 							}
 						}
-						sb.deleteCharAt(sb.length()-1);
+						if (sb.charAt(sb.length()-1) == ',')
+							sb.deleteCharAt(sb.length()-1);
 						sb.append(']');
 						actionLabel.get(i).setText(sb.toString());
 				
