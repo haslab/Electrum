@@ -378,38 +378,42 @@ public final class A4Solution {
 				else if (r.toString().equals("this/_E._event"))
 					ev = r;
 			}
-			if (ev == null || (act != null && ac == null))
-				throw new RuntimeException(sb.toString());
-
-			TupleSet x = old.bounds.universe().factory().noneOf(ev.arity());
-			if (event) {
-				x = old.eval.evaluate(ev, p);
-				x = TemporalBoundsExpander.convertToUniv(x, old.bounds.universe());
-				act = old.atom2sig(x.iterator().next().atom(0)).toString();
-				for (Relation r : old.bounds.relations()) {
-					if (r.toString().equals(act))
-						ac = r;
-				}
-				if (ac == null)
+			if (ev == null)
+				inst = (TemporalInstance) old.kEnumerator.branch(p, Collections.EMPTY_SET).instance();
+			else {
+				if (act != null && ac == null)
 					throw new RuntimeException(sb.toString());
-			}
-			
-			if (act != null) {
-				TupleSet restricted = old.bounds.universe().factory().noneOf(ev.arity());
-				for (Tuple t : old.bounds.upperBound(ev))
-					if (old.bounds.upperBound(ac).iterator().next().atom(0).equals(t.atom(0)))
-						restricted.add(t);
+
+				TupleSet x = old.bounds.universe().factory().noneOf(ev.arity());
 				if (event) {
-					restricted.removeAll(x);
-					Map<Relation,TupleSet> rest = Collections.singletonMap(ev, restricted);
-					inst = (TemporalInstance) old.kEnumerator.branch(p,rest,true).instance();
-				} else {
-					Map<Relation,TupleSet> rest = Collections.singletonMap(ev, restricted);
-					inst = (TemporalInstance) old.kEnumerator.branch(p,rest,false).instance();
+					x = old.eval.evaluate(ev, p);
+					x = TemporalBoundsExpander.convertToUniv(x, old.bounds.universe());
+					act = old.atom2sig(x.iterator().next().atom(0)).toString();
+					for (Relation r : old.bounds.relations()) {
+						if (r.toString().equals(act))
+							ac = r;
+					}
+					if (ac == null)
+						throw new RuntimeException(sb.toString());
 				}
+				
+				if (act != null) {
+					TupleSet restricted = old.bounds.universe().factory().noneOf(ev.arity());
+					for (Tuple t : old.bounds.upperBound(ev))
+						if (old.bounds.upperBound(ac).iterator().next().atom(0).equals(t.atom(0)))
+							restricted.add(t);
+					if (event) {
+						restricted.removeAll(x);
+						Map<Relation,TupleSet> rest = Collections.singletonMap(ev, restricted);
+						inst = (TemporalInstance) old.kEnumerator.branch(p,rest,true).instance();
+					} else {
+						Map<Relation,TupleSet> rest = Collections.singletonMap(ev, restricted);
+						inst = (TemporalInstance) old.kEnumerator.branch(p,rest,false).instance();
+					}
+				}
+				else
+					inst = (TemporalInstance) old.kEnumerator.branch(p, Collections.singleton(ev)).instance();
 			}
-			else
-				inst = (TemporalInstance) old.kEnumerator.branch(p, Collections.singleton(ev)).instance();
 		}
 		
 		else 

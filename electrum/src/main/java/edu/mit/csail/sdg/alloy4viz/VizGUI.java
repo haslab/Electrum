@@ -1462,7 +1462,7 @@ public final class VizGUI implements ComponentListener {
 				rightTime.get(i).setEnabled(pending<=0);
 				nextState.get(i).setEnabled(pending<=0);
 
-				if (i < timeLabel.size() - 1) {
+				if (i < nextEvent.size()) {
 					nextEvent.get(i).setEnabled(pending<=0);
 				}
 				
