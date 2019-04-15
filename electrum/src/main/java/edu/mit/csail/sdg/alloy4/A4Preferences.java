@@ -305,6 +305,11 @@ public class A4Preferences {
    public static final IntChoicePref FontSize = new IntChoicePref("FontSize", "Font size",
          Arrays.asList(9,10,11,12,14,16,18,20,22,24,26,28,32,36,40,44,48,54,60,66,72), 14);
 
+   /** The latest font size of the Alloy Analyzer. */
+   // [HASLab] simulator
+   public static final IntChoicePref VizStatePanes = new IntChoicePref("VizStatePanes", "Viz state panes",
+         Arrays.asList(1,2,3), 2);
+
    /** The latest font name of the Alloy Analyzer. */
    public static final StringChoicePref FontName = new StringChoicePref("FontName", "Font family",
          Arrays.asList(GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames()),

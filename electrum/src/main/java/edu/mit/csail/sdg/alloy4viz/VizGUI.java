@@ -37,11 +37,8 @@ import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Path2D;
@@ -53,6 +50,9 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.prefs.Preferences;
 
 import javax.swing.Box;
@@ -102,7 +102,7 @@ import edu.mit.csail.sdg.alloy4graph.GraphViewer;
 public final class VizGUI implements ComponentListener {
 	
 	   // [HASLab] simulator
-	   private static final int STATEPANES = 2;
+	   private final int statepanes;
 
 	   /** The background color for the toolbar. */
 	   private static final Color background = new Color(0.9f, 0.9f, 0.9f);
@@ -348,7 +348,7 @@ public final class VizGUI implements ComponentListener {
 	    * <p> Note: if standalone==false and xmlFileName.length()==0, then we will initially hide the window.
 	    */
 	   public VizGUI(boolean standalone, String xmlFileName, JMenu windowmenu) {
-	      this(standalone, xmlFileName, windowmenu, null, null);
+	      this(standalone, xmlFileName, windowmenu, null, null, 1);
 	   }
 
 	   /** Creates a new visualization GUI window; this method can only be called by the AWT event thread.
@@ -360,8 +360,8 @@ public final class VizGUI implements ComponentListener {
 	    *
 	    * <p> Note: if standalone==false and xmlFileName.length()==0, then we will initially hide the window.
 	    */
-	   public VizGUI(boolean standalone, String xmlFileName, JMenu windowmenu, Computer enumerator, Computer evaluator) {
-	      this(standalone, xmlFileName, windowmenu, enumerator, evaluator, true);
+	   public VizGUI(boolean standalone, String xmlFileName, JMenu windowmenu, Computer enumerator, Computer evaluator, int statepanes) {
+	      this(standalone, xmlFileName, windowmenu, enumerator, evaluator, true, statepanes);
 	   }
 
 	   /** Creates a new visualization GUI window; this method can only be called by the AWT event thread.
@@ -374,8 +374,8 @@ public final class VizGUI implements ComponentListener {
 	    *
 	    * <p> Note: if standalone==false and xmlFileName.length()==0 and makeWindow==true, then we will initially hide the window.
 	    */
-	   public VizGUI(boolean standalone, String xmlFileName, JMenu windowmenu, Computer enumerator, Computer evaluator, boolean makeWindow) {
-
+	   public VizGUI(boolean standalone, String xmlFileName, JMenu windowmenu, Computer enumerator, Computer evaluator, boolean makeWindow, int panes) {
+		  this.statepanes = panes;
 	      this.enumerator = enumerator;
 	      this.standalone = standalone;
 	      this.evaluator = evaluator;
@@ -486,7 +486,7 @@ public final class VizGUI implements ComponentListener {
 		        		    } else if (normalize(i,lst,lop) == lop)
 		        		    	g2.setColor(new Color(0,128,0));
 		        		    Color tmp = g2.getColor();
-		        		    int max = normalize(current+STATEPANES-1,lmx,lox);
+		        		    int max = normalize(current+statepanes-1,lmx,lox);
 		        		    int min = normalize(current,lmx,lox);
 		        		    if ((min <= max && i >= min && i <= max) || (min > max && (i >= min || (i <= max && i >= lox)))) {
 		        		  		g2.setColor(new Color (255,255,255));
@@ -542,7 +542,7 @@ public final class VizGUI implements ComponentListener {
 
 				public void mouseClicked(MouseEvent e) {
 					for (int i = 0; i<states.size(); i++)
-						if ((e.getButton() == 1) && states.get(i).contains(e.getX(), e.getY())) {
+						if (e.getButton() == 1 && pending == 0 && states.get(i).contains(e.getX(), e.getY())) {
 							current = i;
 							updateDisplay();
 							break;					
@@ -813,8 +813,8 @@ public final class VizGUI implements ComponentListener {
 	   }
 	   
 	   // [HASLab] simulator
-	   public synchronized void enable(String act, boolean enab) {
-			for (Component m : actionMenu.getComponents()) {
+	   public synchronized void enable(int i, String act, boolean enab) {
+			for (Component m : actionMenu.get(i-current).getComponents()) {
 				JMenuItem mi = (JMenuItem) m;
 				if (mi.getText().equals(act.substring(1))) {
 					if (enab)
@@ -824,11 +824,12 @@ public final class VizGUI implements ComponentListener {
 			}
 			pending--;
 			if (pending == 0) {
-				for (Component m : actionMenu.getComponents()) {
-					JMenuItem mi = (JMenuItem) m;
-					if (mi.getBackground().equals(new Color(230,255,230)))
-						mi.setEnabled(true);
-				}
+				for (JPopupMenu mm : actionMenu)
+					for (Component m : mm.getComponents()) {
+						JMenuItem mi = (JMenuItem) m;
+						if (mi.getBackground().equals(new Color(230,255,230)))
+							mi.setEnabled(true);
+					}
 				updateTmpButtons();
 			}
 	   }
@@ -840,7 +841,7 @@ public final class VizGUI implements ComponentListener {
   	 	  final String xmlFileName = Util.canon(fileName); 
 	      File f = new File(xmlFileName);
 	      if (forcefully || !xmlFileName.equals(this.xmlFileName)) {
-	    	  for (int i = 0; i < STATEPANES; i++) {
+	    	  for (int i = 0; i < statepanes; i++) {
 		         try {
 		            if (!f.exists()) throw new IOException("File " + xmlFileName + " does not exist.");
 		            if (i >= myStates.size()) {
@@ -875,7 +876,7 @@ public final class VizGUI implements ComponentListener {
 	         frame.setTitle("Alloy Visualizer "+Version.version() + " (Electrum Analyzer "+Version.eleVersion()+")"+" loading... Please wait..."); // [HASLab]
 	         OurUtil.show(frame);
 	      }
-	      pending = 0;
+//	      pending = 0;
 	      updateDisplay();
 	   }
 
@@ -1143,20 +1144,37 @@ public final class VizGUI implements ComponentListener {
 	   
 	   /** This method attempts to derive the next satisfying instance. */
 	   private Runner doNext() {
-	      doNext(null,null);
+	      doNext(0,null,null);
 	      return null;
 	   }
 
 	   /** This method attempts to derive the next satisfying instance. */
 	   // [HASLab] simulator
-	   protected Runner doNext(int i) {
-	      doNext(i,null);
+	   private Runner doNextState(int i) {
+		  pending = 0;
+		  doNext(1,i,null);
 	      return null;
 	   }
 	   
 	   /** This method attempts to derive the next satisfying instance. */
 	   // [HASLab] simulator
-	   protected Runner doNext(Integer i, String act) {
+	   private Runner doNext(Integer i, String act) {
+		  pending = -1;
+		  doNext(3,i,act);
+	      return null;
+	   }
+
+	   /** This method attempts to derive the next satisfying instance. */
+	   // [HASLab] simulator
+	   private Runner doNextAction(int i) {
+		  pending = 0;
+	      doNext(2,i,null);
+	      return null;
+	   }
+
+	   /** This method attempts to derive the next satisfying instance. */
+	   // [HASLab] simulator
+	   private Runner doNext(int mode, Integer i, String act) {
 	      if (wrap) return wrapMe();
 	      if (settingsOpen!=0) return null;
 	      if (xmlFileName.length()==0) {
@@ -1165,13 +1183,14 @@ public final class VizGUI implements ComponentListener {
 	         OurDialog.alert("Cannot display the next solution since the analysis engine is not loaded with the visualizer.");
 	      } else {
  			 final String xmlFileName = Util.canon(this.xmlFileName);
-			 try { enumerator.compute(new String[] {xmlFileName, i+"", act}); } catch(Throwable ex) { OurDialog.alert(ex.getMessage()); } // [HASLab] simualtor
+			 try { enumerator.compute(new String[] {xmlFileName, mode+"", i+"", act}); } catch(Throwable ex) { OurDialog.alert(ex.getMessage()); } // [HASLab] simualtor
 	      }
 	      return null;
 	   }
 	   
 	   /** This method attempts to derive the next satisfying instance. */
 	   // [HASLab] simulator
+	   // TODO: will this work when there is a single action in the model?
 	   protected Runner hasNexts(Integer i, String[] acts) {
 	      if (wrap) return wrapMe();
 	      if (settingsOpen!=0) return null;
@@ -1182,9 +1201,9 @@ public final class VizGUI implements ComponentListener {
 	      } else {
  			 final String xmlFileName = Util.canon(this.xmlFileName);
  			 
- 	        String[] result = new String[2 + acts.length];
- 	        System.arraycopy(new String[] {xmlFileName, i+""}, 0, result, 0, 2);
- 	        System.arraycopy(acts, 0, result, 2, acts.length);
+ 	        String[] result = new String[3 + acts.length];
+ 	        System.arraycopy(new String[] {xmlFileName, "4", i+""}, 0, result, 0, 3);
+ 	        System.arraycopy(acts, 0, result, 3, acts.length);
  	        
 			 try { enumerator.compute(result); } catch(Throwable ex) { OurDialog.alert(ex.getMessage()); } // [HASLab] simualtor
 	      }
@@ -1272,7 +1291,7 @@ public final class VizGUI implements ComponentListener {
 		private List<JButton> leftTime = new ArrayList<JButton>(), rightTime = new ArrayList<JButton>(), 
 				nextState = new ArrayList<JButton>(), nextEvent = new ArrayList<JButton>(), branch = new ArrayList<JButton>();
 
-		private JPopupMenu actionMenu;
+		private List<JPopupMenu> actionMenu = new ArrayList<JPopupMenu>();
 		
 		private int current = 0;
 
@@ -1284,7 +1303,7 @@ public final class VizGUI implements ComponentListener {
 			diagramsScrollPanel2.setLayout(new BoxLayout(diagramsScrollPanel2, BoxLayout.LINE_AXIS));
 			for (int i = 0; i < getVizState().size(); i++) {
 
-				JPanel split2_ = createTempPanel(i);
+				JPanel split2_ = createTempState(i);
 				diagramsScrollPanel2.add(split2_);
 
 				AlloyModel model = getVizState().get(0).getOriginalModel();
@@ -1292,38 +1311,7 @@ public final class VizGUI implements ComponentListener {
 				if (event != null) {
 					if (i < getVizState().size() - 1) {
 						diagramsScrollPanel2.add(Box.createHorizontalGlue());
-						JPanel p = new JPanel();
-						p.setLayout(new BoxLayout(p, BoxLayout.LINE_AXIS));
-						JPanel aux = new JPanel();
-						JButton branch = new JButton(new String(Character.toChars(0x21dd)));
-						branch.setPreferredSize(new Dimension(60, 30));
-						branch.setMinimumSize(new Dimension(60, 30));
-						actionMenu = new JPopupMenu("Menu");
-						branch.addMouseListener(new MouseAdapter() {
-							public void mouseReleased(MouseEvent e) {
-								if (e.getButton() == 1) {
-									actionMenu.show(e.getComponent(), e.getX(), e.getY());
-								}
-							}
-						});
-
-						JButton nextButton = new JButton(new String(Character.toChars(0x21ba)));
-						nextButton.setPreferredSize(new Dimension(40, branch.getHeight()));
-						this.nextEvent.add(nextButton);
-						this.branch.add(branch);
-
-						JLabel action = new JLabel("ActionActionAction[arg1,arg2]", SwingConstants.CENTER);
-						action.setMinimumSize(action.getPreferredSize());
-						action.setMaximumSize(action.getPreferredSize());
-						action.setPreferredSize(action.getPreferredSize());
-						this.actionLabel.add(action);
-						
-						aux.add(action);
-						aux.add(nextButton);
-						aux.add(branch);
-						aux.setLayout(new BoxLayout(aux, BoxLayout.LINE_AXIS));
-						p.add(aux);
-
+						JPanel p = createTempEvent(i);
 						diagramsScrollPanel2.add(p);
 						diagramsScrollPanel2.add(Box.createHorizontalGlue());
 					}
@@ -1334,9 +1322,51 @@ public final class VizGUI implements ComponentListener {
 			return diagramsScrollPanel2;
 		}
 		
+		private JPanel createTempEvent(int i) {
+			JPanel p = new JPanel();
+			p.setLayout(new BoxLayout(p, BoxLayout.LINE_AXIS));
+			JPanel aux = new JPanel();
+			JButton branch = new JButton(new String(Character.toChars(0x21dd)));
+			branch.setPreferredSize(new Dimension(60, 30));
+			branch.setMinimumSize(new Dimension(60, 30));
+			
+			JPopupMenu actionMenu = new JPopupMenu("Menu");
+			branch.addMouseListener(new MouseAdapter() {
+				public void mouseReleased(MouseEvent e) {
+					if (e.getButton() == 1) {
+						actionMenu.show(e.getComponent(), e.getX(), e.getY());
+					}
+				}
+			});
+
+			JButton nextButton = new JButton(new String(Character.toChars(0x21ba)));
+			nextButton.setPreferredSize(new Dimension(40, branch.getHeight()));
+			nextButton.setEnabled(false);
+			nextButton.addActionListener(new ActionListener() {
+				public final void actionPerformed(ActionEvent e) {
+					doNextAction(current+i);
+				}
+			});
+			
+			this.actionMenu.add(actionMenu);
+			this.nextEvent.add(nextButton);
+			this.branch.add(branch);
+
+			JLabel action = new JLabel("ActionActionAction[arg1,arg2]", SwingConstants.CENTER);
+			action.setMinimumSize(action.getPreferredSize());
+			action.setMaximumSize(action.getPreferredSize());
+			action.setPreferredSize(action.getPreferredSize());
+			this.actionLabel.add(action);
+			
+			aux.add(action);
+			aux.add(nextButton);
+			aux.add(branch);
+			aux.setLayout(new BoxLayout(aux, BoxLayout.LINE_AXIS));
+			p.add(aux);
+			return p;
+		}
 		
-		// TODO: push this back up to vizgui, avoids passing vizgui here
-		private JPanel createTempPanel(int i) {
+		private JPanel createTempState(int i) {
 			JPanel tmpPanel = new JPanel();
 			tmpPanel.setLayout(new BoxLayout(tmpPanel, BoxLayout.LINE_AXIS));
 
@@ -1363,14 +1393,16 @@ public final class VizGUI implements ComponentListener {
 			
 			nextButton.addActionListener(new ActionListener() {
 				public final void actionPerformed(ActionEvent e) {
-					doNext(current+i);
+					doNextState(current+i);
 				}
 			});
 			leftTime.addActionListener(new ActionListener() {
 				public final void actionPerformed(ActionEvent e) {
-					if (current > 0)
+					if (current > 0) {
 						current--;
-					updateDisplay();
+						pending = 0;
+						updateDisplay();
+					}
 				}
 			});
 			rightTime.addActionListener(new ActionListener() {
@@ -1380,6 +1412,7 @@ public final class VizGUI implements ComponentListener {
         		  	int lmx = getVizState().get(0).getOriginalInstance().originalA4.getMaxTrace();
         		    int lox = lmx - (lst - lop);
         		    current = normalize(current+1,lmx,lox);
+        		    pending = 0;
 					updateDisplay();
 				}
 			});
@@ -1420,16 +1453,19 @@ public final class VizGUI implements ComponentListener {
 				int ci = normalize(current+i,lmax,lopx);
 				timeLabel.get(i).setText("State " + ci + (c==ci? "" : " (" + new String(Character.toChars(0x2261)) + c + ")"));
 				if (current+i > 0) {
-					leftTime.get(i).setEnabled(pending==0);
+					leftTime.get(i).setEnabled(pending<=0);
 					leftTime.get(i).setText(new String(Character.toChars(0x2190)));
 				} else {
 					leftTime.get(i).setEnabled(false);
 					leftTime.get(i).setText(new String(Character.toChars(0x21e4)));
 				}
-				rightTime.get(i).setEnabled(pending==0);
-				
-				nextState.get(i).setEnabled(pending==0);
+				rightTime.get(i).setEnabled(pending<=0);
+				nextState.get(i).setEnabled(pending<=0);
 
+				if (i < timeLabel.size() - 1) {
+					nextEvent.get(i).setEnabled(pending<=0);
+				}
+				
 				if (c == length - 1) {
 					rightTime.get(i).setText(new String(Character.toChars(0x21b6)) + backindex);
 					timeLabel.get(i).setFont(timeLabel.get(i).getFont().deriveFont(Font.BOLD));
@@ -1458,6 +1494,8 @@ public final class VizGUI implements ComponentListener {
 		}
 		
 		private void updateTmps() {
+			AlloyModel model = getVizState().get(0).getOriginalModel();
+			AlloyType event = model.hasType(Action2Alloy.ACTION_SIG); 
 			for (int i = 0; i < timeLabel.size(); i++) {
 				AlloyInstance myInstance;
 				File f = new File(getXMLfilename());
@@ -1470,10 +1508,7 @@ public final class VizGUI implements ComponentListener {
 					System.out.println("a");
 				}
 				
-				AlloyModel model = getVizState().get(0).getOriginalModel();
-				AlloyType event = model.hasType(Action2Alloy.ACTION_SIG); 
 				if (event != null) {
-					List<AlloyType> events = new ArrayList<AlloyType>(model.getSubTypes(event));
 					if (i < getVizState().size() - 1) {
 				
 						AlloyInstance inst = getVizState().get(i).getOriginalInstance();
@@ -1498,54 +1533,52 @@ public final class VizGUI implements ComponentListener {
 							sb.deleteCharAt(sb.length()-1);
 						sb.append(']');
 						actionLabel.get(i).setText(sb.toString());
-				
-						int ie;
-						for (ie = 0; ie < events.size(); ie++) {
-							AlloyType ev = events.get(ie);
-							final int j = i+current;
-							JMenuItem item;
-							if (ie<actionMenu.getComponentCount()) {
-								item = (JMenuItem) actionMenu.getComponent(ie);
-								item.removeActionListener(item.getActionListeners()[0]);
-							}	
-							else {
-								item = new JMenuItem();
-								actionMenu.add(item);
-							}
-							item.addActionListener(new ActionListener() {
-								@Override
-								public void actionPerformed(ActionEvent e) {
-									for (Component m : actionMenu.getComponents()) {
-										JMenuItem mi = (JMenuItem) m;
-										mi.setEnabled(false);
-										mi.setBackground(new Color(255,255,220));
-									}
-									pending = -1;
-									updateTmpButtons();
-									doNext(j,ev.getName());
-								}
-							});
-							item.setText(ev.getName().substring(1));
-							item.setEnabled(false);
-							item.setBackground(new Color(255,255,230));
+					}
+				}
+			}
+			ExecutorService exec = Executors.newFixedThreadPool(1);
+			if (event != null && pending==0) {
+				for (int i = 0; i < timeLabel.size()-1; i++) {
+					List<AlloyType> events = new ArrayList<AlloyType>(model.getSubTypes(event));
+					int ie;
+					for (ie = 0; ie < events.size(); ie++) {
+						AlloyType ev = events.get(ie);
+						final int j = i+current;
+						JMenuItem item;
+						if (ie<actionMenu.get(i).getComponentCount()) {
+							item = (JMenuItem) actionMenu.get(i).getComponent(ie);
+							item.removeActionListener(item.getActionListeners()[0]);
+						}	
+						else {
+							item = new JMenuItem();
+							actionMenu.get(i).add(item);
 						}
-						for (; ie<actionMenu.getComponentCount();ie++)
-							actionMenu.remove(ie);
-						
-						final int jj = current + i;
-
-						pending = events.size();
-
-						Thread thread = new Thread(new Runnable() {
+						item.addActionListener(new ActionListener() {
 							@Override
-							public void run() {
-								String[] as = (String[]) events.stream().map(e -> e.getName()).toArray(String[]::new);
-								hasNexts(jj,as);							
+							public void actionPerformed(ActionEvent e) {
+								updateTmpButtons();
+								doNext(j,ev.getName());
 							}
 						});
-						thread.start();
-						
+						item.setText(ev.getName().substring(1));
+						item.setEnabled(false);
+						item.setBackground(new Color(255,255,230));
 					}
+					for (; ie<actionMenu.get(i).getComponentCount();ie++)
+						actionMenu.remove(ie);
+					
+					final int jj = current + i;
+
+					pending = events.size()*(timeLabel.size()-1);
+
+					Thread thread = new Thread(new Runnable() {
+						@Override
+						public void run() {
+							String[] as = (String[]) events.stream().map(e -> e.getName()).toArray(String[]::new);
+							hasNexts(jj,as);							
+						}
+					});
+					exec.execute(thread);
 				}
 			}
 			updateTmpButtons();

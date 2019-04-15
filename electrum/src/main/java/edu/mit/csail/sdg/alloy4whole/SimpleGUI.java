@@ -44,6 +44,7 @@ import static edu.mit.csail.sdg.alloy4.A4Preferences.SyntaxDisabled;
 import static edu.mit.csail.sdg.alloy4.A4Preferences.TabSize;
 import static edu.mit.csail.sdg.alloy4.A4Preferences.Unrolls;
 import static edu.mit.csail.sdg.alloy4.A4Preferences.VerbosityPref;
+import static edu.mit.csail.sdg.alloy4.A4Preferences.VizStatePanes;
 import static edu.mit.csail.sdg.alloy4.A4Preferences.WarningNonfatal;
 import static edu.mit.csail.sdg.alloy4.A4Preferences.Welcome;
 import static edu.mit.csail.sdg.alloy4.OurUtil.menu;
@@ -163,6 +164,7 @@ import edu.mit.csail.sdg.alloy4compiler.translator.A4SolutionReader;
 import edu.mit.csail.sdg.alloy4compiler.translator.A4Tuple;
 import edu.mit.csail.sdg.alloy4compiler.translator.A4TupleSet;
 import edu.mit.csail.sdg.alloy4viz.VizGUI;
+import edu.mit.csail.sdg.alloy4viz.VizState;
 import edu.mit.csail.sdg.alloy4whole.SimpleReporter.SimpleCallback1;
 import edu.mit.csail.sdg.alloy4whole.SimpleReporter.SimpleTask1;
 import edu.mit.csail.sdg.alloy4whole.SimpleReporter.SimpleTask2;
@@ -1183,6 +1185,7 @@ public final class SimpleGUI implements ComponentListener, Listener {
             else
                addToMenu(optmenu, AntiAlias);
             addToMenu(optmenu, A4Preferences.LAF);
+            addToMenu(optmenu, A4Preferences.VizStatePanes); // [HASLab] simulator
 
             optmenu.addSeparator();
 
@@ -1437,10 +1440,9 @@ public final class SimpleGUI implements ComponentListener, Listener {
     private final Computer enumerator = new Computer() {
         public String compute(Object input) {
             final String[] arg = (String[]) input; // [HASLab] simulator
-            if (arg[1] == null) OurUtil.show(frame); // [HASLab] simulator
-            if (WorkerEngine.isBusy() && arg.length > 3)
+            while (WorkerEngine.isBusy() && Integer.valueOf(arg[1]) == 4)
 				try {
-					Thread.sleep(5000);
+					Thread.sleep(100);
 				} catch (InterruptedException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -1450,13 +1452,13 @@ public final class SimpleGUI implements ComponentListener, Listener {
             SimpleCallback1 cb = new SimpleCallback1(SimpleGUI.this, viz, log, VerbosityPref.get().ordinal(), latestAlloyVersionName, latestAlloyVersion);
             SimpleTask2 task = new SimpleTask2();
             task.filename = arg[0]; // [HASLab] simulator
-            task.index = Integer.valueOf(arg[1]); // [HASLab] simulator
-            if (arg.length > 3) {
-            	task.action = Arrays.copyOfRange(arg, 2, arg.length);
-            	task.dry = true;
+            task.mode = Integer.valueOf(arg[1]); // [HASLab] simulator
+            task.index = Integer.valueOf(arg[2]); // [HASLab] simulator
+            if (task.mode == 0) OurUtil.show(frame); // [HASLab] simulator
+            if (task.mode == 4) {
+            	task.action = Arrays.copyOfRange(arg, 3, arg.length);
             } else {
-	        	task.action = new String[] {arg[2]}; // [HASLab] simulator
-	        	task.dry = false; // [HASLab] simulator
+	        	task.action = new String[] {arg[3]}; // [HASLab] simulator
             }
             try {
                 if (("yes".equals(System.getProperty("debug")) && VerbosityPref.get()==Verbosity.FULLDEBUG))
@@ -1715,7 +1717,7 @@ public final class SimpleGUI implements ComponentListener, Listener {
         }
 
         // Pre-load the visualizer
-        viz = new VizGUI(false, "", windowmenu2, enumerator, evaluator);
+        viz = new VizGUI(false, "", windowmenu2, enumerator, evaluator, VizStatePanes.get()); // [HASLab] simulator
         viz.doSetFontSize(FontSize.get());
 
         // Create the toolbar
