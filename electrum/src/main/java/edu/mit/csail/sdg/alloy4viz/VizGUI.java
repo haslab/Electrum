@@ -458,6 +458,8 @@ public final class VizGUI implements ComponentListener {
 	         JPanel trace = new JPanel() {
 	        	  @Override
 	        	    public void paintComponent(Graphics g) {
+	        		  	states.clear();
+	        		  	
    	        		    Graphics2D g2 = (Graphics2D) g;
    	        		    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 	        		  	
