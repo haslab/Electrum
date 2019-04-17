@@ -54,7 +54,7 @@ import kodkod.ast.operator.ExprOperator;
 import kodkod.ast.operator.FormulaOperator;
 import kodkod.engine.CapacityExceededException;
 import kodkod.engine.Evaluator;
-import kodkod.engine.Explorator;
+import kodkod.engine.Explorer;
 import kodkod.engine.PardinusSolver;
 import kodkod.engine.Proof;
 import kodkod.engine.Solution;
@@ -204,7 +204,7 @@ public final class A4Solution {
     private Evaluator eval = null;
 
     /** If not null, you can ask it to get another solution. */
-    private Explorator<Solution> kEnumerator = null;
+    private Explorer<Solution> kEnumerator = null;
 
     /** The map from each Sig/Field/Skolem/Atom to its corresponding Kodkod expression. */
     private Map<Expr,Expression> a2k;
@@ -379,7 +379,7 @@ public final class A4Solution {
 					ev = r;
 			}
 			if (ev == null)
-				inst = (TemporalInstance) old.kEnumerator.branch(p, Collections.EMPTY_SET).instance();
+				inst = (TemporalInstance) old.kEnumerator.branch(p, Collections.emptySet(), true).instance();
 			else {
 				if (act != null && ac == null)
 					throw new RuntimeException(sb.toString());
@@ -412,7 +412,7 @@ public final class A4Solution {
 					}
 				}
 				else
-					inst = (TemporalInstance) old.kEnumerator.branch(p, Collections.singleton(ev)).instance();
+					inst = (TemporalInstance) old.kEnumerator.branch(p, Collections.singleton(ev), true).instance();
 			}
 		}
 		
@@ -884,15 +884,15 @@ public final class A4Solution {
 	//===================================================================================================//
 
 	/** Helper class that wraps an iterator up where it will pre-fetch the first element (note: it will not prefetch subsequent elements). */
-	private static final class Peeker<T> implements Explorator<T> {
+	private static final class Peeker<T> implements Explorer<T> {
 		/** The encapsulated iterator. */
-		private Explorator<T> iterator;
+		private Explorer<T> iterator;
 		/** True iff we have captured the first element. */
 		private boolean hasFirst;
 		/** If hasFirst is true, then this is the captured first element. */
 		private T first;
 		/** Constructs a Peeker object. */
-		private Peeker(Explorator<T> it) {
+		private Peeker(Explorer<T> it) {
 			iterator = it;
 			if (it.hasNext()) { hasFirst=true; first=it.next(); }
 		}
@@ -909,8 +909,8 @@ public final class A4Solution {
 
 		/** {@inheritDoc} */
 		// [HASLab] simulator
-		public T branch(int i, Set<Relation> except) {
-			return iterator.branch(i, except);
+		public T branch(int i, Set<Relation> except, boolean exclude) {
+			return iterator.branch(i, except, exclude);
 		}
 
 		/** {@inheritDoc} */

@@ -50,7 +50,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.prefs.Preferences;
@@ -1494,8 +1493,9 @@ public final class VizGUI implements ComponentListener {
 		}
 		
 		private void updateTmps() {
-			AlloyModel model = getVizState().get(0).getOriginalModel();
-			AlloyType event = model.hasType(Action2Alloy.ACTION_SIG); 
+			AlloyModel model = null;
+			AlloyType event = null;
+			
 			for (int i = 0; i < timeLabel.size(); i++) {
 				AlloyInstance myInstance;
 				File f = new File(getXMLfilename());
@@ -1504,13 +1504,19 @@ public final class VizGUI implements ComponentListener {
 						throw new IOException("File " + getXMLfilename() + " does not exist.");
 					myInstance = StaticInstanceReader.parseInstance(f, current + i); 
 					getVizState().get(i).loadInstance(myInstance);
-				} catch (Throwable e) {
-					System.out.println("a");
+				} catch (Throwable e) { 
+					OurDialog.alert("Cannot read or parse Alloy instance: "+xmlFileName+"\n\nError: "+e.getMessage());
+		            doCloseAll();
+		            return;
+				}
+				
+				if (i==0) {
+					model = getVizState().get(0).getOriginalModel();
+					event = model.hasType(Action2Alloy.ACTION_SIG); 
 				}
 				
 				if (event != null) {
 					if (i < getVizState().size() - 1) {
-				
 						AlloyInstance inst = getVizState().get(i).getOriginalInstance();
 						// find the type of the event fired in this instance, may be more than one due to args
 						AlloyTuple firedargs = null;
@@ -1565,7 +1571,7 @@ public final class VizGUI implements ComponentListener {
 						item.setBackground(new Color(255,255,230));
 					}
 					for (; ie<actionMenu.get(i).getComponentCount();ie++)
-						actionMenu.remove(ie);
+						actionMenu.get(i).remove(ie);
 					
 					final int jj = current + i;
 
