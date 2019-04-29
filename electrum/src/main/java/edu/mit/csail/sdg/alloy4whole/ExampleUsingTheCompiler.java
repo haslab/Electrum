@@ -26,10 +26,7 @@ import edu.mit.csail.sdg.alloy4compiler.translator.A4Solution;
 import edu.mit.csail.sdg.alloy4compiler.translator.TranslateAlloyToKodkod;
 import edu.mit.csail.sdg.alloy4viz.VizGUI;
 
-/** This class demonstrates how to access Alloy4 via the compiler methods. 
- * 
- * @modified [HASLab]
- * */
+/** This class demonstrates how to access Alloy4 via the compiler methods. */
 
 public final class ExampleUsingTheCompiler {
 
@@ -44,6 +41,7 @@ public final class ExampleUsingTheCompiler {
      * and they may contain filename/line/column information.
      */
     public static void main(String[] args) throws Err {
+
         // The visualizer (We will initialize it to nonnull when we visualize an Alloy solution)
         VizGUI viz = null;
 
@@ -56,34 +54,26 @@ public final class ExampleUsingTheCompiler {
                 System.out.flush();
             }
         };
-        String filename = "model.ele";
-        //for(String filename:args) {
+
+        for(String filename:args) {
+
             // Parse+typecheck the model
             System.out.println("=========== Parsing+Typechecking "+filename+" =============");
-            //Module world = CompUtil.parseEverything_fromFile(rep, null, filename);
-
-             Module world = CompUtil.parseEverything_fromFile(rep, null, filename);
-
+            Module world = CompUtil.parseEverything_fromFile(rep, null, filename);
 
             // Choose some default options for how you want to execute the commands
             A4Options options = new A4Options();
+
             options.solver = A4Options.SatSolver.SAT4J;
 
             for (Command command: world.getAllCommands()) {
                 // Execute the command
-
                 System.out.println("============ Command "+command+": ============");
                 A4Solution ans = TranslateAlloyToKodkod.execute_command(rep, world.getAllReachableSigs(), command, options);
-                //A4Solution ans = new A4Solution();
-                System.out.println(TranslateAlloyToKodkod.alloy2kodkod(ans,world.getAllReachableFacts()).toString());
-                //(rep, world.getAllReachableSigs(), command, options);
-                //System.out.println("KODKOD: "+TranslateAlloyToKodkod.alloy2kodkod(ans,).toString());
-                System.out.println(ans.getAllAtoms().toString());
                 // Print the outcome
-//                System.out.println(ans.formulas.toString());
-                System.out.println(ans.getAllReachableSigs().toString());
+                System.out.println(ans);
                 // If satisfiable...
-                /*if (ans.satisfiable()) {
+                if (ans.satisfiable()) {
                     // You can query "ans" to find out the values of each set or type.
                     // This can be useful for debugging.
                     //
@@ -96,8 +86,8 @@ public final class ExampleUsingTheCompiler {
                     } else {
                         viz.loadXML("alloy_example_output.xml", true);
                     }
-                }*/
-       //     }
+                }
+            }
         }
     }
 }
