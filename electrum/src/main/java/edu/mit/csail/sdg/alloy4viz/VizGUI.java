@@ -467,7 +467,7 @@ public final class VizGUI implements ComponentListener {
 	        		  	int offsety = 30;
 	        		  	int offsetx = 90;
 	        		  	int dist = 45;
-	        		  	int lst = getVizState().get(0).getOriginalInstance().originalA4.getLastState() + 1;
+	        		  	int lst = getVizState().get(0).getOriginalInstance().originalA4.getTraceLength();
 	        		  	int lop = getVizState().get(0).getOriginalInstance().originalA4.getLoopState();
 	        		    int lmx = getVizState().get(0).getOriginalInstance().originalA4.getMaxTrace();
 	        		    int lox = lmx - (lst - lop);
@@ -1408,7 +1408,7 @@ public final class VizGUI implements ComponentListener {
 			});
 			rightTime.addActionListener(new ActionListener() {
 				public final void actionPerformed(ActionEvent e) {
-        		  	int lst = getVizState().get(0).getOriginalInstance().originalA4.getLastState() + 1;
+        		  	int lst = getVizState().get(0).getOriginalInstance().originalA4.getTraceLength();
         		  	int lop = getVizState().get(0).getOriginalInstance().originalA4.getLoopState();
         		  	int lmx = getVizState().get(0).getOriginalInstance().originalA4.getMaxTrace();
         		    int lox = lmx - (lst - lop);
@@ -1417,7 +1417,6 @@ public final class VizGUI implements ComponentListener {
 					updateDisplay();
 				}
 			});
-			
 
 			JPanel aux = new JPanel();
 			aux.setLayout(new GridLayout());
@@ -1444,7 +1443,7 @@ public final class VizGUI implements ComponentListener {
 
 		private void updateTmpButtons() {
 			int backindex = getVizState().get(0).getOriginalInstance().originalA4.getLoopState();
-			int length = 1 + getVizState().get(0).getOriginalInstance().originalA4.getLastState();
+			int length = getVizState().get(0).getOriginalInstance().originalA4.getTraceLength();
 		  	int lmax = getVizState().get(0).getOriginalInstance().originalA4.getMaxTrace();
 		    int lopx = lmax - (length - backindex);
 

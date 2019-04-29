@@ -692,7 +692,7 @@ public final class A4Solution {
 
 	/** Returns the index of the last state of the finite prefix. */
 	// [HASLab]
-	public int getLastState() { return ((TemporalInstance) eval.instance()).prefixLength()-1; }
+	public int getTraceLength() { return ((TemporalInstance) eval.instance()).prefixLength(); }
 
 	//===================================================================================================//
 
@@ -1039,7 +1039,7 @@ public final class A4Solution {
 		for(PrimSig c: s.children()) rename(frame, c, nexts, un);
 		String signame = un.make(s.label.startsWith("this/") ? s.label.substring(5) : s.label);
 		List<Tuple> list = new ArrayList<Tuple>();
-		for (int i = 0; i <= frame.getLastState(); i ++) // [HASLab] collect from every state
+		for (int i = 0; i < frame.getTraceLength(); i ++) // [HASLab] collect from every state
 			for(Tuple t: frame.eval.evaluate(frame.a2k(s),i)) 
 				list.add(t);
 
@@ -1069,12 +1069,18 @@ public final class A4Solution {
 	// [HASLab]
 	A4Solution solve(final A4Reporter rep, A4Solution pre_sol, int loop) throws Err, IOException {
 		// construct the instance from the current state
-		Instance inst = new Instance(bounds.universe());
+
+		Universe static_uni;
+		if (pre_sol != null)
+			static_uni = ((TemporalInstance) pre_sol.eval.instance()).staticUniverse();
+		else 
+			static_uni = bounds.universe();
+		Instance inst = new Instance(static_uni);
 		for(int max=max(), i=min(); i<=max; i++) {
 			Tuple it = factory.tuple(""+i);
 			inst.add(i, factory.range(it, it));
 		}
-		for (Relation r : bounds.relations()) inst.add(r, bounds.lowerBound(r));
+		for (Relation r : bounds.relations()) inst.add(r, TemporalBoundsExpander.convertToUniv(bounds.lowerBound(r),static_uni));
 		
 		// retrieve previous steps of the trace
 		List<Instance> instances = new ArrayList<Instance>();
@@ -1251,9 +1257,9 @@ public final class A4Solution {
         sb.append("---INSTANCE---");
 		if (sol instanceof TemporalInstance) {
 			sb.append("\nloop=");
-			sb.append(((TemporalInstance) sol).loop);
+			sb.append(getLoopState());
 			sb.append("\nend=");
-			sb.append(((TemporalInstance) sol).prefixLength()-1);
+			sb.append(getTraceLength()-1);
 		}
 		sb.append("\nintegers={");
 		boolean firstTuple = true;
@@ -1270,7 +1276,7 @@ public final class A4Solution {
 		sb.append("}\n");
 		try {
 			if (sol instanceof TemporalInstance) {
-				for (int i = 0; i <= ((TemporalInstance) sol).prefixLength()-1; i++) { // [HASLab]
+				for (int i = 0; i < getTraceLength(); i++) { // [HASLab]
 					sb.append("------State " + i + "-------\n");
 						for (Sig s : sigs) {
 							sb.append(s.label).append("=").append(eval(s, i)).append("\n");

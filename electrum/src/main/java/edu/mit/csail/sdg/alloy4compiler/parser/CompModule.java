@@ -1475,7 +1475,7 @@ public final class CompModule extends Browsable implements Module {
 	static CompModule resolveAll(final A4Reporter rep, final CompModule root) throws Err {
 
 		// [HASLab] expand the action idiom constructs into regular Alloy prior to resolution
-		root.action2alloy.expand(rep, root);
+		root.action2alloy.expand(rep, root, root.old2fields);
 		
 		final List<ErrorWarning> warns = new ArrayList<ErrorWarning>();
 		for(CompModule m: root.getAllReachableModules()) root.allModules.add(m);
