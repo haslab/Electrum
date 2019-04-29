@@ -5,6 +5,7 @@ import static edu.mit.csail.sdg.alloy4compiler.ast.Sig.NONE;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -41,6 +42,7 @@ import edu.mit.csail.sdg.alloy4compiler.translator.ConvToConjunction;
 // - for each action, create firing condition, relating predicate with pre-/post-conditions
 // - for each action, create the firing predicate calling the fired predicate
 // - for each modified elem, create FC relating modification to fired predicate
+// - for the remainder, force unchanged
 
 /**
  * Expands expression in the action idiom into regular Alloy.
@@ -54,7 +56,7 @@ public class Action2Alloy {
 	/** the actions that modify each element */
 	private Map<String, List<Sig>> acts_mods = new HashMap<String, List<Sig>>();
 
-	public void expand(final A4Reporter rep, final CompModule root) throws Err {
+	public void expand(final A4Reporter rep, final CompModule root, LinkedHashMap<Sig, List<Decl>> old2fields) throws Err {
 		if (acts_args.isEmpty()) return;
 		
 		// create the parent Action signature
@@ -224,6 +226,11 @@ public class Action2Alloy {
 		for (Sig svv : root.getAllSigs()) {
 			if (!(acts_mods.keySet().contains(svv.label.substring(5))))
 				fc_body = fc_body.and((ExprVar.make(null,svv.label).equal(ExprUnary.Op.PRIME.make(null, ExprVar.make(null,svv.label)))));
+			if (old2fields.get(svv) != null)
+				for (Decl fvv0 : old2fields.get(svv))
+					for (ExprHasName fvv : fvv0.names)
+						if (!(acts_mods.keySet().contains(fvv.label)))
+							fc_body = fc_body.and((ExprVar.make(null,fvv.label).equal(ExprUnary.Op.PRIME.make(null, ExprVar.make(null,fvv.label)))));
 		}
 		
 		final String fc_name = "_fc";
