@@ -626,7 +626,7 @@ public final class A4Solution {
 
 	/** Returns the index of the last state of the finite prefix. */
 	// [HASLab]
-	public int getLastState() { return ((TemporalInstance) eval.instance()).states.size()-1; }
+	public int getLastState() { return ((TemporalInstance) eval.instance()).prefixLength(); }
 
 	//===================================================================================================//
 
@@ -992,11 +992,11 @@ public final class A4Solution {
 		for (Relation r : bounds.relations()) inst.add(r, bounds.lowerBound(r));
 		
 		// retrieve previous steps of the trace
-		List<Instance> instances;
-		if (pre_sol != null)
-			instances = ((TemporalInstance) pre_sol.eval.instance()).states;
-		else
-			instances = new ArrayList<Instance>();
+		List<Instance> instances = new ArrayList<Instance>();
+		if (pre_sol != null) {
+			for (int i = 0; i < ((TemporalInstance) pre_sol.eval.instance()).prefixLength(); i++)
+				instances.add(((TemporalInstance) pre_sol.eval.instance()).state(i));
+		}
 		instances.add(inst);
 		
 		if (loop >= instances.size())
@@ -1163,7 +1163,7 @@ public final class A4Solution {
 			sb.append("\nloop=");
 			sb.append(((TemporalInstance) sol).loop);
 			sb.append("\nend=");
-			sb.append(((TemporalInstance) sol).states.size()-1);
+			sb.append(((TemporalInstance) sol).prefixLength());
 		}
 		sb.append("\nintegers={");
 		boolean firstTuple = true;
@@ -1180,7 +1180,7 @@ public final class A4Solution {
 		sb.append("}\n");
 		try {
 			if (sol instanceof TemporalInstance) {
-				for (int i = 0; i <= ((TemporalInstance) sol).states.size()-1; i++) { // [HASLab]
+				for (int i = 0; i <= ((TemporalInstance) sol).prefixLength(); i++) { // [HASLab]
 					sb.append("------State " + i + "-------\n");
 						for (Sig s : sigs) {
 							sb.append(s.label).append("=").append(eval(s, i)).append("\n");
