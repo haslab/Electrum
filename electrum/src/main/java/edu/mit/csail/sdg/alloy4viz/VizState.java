@@ -40,7 +40,7 @@ import edu.mit.csail.sdg.alloy4graph.DotStyle;
  *
  * <p><b>Thread Safety:</b> Can be called only by the AWT event thread.
  * 
- * @modified: Nuno Macedo // [HASLab] temporal instances
+ * @modified: Nuno Macedo // [HASLab] electrum-temporal
  */
 
 public final class VizState {
@@ -128,15 +128,26 @@ public final class VizState {
       shape.put(set,DotShape.ELLIPSE); nodeColor.put(set,DotColor.BLUE); label.put(set,"");
       edgeColor.put(ext,DotColor.BLACK); weight.put(ext,100); layoutBack.put(ext,true);
       edgeColor.put(in,DotColor.BLACK); weight.put(in,100); layoutBack.put(in,true);
-      for (AlloyType r : currentModel.getTypes()) // [HASLab] paint variable sigs differently
-    	  if (r.isVar) nodeStyle.put(r, DotStyle.DASHED);
-      for (AlloyRelation r : currentModel.getRelations()) // [HASLab] paint variable fields differently
-    	  if (r.isVar) edgeStyle.put(r, DotStyle.DASHED);
+      applyDefaultVar(); // [HASLab] dashed variable elements
       // Done
       cache.clear();
       changedSinceLastSave=false;
    }
 
+   /**
+    * Paints variable items as dashed if no other style has been set by the user.
+    * Must be run every time since new elements may have been introduced.
+    */
+   // [HASLab]
+   void applyDefaultVar() {
+      for (AlloyType r : currentModel.getTypes()) // [HASLab] paint variable sigs differently
+    	  if (r.isVar && nodeStyle.get(r) == null) nodeStyle.put(r, DotStyle.DASHED);
+      for (AlloyRelation r : currentModel.getRelations()) // [HASLab] paint variable fields differently
+    	  if (r.isVar && edgeStyle.get(r) == null) edgeStyle.put(r, DotStyle.DASHED);
+      for (AlloySet r : currentModel.getSets()) // [HASLab] paint variable sets differently
+    	  if (r.isVar && nodeStyle.get(r) == null) nodeStyle.put(r, DotStyle.DASHED);
+   }
+   
    /** Load a new instance into this VizState object (the input argument is treated as a new unprojected instance);
     * if world!=null, it is the root of the AST
     */

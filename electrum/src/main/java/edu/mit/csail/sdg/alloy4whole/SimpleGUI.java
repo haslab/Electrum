@@ -27,6 +27,7 @@ import static edu.mit.csail.sdg.alloy4.A4Preferences.CoreMinimization;
 import static edu.mit.csail.sdg.alloy4.A4Preferences.FontName;
 import static edu.mit.csail.sdg.alloy4.A4Preferences.FontSize;
 import static edu.mit.csail.sdg.alloy4.A4Preferences.ImplicitThis;
+import static edu.mit.csail.sdg.alloy4.A4Preferences.Unbounded;
 import static edu.mit.csail.sdg.alloy4.A4Preferences.DecomposedPref;
 import static edu.mit.csail.sdg.alloy4.A4Preferences.LAF;
 import static edu.mit.csail.sdg.alloy4.A4Preferences.Model0;
@@ -114,10 +115,6 @@ import javax.swing.text.html.HTMLDocument;
 
 import kodkod.engine.fol2sat.HigherOrderDeclException;
 
-import com.apple.eawt.Application;
-import com.apple.eawt.ApplicationAdapter;
-import com.apple.eawt.ApplicationEvent;
-
 import edu.mit.csail.sdg.alloy4.A4Preferences;
 import edu.mit.csail.sdg.alloy4.A4Preferences.BooleanPref;
 import edu.mit.csail.sdg.alloy4.A4Preferences.ChoicePref;
@@ -177,7 +174,7 @@ import edu.mit.csail.sdg.alloy4whole.SimpleReporter.SimpleTask2;
  * <br> (1) the run() method in SatRunner is launched from a fresh thread
  * <br> (2) the run() method in the instance watcher (in constructor) is launched from a fresh thread
  * 
- * @modified: nmm, Eduardo Pessoa (pt.uminho.haslab): max trace length options, electrum models, trace navigation
+ * @modified: Nuno Macedo, Eduardo Pessoa // [HASLab] electrum-temporal, electrum-decomposed, electrum-base
  */
 
 public final class SimpleGUI implements ComponentListener, Listener {
@@ -983,6 +980,7 @@ public final class SimpleGUI implements ComponentListener, Listener {
         opt.skolemDepth = SkolemDepth.get();
         opt.coreMinimization = CoreMinimization.get();
         opt.decomposed_mode = DecomposedPref.get().ordinal(); // [HASLab]
+        opt.run_unbounded = Unbounded.get(); // [HASLab]
         opt.coreGranularity = CoreGranularity.get();
         opt.originalFilename = Util.canon(text.get().getFilename());
         opt.solver = Solver.get();
@@ -1196,6 +1194,7 @@ public final class SimpleGUI implements ComponentListener, Listener {
 
             if (Version.experimental) {
               addToMenu(optmenu, Unrolls);
+              addToMenu(optmenu, Unbounded); // [HASLab]
               addToMenu(optmenu, DecomposedPref); // [HASLab]
               addToMenu(optmenu, ImplicitThis, NoOverflow);
             }
@@ -1416,8 +1415,6 @@ public final class SimpleGUI implements ComponentListener, Listener {
         }
         if (arg.startsWith("XML: ")) { // XML: filename
             viz.loadXML(Util.canon(arg.substring(5)), false);
-            viz.getVizState().useOriginalName(true); // [HASLab] the instance show the atoms' original names
-            viz.doShowViz(); // [HASLab]
         }
         return null;
     }
@@ -1533,7 +1530,7 @@ public final class SimpleGUI implements ComponentListener, Listener {
                     SimInstance simInst = convert(root, ans);
                     return simInst.visitThis(e).toString() + (simInst.wasOverflow() ? " (OF)" : "");
                 } else
-                   return ans.eval(e).toString();
+                	return ans.eval(e).toString();
             } catch(HigherOrderDeclException ex) {
                 throw new ErrorType("Higher-order quantification is not allowed in the evaluator.");
             }

@@ -251,6 +251,7 @@ public final class VizGraphPanel extends JPanel {
          diagramScrollPanel.setViewportView(graphPanel);
          diagramScrollPanel.invalidate(); diagramScrollPanel.repaint(); diagramScrollPanel.validate();
       }
+      vizState.applyDefaultVar(); // [HASLab] dashed variable elements
    }
 
    /** Changes the font. */

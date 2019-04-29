@@ -22,7 +22,7 @@ import edu.mit.csail.sdg.alloy4.Util;
  *
  * <p><b>Thread Safety:</b> Can be called only by the AWT event thread.
  * 
- * @modified: Nuno Macedo // [HASLab] temporal instances
+ * @modified: Nuno Macedo // [HASLab] electrum-temporal
  */
 
 public final class AlloyType extends AlloyNodeElement {
@@ -74,6 +74,7 @@ public final class AlloyType extends AlloyNodeElement {
    public final boolean isEnum;
 
    /** Records whether this sig is known to be "var"; NOTE: this value is NOT USED during equals() comparison. */
+   // [HASLab]
    public final boolean isVar;
 
    /** When comparing two AlloyType objects, we compare their names.

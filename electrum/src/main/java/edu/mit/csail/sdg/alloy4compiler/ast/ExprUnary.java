@@ -39,7 +39,7 @@ import edu.mit.csail.sdg.alloy4compiler.ast.Type.ProductType;
  *
  * <p> <b>Invariant:</b>  type!=EMPTY => sub.mult==0
  * 
- * @modified Eduardo Pessoa, Nuno Macedo // [HASLab] temporal model finding
+ * @modified Eduardo Pessoa, Nuno Macedo // [HASLab] electrum-temporal
  */
 
 public final class ExprUnary extends Expr {
@@ -256,7 +256,7 @@ public final class ExprUnary extends Expr {
         ErrorWarning w1=null, w2=null;
         Type s=p;
         switch(op) {
-          case NOT: case AFTER: case ALWAYS: case EVENTUALLY: case PREVIOUS: case HISTORICALLY: case ONCE:
+          case NOT: case AFTER: case ALWAYS: case EVENTUALLY: case PREVIOUS: case HISTORICALLY: case ONCE: // [HASLab]
             s=Type.FORMULA;
             break;
           case TRANSPOSE: case RCLOSURE: case CLOSURE:

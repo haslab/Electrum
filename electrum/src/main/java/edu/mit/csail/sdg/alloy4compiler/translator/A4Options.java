@@ -23,7 +23,7 @@ import edu.mit.csail.sdg.alloy4.SafeList;
 
 /** Mutable; this class encapsulates the customizable options of the Alloy-to-Kodkod translator. 
  * 
- * @modified: Nuno Macedo // [HASLab] decomposed, temporal model finding
+ * @modified: Nuno Macedo // [HASLab] electrum-temporal, electrum-decomposed
 */
 
 public final class A4Options implements Serializable {
@@ -204,6 +204,14 @@ public final class A4Options implements Serializable {
      */
 	// [HASLab]
     public int decomposed_threads = 4;
+
+    /**
+     * This option specifies the model checking mode (false=bounded true=complete)
+     * <p>
+     * Default value is bounded.
+     */
+    // [HASLab]
+    public boolean run_unbounded = false;
 	
     /** This method makes a copy of this Options object. */
     public A4Options dup() {

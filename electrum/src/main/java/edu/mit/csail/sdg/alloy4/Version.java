@@ -13,7 +13,6 @@
  * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF
  * OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-
 package edu.mit.csail.sdg.alloy4;
 
 /** This holds the buildDate String.
@@ -22,7 +21,7 @@ package edu.mit.csail.sdg.alloy4;
  *
  * <p><b>Thread Safety:</b>  Safe.
  * 
- * @modified Nuno Macedo // [HASLab] Electrum version
+ * @modified Nuno Macedo // [HASLab] electrum-base
  */
 
 public final class Version {

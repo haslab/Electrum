@@ -11,6 +11,7 @@ import static edu.mit.csail.sdg.alloy4.A4Preferences.DecomposedPref;
 import static edu.mit.csail.sdg.alloy4.A4Preferences.LAF;
 import static edu.mit.csail.sdg.alloy4.A4Preferences.NoOverflow;
 import static edu.mit.csail.sdg.alloy4.A4Preferences.RecordKodkod;
+import static edu.mit.csail.sdg.alloy4.A4Preferences.Unbounded;
 import static edu.mit.csail.sdg.alloy4.A4Preferences.SkolemDepth;
 import static edu.mit.csail.sdg.alloy4.A4Preferences.Solver;
 import static edu.mit.csail.sdg.alloy4.A4Preferences.SubMemory;
@@ -79,6 +80,9 @@ import edu.mit.csail.sdg.alloy4.OurUtil.GridBagConstraintsBuilder;
 import edu.mit.csail.sdg.alloy4.Subprocess;
 import edu.mit.csail.sdg.alloy4compiler.translator.A4Options.SatSolver;
 
+/**
+* @modified: Nuno Macedo // [HASLab] electrum-unbounded, electrum-decomposed
+*/
 @SuppressWarnings({"serial"})
 public class PreferencesDialog extends JFrame {
 
@@ -303,6 +307,7 @@ public class PreferencesDialog extends JFrame {
       JPanel p = OurUtil.makeGrid(2, gbc().make(), mkCombo(Solver), mkSlider(SkolemDepth),
             mkCombo(Unrolls), mkCombo(CoreGranularity), mkSlider(CoreMinimization), mkSlider(DecomposedPref)); // [HASLab]
       int r = 6; // [HASLab]
+      addToGrid(p, mkCheckBox(Unbounded),            gbc().pos(0, r++).gridwidth(2)); // [HASLab]
       addToGrid(p, mkCheckBox(NoOverflow),           gbc().pos(0, r++).gridwidth(2));
       addToGrid(p, mkCheckBox(ImplicitThis),         gbc().pos(0, r++).gridwidth(2));
       addToGrid(p, mkCheckBox(RecordKodkod),         gbc().pos(0, r++).gridwidth(2));

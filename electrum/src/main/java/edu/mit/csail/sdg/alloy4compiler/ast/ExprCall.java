@@ -37,7 +37,7 @@ import edu.mit.csail.sdg.alloy4compiler.ast.Sig.Field;
  *
  * <p> <b>Invariant:</b>  type!=EMPTY => (all x:args | x.mult==0)
  * 
- * @modified Eduardo Pessoa, Nuno Macedo // [HASLab] temporal model finding
+ * @modified Eduardo Pessoa, Nuno Macedo // [HASLab] electrum-temporal
  */
 
 public final class ExprCall extends Expr {

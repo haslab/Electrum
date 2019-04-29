@@ -36,7 +36,7 @@ import edu.mit.csail.sdg.alloy4.Util;
  * <p> <b>Invariant:</b>  maxseq >= -1
  * <p> <b>Invariant:</b>  maxstring >= -1
  * 
- * @modified Nuno Macedo // [HASLab] temporal model finding
+ * @modified Nuno Macedo // [HASLab] electrum-temporal
  */
 
 public final class Command extends Browsable {
@@ -113,13 +113,23 @@ public final class Command extends Browsable {
 	 * @param overall - the overall scope (0 or higher) (-1 if no overall scope was specified)
 	 * @param bitwidth - the integer bitwidth (0 or higher) (-1 if it was not specified)
 	 * @param maxseq - the maximum sequence length (0 or higher) (-1 if it was not specified)
+	 * @param mintime - the minimal trace length (0 or higher) (-1 if it was not specified)
+	 * @param maxtime - the maximal trace length (0 or higher) (-1 if it was not specified)
 	 * @param formula - the formula that must be satisfied by this command
 	 */
 	// [HASLab] extended with time scopes
-	public Command(boolean check, int overall, int bitwidth, int maxseq, int maxtime, int mintime, Expr formula) throws ErrorSyntax { 
+	public Command(boolean check, int overall, int bitwidth, int maxseq, int mintime, int maxtime, Expr formula) throws ErrorSyntax { 
 		this(null, "", check, overall, bitwidth, maxseq, mintime, maxtime, -1, null, null, formula, null);
 	}
 
+	/** Constructs a new Command object.
+	 *
+	 * @param check - true if this is a "check"; false if this is a "run"
+	 * @param overall - the overall scope (0 or higher) (-1 if no overall scope was specified)
+	 * @param bitwidth - the integer bitwidth (0 or higher) (-1 if it was not specified)
+	 * @param maxseq - the maximum sequence length (0 or higher) (-1 if it was not specified)
+	 * @param formula - the formula that must be satisfied by this command
+	 */
 	// [HASLab] extended with time scopes
 	public Command(boolean check, int overall, int bitwidth, int maxseq, Expr formula) throws ErrorSyntax {
 		this(null, "", check, overall, bitwidth, maxseq, -1, -1, -1, null, null, formula, null);

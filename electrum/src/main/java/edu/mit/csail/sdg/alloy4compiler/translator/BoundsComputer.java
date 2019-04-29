@@ -41,7 +41,7 @@ import edu.mit.csail.sdg.alloy4compiler.ast.Sig.SubsetSig;
 
 /** Immutable; this class assigns each sig and field to some Kodkod relation or expression, then set the bounds. 
  * 
- * @modified: Nuno Macedo, Eduardo Pessoa  // [HASLab] temporal model finding
+ * @modified: Nuno Macedo, Eduardo Pessoa  // [HASLab] electrum-temporal, electrum-symbolic
  */
 
 final class BoundsComputer {
@@ -111,7 +111,6 @@ final class BoundsComputer {
     //==============================================================================================================//
 
     /** Allocate relations for nonbuiltin PrimSigs bottom-up.*/
-    // [HASLab] temporal formulas.
     private Expression allocatePrimSig(PrimSig sig) throws Err {
         // Recursively allocate all children expressions, and form the union of them
         Expression sum = null;
@@ -129,7 +128,7 @@ final class BoundsComputer {
         TupleSet lower = lb.get(sig).clone(), upper = ub.get(sig).clone();
         if (sum == null) {
             // If sig doesn't have children, then sig should make a fresh relation for itself
-           sum = sol.addRel(sig.label, lower, upper, sig);
+           sum = sol.addRel(sig.label, lower, upper, sig.isVariable!=null); // [HASLab]
         } else if (sig.isAbstract == null) {
            // If sig has children, and sig is not abstract, then create a new relation to act as the remainder.
            for(PrimSig child:sig.children()) {
@@ -141,8 +140,7 @@ final class BoundsComputer {
               lower.removeAll(childTS);
               upper.removeAll(childTS);
            }
-            Expression relation = sol.addRel(sig.label + "_remainder", lower, upper, sig);
-            sum = sum.union(relation);
+            sum = sum.union(sol.addRel(sig.label + "_remainder", lower, upper, sig.isVariable!=null)); // [HASLab]
         }
         if (sig.isOne != null) // [HASLab]
         	sol.addFormula(sum.one().always(), sig.isOne);
@@ -155,7 +153,6 @@ final class BoundsComputer {
     //==============================================================================================================//
 
 	/** Allocate relations for SubsetSig top-down.*/
-    // [HASLab] temporal formulas.
     private Expression allocateSubsetSig(SubsetSig sig) throws Err {
         // We must not visit the same SubsetSig more than once, so if we've been here already, then return the old value right away
         Expression sum = sol.a2k(sig);
@@ -171,7 +168,7 @@ final class BoundsComputer {
         if (sig.exact) { sol.addSig(sig, sum); return sum; }
         // Allocate a relation for this subset sig, then bound it
         rep.bound("Sig "+sig+" in "+ts+"\n");
-        Relation r = sol.addRel(sig.label, null, ts, sig);
+        Relation r = sol.addRel(sig.label, null, ts, sig.isVariable!=null); // [HASLab]
         sol.addSig(sig, r);
         // Add a constraint that it is INDEED a subset of the union of its parents
         // modified  : if A in B then G (A in B)
@@ -230,7 +227,6 @@ final class BoundsComputer {
     }
 
     /** Computes the bounds for sigs/fields, then construct a BoundsComputer object that you can query.*/
-    // [HASLab] adapted to temporal formulas. 
     private BoundsComputer(A4Reporter rep, A4Solution sol, ScopeComputer sc, Iterable<Sig> sigs) throws Err {
         this.sc = sc;
         this.factory = sol.getFactory();
@@ -273,8 +269,8 @@ final class BoundsComputer {
                  lastTS=TS;
               }
                if (firstTS.size()!=(n>0 ? 1 : 0) || nextTS.size() != n-1) break;
-              sol.addField(f1, sol.addRel(s.label+"."+f1.label, firstTS, firstTS,f1));
-              sol.addField(f2, sol.addRel(s.label+"."+f2.label, nextTS, nextTS,f2));
+              sol.addField(f1, sol.addRel(s.label+"."+f1.label, firstTS, firstTS,f1.isVariable!=null)); // [HASLab]
+              sol.addField(f2, sol.addRel(s.label+"."+f2.label, nextTS, nextTS,f2.isVariable!=null)); // [HASLab]
               rep.bound("Field "+s.label+"."+f1.label+" == "+firstTS+"\n");
               rep.bound("Field "+s.label+"."+f2.label+" == "+nextTS+"\n");
               continue again;
@@ -303,7 +299,7 @@ final class BoundsComputer {
                  }
                  ub.addAll(upper);
               }
-  		 	  Relation r = sol.addRel(s.label + "." + f.label, null, ub, f);
+  		 	  Relation r = sol.addRel(s.label + "." + f.label, null, ub, f.isVariable!=null); // [HASLab]
 
 			  // [HASLab] avoid collapse of var one sigs
 			  sol.addField(f, isOne&&!isVar ? sol.a2k(s).product(r) : r);
