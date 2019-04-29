@@ -331,14 +331,14 @@ public final class A4SolutionWriter {
 			out.print("\" maxseq=\""); out.print(sol.getMaxSeq());
 			out.print("\" command=\""); Util.encodeXML(out, sol.getOriginalCommand());
 			out.print("\" filename=\""); Util.encodeXML(out, sol.getOriginalFilename());
-			out.print("\" tracelength=\""); out.print(sol.getLastState()); // [HASLab] the trace length of the instance
+			out.print("\" tracelength=\""); out.print(sol.getTraceLength()); // [HASLab] the trace length of the instance
 			out.print("\" backloop=\""); out.print(sol.getLoopState()); // [HASLab] the back loop of the instance
 			out.print("\">\n\n");
 
 			// [HASLab] write all relevant instances.
-			for (int i = 0; i <= sol.getLastState(); i++)
+			for (int i = 0; i < sol.getTraceLength(); i++)
 				new A4SolutionWriter(rep, sol, sol.getAllReachableSigs(), sol.getBitwidth(), sol.getMaxSeq(),
-						sol.getLastState(), sol.getLoopState(), sol.getOriginalCommand(), sol.getOriginalFilename(), out, extraSkolems, i);  
+						sol.getTraceLength(), sol.getLoopState(), sol.getOriginalCommand(), sol.getOriginalFilename(), out, extraSkolems, i);  
 			
 			if (sources != null)
 				for (Map.Entry<String, String> e : sources.entrySet()) {
