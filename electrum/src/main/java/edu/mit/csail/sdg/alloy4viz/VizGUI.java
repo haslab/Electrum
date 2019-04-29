@@ -1097,7 +1097,7 @@ public final class VizGUI implements ComponentListener {
 			});
 			rightTime.addActionListener(new ActionListener() {
 				public final void actionPerformed(ActionEvent e) {
-					if (comboTime.getSelectedIndex() == getVizState().getOriginalInstance().originalA4.getLastState())
+					if (comboTime.getSelectedIndex() == getVizState().getOriginalInstance().originalA4.getTraceLength()-1)
 						comboTime.setSelectedIndex(backindex);
 					else {
 						int curIndex = comboTime.getSelectedIndex();
@@ -1111,12 +1111,12 @@ public final class VizGUI implements ComponentListener {
 			comboTime.addActionListener(new ActionListener() {
 				public final void actionPerformed(ActionEvent e) {
 					int loop = getVizState().getOriginalInstance().originalA4.getLoopState();
-					int leng = getVizState().getOriginalInstance().originalA4.getLastState();
+					int leng = getVizState().getOriginalInstance().originalA4.getTraceLength();
 					
 					leftTime.setEnabled(comboTime.getSelectedIndex() > 0);
 					rightTime.setEnabled(comboTime.getSelectedIndex() < comboTime.getItemCount() - 1 || backindex != -1);
 					// change button when looping
-					if (comboTime.getSelectedIndex() == leng && loop != -1) {
+					if (comboTime.getSelectedIndex() == leng-1 && loop != -1) {
 						rightTime.setText(">"+loop);
 						comboTime.setFont(comboTime.getFont().deriveFont(Font.BOLD));
 						comboTime.setForeground(Color.BLUE);
@@ -1161,8 +1161,8 @@ public final class VizGUI implements ComponentListener {
 		 */
 		// [HASLab]
 		private final void repopulateTemporalPanel() {
-			int last = getVizState().getOriginalInstance().originalA4.getLastState();
-			final String[] atomnames = this.createTimeAtoms(last+1);
+			int leng = getVizState().getOriginalInstance().originalA4.getTraceLength();
+			final String[] atomnames = this.createTimeAtoms(leng);
 			comboTime.removeAllItems();
 			for (String s : atomnames)
 				comboTime.addItem(s);
