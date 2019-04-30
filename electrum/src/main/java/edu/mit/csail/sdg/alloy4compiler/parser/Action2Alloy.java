@@ -27,7 +27,6 @@ import edu.mit.csail.sdg.alloy4compiler.ast.ExprUnary;
 import edu.mit.csail.sdg.alloy4compiler.ast.ExprVar;
 import edu.mit.csail.sdg.alloy4compiler.ast.Sig;
 import edu.mit.csail.sdg.alloy4compiler.ast.VisitQuery;
-import edu.mit.csail.sdg.alloy4compiler.ast.Sig.SubsetSig;
 import edu.mit.csail.sdg.alloy4compiler.translator.ConvToConjunction;
 
 // - create an abstract sig Action
@@ -61,10 +60,10 @@ public class Action2Alloy {
 		
 		// create the parent Action signature
 		Sig action_sig = root.addSig("_Action", null, null, null, null, Attr.ABSTRACT, Attr.PRIVATE);
-		System.out.println("Created sig "+action_sig.label+" with "+action_sig.attributes+".");
+//		System.out.println("Created sig "+action_sig.label+" with "+action_sig.attributes+".");
 		// create the Dummy argument signature
 		Sig dummy_sig = root.addSig("_Dummy", null, null, null, null, Attr.ONE, Attr.PRIVATE);
-		System.out.println("Created sig "+dummy_sig.label+" with "+dummy_sig.attributes+".");
+//		System.out.println("Created sig "+dummy_sig.label+" with "+dummy_sig.attributes+".");
 		
 		final ExprVar dummy_var = ExprVar.make(null, dummy_sig.label);
 		final ExprVar action_var = ExprVar.make(null, action_sig.label);
@@ -84,7 +83,7 @@ public class Action2Alloy {
 		// define sig Arg as the sum of all argument types
 		// TODO: avoid repeated arg types
 		Sig arg_sig = root.addSig("_Arg", ExprVar.make(null,"="), args, null, null, Attr.PRIVATE, Attr.VARIABLE);
-		System.out.println("Max args is "+max_args+", sig "+arg_sig.label+" defined = "+ ((SubsetSig) arg_sig).parents + " with "+arg_sig.attributes+".");	
+//		System.out.println("Max args is "+max_args+", sig "+arg_sig.label+" defined = "+ ((SubsetSig) arg_sig).parents + " with "+arg_sig.attributes+".");	
 
 		final ExprVar arg_var = ExprVar.make(null, arg_sig.label);
 
@@ -112,18 +111,18 @@ public class Action2Alloy {
 		ev_names.add(ExprVar.make(null, "_event"));
 		Expr ev_expr = padded_act_types;
 		Decl ev = new Decl(Pos.UNKNOWN, Pos.UNKNOWN, null, null, ev_names, ev_expr);
-		System.out.println("Field "+ev_names.get(0)+ " defined with "+ ev_expr+".");	
+//		System.out.println("Field "+ev_names.get(0)+ " defined with "+ ev_expr+".");	
 		
 		List<Decl> fields = new ArrayList<Decl>();
 		fields.add(ev);
 		Sig e_sig = root.addSig("_E", null, null, fields, null, Attr.ONE, Attr.PRIVATE);
-		System.out.println("Created sig "+e_sig.label+" with "+e_sig.attributes+".");
+//		System.out.println("Created sig "+e_sig.label+" with "+e_sig.attributes+".");
 
 		final ExprVar e_var = ExprVar.make(null, e_sig.label);
 
 		Expr mult = e_var.join(ExprVar.make(null, "_event")).one().always();
 		root.addFact(null, "_e_mult", mult);
-		System.out.println("Added event multiplicity fact: "+mult+".");
+//		System.out.println("Added event multiplicity fact: "+mult+".");
 
 		
 		// create the arguments for the fired predicate, action + args
@@ -151,9 +150,9 @@ public class Action2Alloy {
 		// create the fired predicate
 		final String fired_name = "_fired";
 		root.addFunc(null, null, fired_name, null, fired_args, null, fired_expr);
-		System.out.print("Created predicate "+fired_name+" with ");
-		for (Decl d : fired_args) System.out.print(d.names+":"+d.expr+" ");
-		System.out.println("as "+fired_expr+".");
+//		System.out.print("Created predicate "+fired_name+" with ");
+//		for (Decl d : fired_args) System.out.print(d.names+":"+d.expr+" ");
+//		System.out.println("as "+fired_expr+".");
 
 		final ExprVar fired_var = ExprVar.make(null, fired_name);
 
@@ -187,14 +186,14 @@ public class Action2Alloy {
 			final String fire_fact_name = "_fire_"+act_name;
 			root.addFact(null, fire_fact_name, fir);
 
-			System.out.println(act_name+" firing condition: "+ fir);	
+//			System.out.println(act_name+" firing condition: "+ fir);	
 		}
 
 		// create the fired predicates (free or fixed args) for each action
 		for (String act_name : acts_args.keySet()) {
 			List<Decl> decls = new ArrayList<Decl>(acts_args.get(act_name));
-			System.out.print((decls.size()>0?"With":"Without")+" arguments ");
-			for (Decl d : decls) System.out.print(d.names+":"+d.expr+" ");
+//			System.out.print((decls.size()>0?"With":"Without")+" arguments ");
+//			for (Decl d : decls) System.out.print(d.names+":"+d.expr+" ");
 
 			Expr v0 = fired_var;
 			for (int i = 0; i < max_args; i ++) {
@@ -209,8 +208,8 @@ public class Action2Alloy {
 				root.addFunc(null, null, curPredName(act_name), null, null, null, v0);
 				root.addFunc(null, null, act_name, null, null, null, v0);
 			}
-			System.out.println("defined predicate "+act_name+" with "+v0);
-			System.out.println("defined predicate "+curPredName(act_name)+" with "+v0);
+//			System.out.println("defined predicate "+act_name+" with "+v0);
+//			System.out.println("defined predicate "+curPredName(act_name)+" with "+v0);
 			
 		}
 		
@@ -236,7 +235,7 @@ public class Action2Alloy {
 		final String fc_name = "_fc";
 		fc_body = fc_body.always();
 		root.addFact(null, fc_name, fc_body);
-		System.out.println("FC fact "+fc_name+" defined: "+fc_body);
+//		System.out.println("FC fact "+fc_name+" defined: "+fc_body);
 	}
 	
 	/**
@@ -264,7 +263,7 @@ public class Action2Alloy {
 		// creates a singleton sig representing th action, extending Action
 		List<ExprVar> sig_action = Util.asList(ExprVar.make(null, "_Action"));
 		Sig sig_this = root.addSig(actSigName(n), ExprVar.make(null, "extends"), sig_action, null, null, Attr.ONE, Attr.PRIVATE);
-		System.out.println("Created sig "+sig_this.label+" with "+sig_this.attributes+".");
+//		System.out.println("Created sig "+sig_this.label+" with "+sig_this.attributes+".");
 
 		// stores the arguments of this action (needed generating the succeeding constraints depending on total arguments)
 		if (decls == null) decls = new ArrayList<Decl>();
@@ -285,11 +284,11 @@ public class Action2Alloy {
 			
         root.addFunc(p, isPrivate, prePredName(n), null, decls, null, ExprList.make(null, null, ExprList.Op.AND, v1));
 		root.addFunc(p, isPrivate, postPredName(n), null, decls, null, ExprList.make(null, null, ExprList.Op.AND, v2));
-		System.out.print((decls.size()>0?"With":"Without")+" arguments ");
-		for (Decl d : decls) System.out.print(d.names+":"+d.expr+" ");
-		System.out.println("defined:");
-		System.out.println("predicate "+prePredName(n)+" with "+ExprList.make(null, null, ExprList.Op.AND, v1));
-		System.out.println("predicate "+postPredName(n)+" with "+ExprList.make(null, null, ExprList.Op.AND, v2));
+//		System.out.print((decls.size()>0?"With":"Without")+" arguments ");
+//		for (Decl d : decls) System.out.print(d.names+":"+d.expr+" ");
+//		System.out.println("defined:");
+//		System.out.println("predicate "+prePredName(n)+" with "+ExprList.make(null, null, ExprList.Op.AND, v1));
+//		System.out.println("predicate "+postPredName(n)+" with "+ExprList.make(null, null, ExprList.Op.AND, v2));
 		
 		// store modified elements, cannot be expanded at this stage as it the modifies from other actions
 		if (mods == null) mods = new ArrayList<ExprVar>();
