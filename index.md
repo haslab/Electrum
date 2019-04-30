@@ -16,13 +16,13 @@ A repository of examples with familiar Alloy examples converted into Electrum is
 
 ## Running
 
-[Download](https://github.com/haslab/Electrum/releases/tag/v1.1) the executable ``jar`` (or [build](#building-electrum-analyzer) it) and launch it simply as
+[Download](https://github.com/haslab/Electrum/releases/tag/v1.2) the executable ``jar`` (or [build](#building-electrum-analyzer) it) and launch it simply as
 
-`$ java -jar electrum-1.1.jar`
+`$ java -jar electrum-1.2.jar`
 
 This will launch Electrum's/Alloy Analyzer's simple GUI, which is packaged with several examples. The file can also by run from the command-line, for more information run
 
-`$ java -jar electrum-1.1.jar --help`
+`$ java -jar electrum-1.2.jar --help`
 
 To perform analyses on an unbounded time horizon, one needs to have installed [Electrod](https://github.com/grayswandyr/electrod/) program, as well as [NuSMV](http://nusmv.fbk.eu/) or [nuXmv](https://nuxmv.fbk.eu/).
 
@@ -64,6 +64,9 @@ Electrum is open-source and available under the [MIT license](https://github.com
 - Eduardo Pessoa, HASLab, INESC TEC & Universidade do Minho, Portugal
 
 ## History
+### Electrum [1.2](https://github.com/haslab/Electrum/releases/tag/v1.2) (April 2019) 
+- Several improvements and bug fixes to the interface, visualiser and evaluator
+
 ### Electrum [1.1](https://github.com/haslab/Electrum/releases/tag/v1.1) (May 2018) 
 <!--- ASE18 submission, ABZ18 attendance -->
 - Initial support for symbolic bound extraction
