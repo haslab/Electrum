@@ -229,6 +229,7 @@ public final class A4Options implements Serializable {
         x.coreGranularity = coreGranularity;
         x.decomposed_mode = decomposed_mode; // [HASLab]
         x.decomposed_threads = decomposed_threads; // [HASLab]
+        x.run_unbounded = run_unbounded; // [HASLab]
         return x;
     }
 }

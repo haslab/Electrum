@@ -290,6 +290,7 @@ public final class A4Solution {
 		varOptions.setNoOverflow(opt.noOverflow);
 		varOptions.setMaxTraceLength(maxTracelength); // [HASLab] propagate options
 		varOptions.setMinTraceLength(minTracelength); // [HASLab] propagate options
+		varOptions.setRunUnbounded(opt.run_unbounded); // [HASLab] propagate options
 		if (opt.decomposed_mode > 0) { // [HASLab] propagate options
 			varOptions.setRunDecomposed(true);
 			if (opt.decomposed_mode == 1)
@@ -308,7 +309,6 @@ public final class A4Solution {
 			System.arraycopy(opt.solver.options(), 0, nopts, 2, opt.solver.options().length);
 			nopts[0] = "-t"; nopts[1] = "NuSMV";
 			varOptions.setSolver(SATFactory.electrod(nopts));
-			varOptions.setRunUnbounded(true);
 		} else if (opt.solver.id().equals(A4Options.SatSolver.ElectrodX.id())) { // [HASLab]
 			String[] nopts = new String[opt.solver.options().length+2];
 			System.arraycopy(opt.solver.options(), 0, nopts, 2, opt.solver.options().length);
