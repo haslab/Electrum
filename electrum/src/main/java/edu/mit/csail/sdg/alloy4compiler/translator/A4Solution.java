@@ -717,7 +717,7 @@ public final class A4Solution {
 			if (!expr.errors.isEmpty()) throw expr.errors.pick();
 			Object result = TranslateAlloyToKodkod.alloy2kodkod(this, expr);
 			if (result instanceof IntExpression) return eval.evaluate((IntExpression)result, state) + (eval.wasOverflow() ? " (OF)" : ""); // [HASLab]
-			if (result instanceof Formula) return eval.evaluate((Formula)result);
+			if (result instanceof Formula) return eval.evaluate((Formula)result, state); // [HASLab]
 			if (result instanceof Expression) return new A4TupleSet(eval.evaluate((Expression)result, state), this); // [HASLab]
 			throw new ErrorFatal("Unknown internal error encountered in the evaluator.");
 		} catch(CapacityExceededException ex) {

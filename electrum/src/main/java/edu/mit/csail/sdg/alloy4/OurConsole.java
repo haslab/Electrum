@@ -96,6 +96,10 @@ public final class OurConsole extends JScrollPane {
    /** The position in this.history that is currently showing. */
    private int browse = 0;
 
+   /** The current state under which to evaluate the expressions. */
+   // [HASLab]
+   private int current = 0;
+
    /** Helper method that construct a mutable style with the given font name, font size, boldness, color, and left indentation. */
    static MutableAttributeSet style(String fontName, int fontSize, boolean boldness, Color color, int leftIndent) {
       MutableAttributeSet s = new SimpleAttributeSet();
@@ -246,7 +250,7 @@ public final class OurConsole extends JScrollPane {
       int old = doc.getLength();   do_add(len, cmd+"\n\n", plain);   len += (doc.getLength() - old);
       // perform the computation
       boolean isBad = false;
-      try { cmd = computer.compute(cmd); } catch(Throwable ex) { cmd = ex.toString(); isBad = true; }
+      try { cmd = computer.compute(new String[] {cmd,current+""}); } catch(Throwable ex) { cmd = ex.toString(); isBad = true; } // [HASLab] state arg
       int savePosition = len;
       // display the outcome
       old = doc.getLength();   do_add(len, cmd.trim()+"\n\n", (isBad ? bad : good));    len += (doc.getLength() - old);
@@ -277,4 +281,11 @@ public final class OurConsole extends JScrollPane {
       StyledDocument doc = main.getStyledDocument();
       try { doc.insertString(where >= 0 ? where : doc.getLength(), text, style); } catch(BadLocationException ex) { }
    }
+
+   /** Set the current state under which to evaluate expressions. */
+   // [HASLab]
+   public void setCurrent(int selectedIndex) {
+	  current = selectedIndex;
+   }
+   
 }

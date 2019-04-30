@@ -601,7 +601,7 @@ public final class VizGUI implements ComponentListener {
 	                  "The ", true, "Alloy Evaluator ", false,
 	                  "allows you to type\nin Alloy expressions and see their values.\nFor example, ", true,
 	                  "univ", false, " shows the list of all atoms.\n(You can press UP and DOWN to recall old inputs).\n");
-	         try { evaluator.compute(new File(xmlFileName)); } catch(Exception ex) { } // exception should not happen
+	         try { evaluator.compute(new File(xmlFileName)); myEvaluatorPanel.setCurrent(comboTime.getSelectedIndex()); } catch(Exception ex) { } // exception should not happen
 	         left = myEvaluatorPanel;
 	         left.setBorder(new OurBorder(false, false, false, false));
 	      }
@@ -1143,6 +1143,10 @@ public final class VizGUI implements ComponentListener {
 					xmlLoaded.remove(getXMLfilename());
 					if (comboTime.getSelectedIndex() >= 0) 
 						loadXML(getXMLfilename(), true, comboTime.getSelectedIndex());
+					
+					// set the base state for the evaluator
+					if (myEvaluatorPanel!=null)
+						myEvaluatorPanel.setCurrent(comboTime.getSelectedIndex());
 				}
 		
 			});
