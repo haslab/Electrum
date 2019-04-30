@@ -40,7 +40,7 @@ public final class Version {
 
    /** Returns the Electrum version string. */
    // [HASLab]
-   public static String eleVersion() { return "1.1"; }
+   public static String eleVersion() { return "1.2"; }
 
    /** Returns the build date. */
    public static String buildDate() { return "unknown"; }
