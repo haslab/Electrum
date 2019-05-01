@@ -504,11 +504,7 @@ final class SimpleReporter extends A4Reporter {
                 if (cmd.maxtime != -1 && options.solver.external() != null && options.solver.external().equals("electrod"))
                 	rep.warning(new ErrorWarning("Complete solver selected, Time scope will be ignored.")); // [HASLab]
                 cb(out, "bold", "Executing \""+cmd+"\"\n");
-                A4Solution ai;
-                if (options.action!=null) // [HASLab] simulator
-                	ai=TranslateAlloyToKodkod.execute_commandFromBook(rep, world.getAllReachableSigs(), cmd, options, latestKodkod);
-                else
-                	ai=TranslateAlloyToKodkod.execute_commandFromBook(rep, world.getAllReachableSigs(), cmd, options);
+                A4Solution ai=TranslateAlloyToKodkod.execute_commandFromBook(rep, world.getAllReachableSigs(), cmd, options);
                 if (ai==null) result.add(null);
                 else if (ai.satisfiable()) result.add(tempXML);
                 else if (ai.highLevelCore().a.size()>0) result.add(tempCNF+".core");

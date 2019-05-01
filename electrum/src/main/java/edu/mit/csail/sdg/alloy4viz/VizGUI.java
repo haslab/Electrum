@@ -1571,7 +1571,7 @@ public final class VizGUI implements ComponentListener {
 						item.setEnabled(false);
 						item.setBackground(new Color(255,255,230));
 					}
-					for (; ie<actionMenu.get(i).getComponentCount();ie++)
+					while (ie<actionMenu.get(i).getComponentCount())
 						actionMenu.get(i).remove(ie);
 					
 					final int jj = current + i;

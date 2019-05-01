@@ -1105,11 +1105,6 @@ public final class A4Solution {
 	
 	/** Solve for the solution if not solved already; if cmd==null for static solutions, should call {@link #solve(A4Reporter, A4Solution)} instead. */
 	A4Solution solve(final A4Reporter rep, Command cmd, Simplifier simp, boolean tryBookExamples) throws Err, IOException {
-		return solve(rep,cmd,simp,tryBookExamples,null);
-	}
-	
-	// [HASLab] simulator
-	A4Solution solve(final A4Reporter rep, Command cmd, Simplifier simp, boolean tryBookExamples, A4Solution pre_sol) throws Err, IOException {
 		// If already solved, then return this object as is
 		if (solved) return this;
 		// If cmd==null, then all four arguments are ignored, and we simply use the lower bound of each relation

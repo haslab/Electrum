@@ -396,11 +396,6 @@ public final class TranslateAlloyToKodkod extends VisitReturn<Object> {
      * and you can call X2.next() to get the next satisfying solution X3... until you get an unsatisfying solution.
      */
     public static A4Solution execute_commandFromBook (A4Reporter rep, Iterable<Sig> sigs, Command cmd, A4Options opt) throws Err {
-    	return execute_commandFromBook(rep, sigs, cmd, opt, null);
-    }
-    
-    // [HASLab] simulator
-    public static A4Solution execute_commandFromBook (A4Reporter rep, Iterable<Sig> sigs, Command cmd, A4Options opt, A4Solution sol_prev) throws Err {
         if (rep==null) rep = A4Reporter.NOP;
         TranslateAlloyToKodkod tr = null;
         A4Solution sol = null;
@@ -408,7 +403,7 @@ public final class TranslateAlloyToKodkod extends VisitReturn<Object> {
        	 	if (cmd.parent!=null || !cmd.getGrowableSigs().isEmpty()) return execute_greedyCommand(rep, sigs, cmd, opt);
     		tr = new TranslateAlloyToKodkod(rep, opt, sigs, cmd);
     		tr.makeFacts(cmd.formula);
-    		sol = tr.frame.solve(rep, cmd, new Simplifier(), true, sol_prev); // [HASLab] simulator
+    		sol = tr.frame.solve(rep, cmd, new Simplifier(), true); // [HASLab] simulator
         } catch(UnsatisfiedLinkError ex) {
             throw new ErrorFatal("The required JNI library cannot be found: "+ex.toString().trim(), ex);
         } catch(CapacityExceededException ex) {
