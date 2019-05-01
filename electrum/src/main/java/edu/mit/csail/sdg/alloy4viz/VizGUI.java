@@ -1194,7 +1194,7 @@ public final class VizGUI implements ComponentListener {
 	   // TODO: will this work when there is a single action in the model?
 	   protected Runner hasNexts(Integer i, String[] acts) {
 	      if (wrap) return wrapMe();
-	      if (settingsOpen!=0) return null;
+//	      if (settingsOpen!=0) return null;
 	      if (xmlFileName.length()==0) {
 	         OurDialog.alert("Cannot display the next solution since no instance is currently loaded.");
 	      } else if (enumerator==null) {
@@ -1466,8 +1466,9 @@ public final class VizGUI implements ComponentListener {
 					nextEvent.get(i).setEnabled(pending<=0);
 				}
 				
+				rightTime.get(i).setText(new String(Character.toChars(0x2192)));
+
 				if (c == length - 1) {
-					rightTime.get(i).setText(new String(Character.toChars(0x21b6)) + backindex);
 					timeLabel.get(i).setFont(timeLabel.get(i).getFont().deriveFont(Font.BOLD));
 					if (c == backindex) {
 						timeLabel.get(i).setForeground(new Color(13, 152, 186));
@@ -1478,7 +1479,6 @@ public final class VizGUI implements ComponentListener {
 						timeLabel.get(i).setText(timeLabel.get(i).getText()+new String(Character.toChars(0x2191)));
 					}
 				} else {
-					rightTime.get(i).setText(new String(Character.toChars(0x2192)));
 					// change text when loop state
 					if (c == backindex) {
 						timeLabel.get(i).setFont(timeLabel.get(i).getFont().deriveFont(Font.BOLD));
