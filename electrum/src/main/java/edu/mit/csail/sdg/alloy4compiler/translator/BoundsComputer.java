@@ -130,6 +130,7 @@ final class BoundsComputer {
             // If sig doesn't have children, then sig should make a fresh relation for itself
            sum = sol.addRel(sig.label, lower, upper, sig.isVariable!=null); // [HASLab]
         } else if (sig.isAbstract == null) {
+        	boolean var_rem = sig.isVariable!=null;
            // If sig has children, and sig is not abstract, then create a new relation to act as the remainder.
            for(PrimSig child:sig.children()) {
               // Remove atoms that are KNOWN to be in a subsig;
@@ -139,8 +140,9 @@ final class BoundsComputer {
               TupleSet childTS = sol.query(false, sol.a2k(child), false);
               lower.removeAll(childTS);
               upper.removeAll(childTS);
+              var_rem = var_rem || child.isVariable != null;
            }
-            sum = sum.union(sol.addRel(sig.label + "_remainder", lower, upper, sig.isVariable!=null)); // [HASLab] bug, should be variable if any of the children is
+            sum = sum.union(sol.addRel(sig.label + "_remainder", lower, upper, var_rem)); // [HASLab]
         }
         if (sig.isOne != null) // [HASLab]
         	sol.addFormula(sum.one().always(), sig.isOne);

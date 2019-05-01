@@ -1518,9 +1518,9 @@ public final class SimpleGUI implements ComponentListener, Listener {
         private String filename = null;
         public final String compute(final Object input) throws Exception {
             if (input instanceof File) { filename = ((File)input).getAbsolutePath(); return ""; }
-            if (!(input instanceof String)) return "";
-            final String str = (String)input;
-            if (str.trim().length()==0) return ""; // Empty line
+            if (!(input instanceof String[])) return "";
+            final String[] strs = (String[])input; // [HASLab] state arg
+            if (strs[0].trim().length()==0) return ""; // Empty line
             Module root = null;
             A4Solution ans = null;
             try {
@@ -1546,12 +1546,12 @@ public final class SimpleGUI implements ComponentListener, Listener {
                 throw new ErrorFatal("Failed to read or parse the XML file.");
             }
             try {
-                Expr e = CompUtil.parseOneExpression_fromString(root, str);
+                Expr e = CompUtil.parseOneExpression_fromString(root, strs[0]);
                 if ("yes".equals(System.getProperty("debug")) && VerbosityPref.get()==Verbosity.FULLDEBUG) {
                     SimInstance simInst = convert(root, ans);
                     return simInst.visitThis(e).toString() + (simInst.wasOverflow() ? " (OF)" : "");
                 } else
-                	return ans.eval(e).toString();
+                	return ans.eval(e,Integer.valueOf(strs[1])).toString();
             } catch(HigherOrderDeclException ex) {
                 throw new ErrorType("Higher-order quantification is not allowed in the evaluator.");
             }

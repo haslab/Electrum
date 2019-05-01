@@ -205,9 +205,6 @@ public final class A4Options implements Serializable {
 	// [HASLab]
     public int decomposed_threads = 4;
 
-    // [HASLab] simulator
-	public String action = null;
-
 	/**
      * This option specifies the model checking mode (false=bounded true=complete)
      * <p>
@@ -232,7 +229,7 @@ public final class A4Options implements Serializable {
         x.coreGranularity = coreGranularity;
         x.decomposed_mode = decomposed_mode; // [HASLab]
         x.decomposed_threads = decomposed_threads; // [HASLab]
-        x.action = action; // [HASLab] simulator
+        x.run_unbounded = run_unbounded; // [HASLab]
         return x;
     }
 }
