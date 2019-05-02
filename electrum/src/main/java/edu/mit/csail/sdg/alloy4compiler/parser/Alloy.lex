@@ -159,12 +159,12 @@ import java_cup.runtime.*;
 "after"               { return alloy_sym(yytext(), CompSym.AFTER       );} // [HASLab] ltl tokens
 "eventually"          { return alloy_sym(yytext(), CompSym.EVENTUALLY  );} // [HASLab] ltl tokens
 "historically"        { return alloy_sym(yytext(), CompSym.HISTORICALLY);} // [HASLab] ltl tokens
-"previous"            { return alloy_sym(yytext(), CompSym.PREVIOUS    );} // [HASLab] ltl tokens
+"before"              { return alloy_sym(yytext(), CompSym.BEFORE      );} // [HASLab] ltl tokens
 "once"                { return alloy_sym(yytext(), CompSym.ONCE        );} // [HASLab] ltl tokens
-"release"             { return alloy_sym(yytext(), CompSym.RELEASE     );} // [HASLab] ltl tokens
+"releases"            { return alloy_sym(yytext(), CompSym.RELEASES    );} // [HASLab] ltl tokens
 "until"               { return alloy_sym(yytext(), CompSym.UNTIL       );} // [HASLab] ltl tokens
 "since"               { return alloy_sym(yytext(), CompSym.SINCE       );} // [HASLab] ltl tokens
-"trigger"             { return alloy_sym(yytext(), CompSym.TRIGGER     );} // [HASLab] ltl tokens
+"triggered"           { return alloy_sym(yytext(), CompSym.TRIGGERED   );} // [HASLab] ltl tokens
 ";"                   { return alloy_sym(yytext(), CompSym.TRCSEQ      );} // [HASLab] ltl tokens
 "and"                 { return alloy_sym(yytext(), CompSym.AND         );}
 "assert"              { return alloy_sym(yytext(), CompSym.ASSERT      );}
