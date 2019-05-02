@@ -1336,6 +1336,56 @@ public final class VizGUI implements ComponentListener {
 				public void mouseReleased(MouseEvent e) {
 					if (e.getButton() == 1) {
 						actionMenu.show(e.getComponent(), e.getX(), e.getY());
+						
+						AlloyModel model = getVizState().get(0).getOriginalModel();
+						AlloyType event = model.hasType(Action2Alloy.ACTION_SIG); 
+						
+						ExecutorService exec = Executors.newFixedThreadPool(1);
+						if (pending==0) {
+							for (int i = 0; i < timeLabel.size()-1; i++) {
+								List<AlloyType> events = new ArrayList<AlloyType>(model.getSubTypes(event));
+								int ie;
+								for (ie = 0; ie < events.size(); ie++) {
+									AlloyType ev = events.get(ie);
+									final int j = i+current;
+									JMenuItem item;
+									if (ie<actionMenu.getComponentCount()) {
+										item = (JMenuItem) actionMenu.getComponent(ie);
+										item.removeActionListener(item.getActionListeners()[0]);
+									}	
+									else {
+										item = new JMenuItem();
+										actionMenu.add(item);
+									}
+									item.addActionListener(new ActionListener() {
+										@Override
+										public void actionPerformed(ActionEvent e) {
+											updateTmpButtons();
+											doNext(j,ev.getName());
+										}
+									});
+									item.setText(ev.getName().substring(1));
+									item.setEnabled(false);
+									item.setBackground(new Color(255,255,230));
+								}
+								while (ie<actionMenu.getComponentCount())
+									actionMenu.remove(ie);
+								
+								final int jj = current + i;
+
+								pending = events.size()*(timeLabel.size()-1);
+
+								Thread thread = new Thread(new Runnable() {
+									@Override
+									public void run() {
+										String[] as = (String[]) events.stream().map(e -> e.getName()).toArray(String[]::new);
+										hasNexts(jj,as);							
+									}
+								});
+								updateTmpButtons();
+								exec.execute(thread);
+							}
+						}
 					}
 				}
 			});
@@ -1543,51 +1593,7 @@ public final class VizGUI implements ComponentListener {
 					}
 				}
 			}
-			ExecutorService exec = Executors.newFixedThreadPool(1);
-			if (event != null && pending==0) {
-				for (int i = 0; i < timeLabel.size()-1; i++) {
-					List<AlloyType> events = new ArrayList<AlloyType>(model.getSubTypes(event));
-					int ie;
-					for (ie = 0; ie < events.size(); ie++) {
-						AlloyType ev = events.get(ie);
-						final int j = i+current;
-						JMenuItem item;
-						if (ie<actionMenu.get(i).getComponentCount()) {
-							item = (JMenuItem) actionMenu.get(i).getComponent(ie);
-							item.removeActionListener(item.getActionListeners()[0]);
-						}	
-						else {
-							item = new JMenuItem();
-							actionMenu.get(i).add(item);
-						}
-						item.addActionListener(new ActionListener() {
-							@Override
-							public void actionPerformed(ActionEvent e) {
-								updateTmpButtons();
-								doNext(j,ev.getName());
-							}
-						});
-						item.setText(ev.getName().substring(1));
-						item.setEnabled(false);
-						item.setBackground(new Color(255,255,230));
-					}
-					while (ie<actionMenu.get(i).getComponentCount())
-						actionMenu.get(i).remove(ie);
-					
-					final int jj = current + i;
-
-					pending = events.size()*(timeLabel.size()-1);
-
-					Thread thread = new Thread(new Runnable() {
-						@Override
-						public void run() {
-							String[] as = (String[]) events.stream().map(e -> e.getName()).toArray(String[]::new);
-							hasNexts(jj,as);							
-						}
-					});
-					exec.execute(thread);
-				}
-			}
+		
 			updateTmpButtons();
 		}
 
