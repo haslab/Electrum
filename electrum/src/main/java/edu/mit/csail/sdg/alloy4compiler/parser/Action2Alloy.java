@@ -231,7 +231,7 @@ public class Action2Alloy {
 			if (old2fields.get(svv) != null)
 				for (Decl fvv0 : old2fields.get(svv))
 					for (ExprHasName fvv : fvv0.names)
-						if (!(acts_mods.keySet().contains(fvv.label)))
+						if (!(acts_mods.keySet().contains(fvv.label)) && !fvv.label.equals(FIRED_REL))
 							fc_body = fc_body.and((ExprVar.make(null,fvv.label).equal(ExprUnary.Op.PRIME.make(null, ExprVar.make(null,fvv.label)))));
 		}
 		
@@ -343,7 +343,7 @@ public class Action2Alloy {
 				public final Object visit(ExprUnary x) throws Err {
 					if (((ExprUnary) x).op == ExprUnary.Op.PRIME
 							|| ((ExprUnary) x).op == ExprUnary.Op.AFTER
-							|| ((ExprUnary) x).op == ExprUnary.Op.PREVIOUS
+							|| ((ExprUnary) x).op == ExprUnary.Op.BEFORE
 							|| ((ExprUnary) x).op == ExprUnary.Op.ALWAYS
 							|| ((ExprUnary) x).op == ExprUnary.Op.HISTORICALLY
 							|| ((ExprUnary) x).op == ExprUnary.Op.EVENTUALLY
@@ -355,7 +355,7 @@ public class Action2Alloy {
 				public final Object visit(ExprBinary x) throws Err {
 					if (((ExprBinary) x).op == ExprBinary.Op.UNTIL
 							|| ((ExprBinary) x).op == ExprBinary.Op.SINCE
-							|| ((ExprBinary) x).op == ExprBinary.Op.RELEASE)
+							|| ((ExprBinary) x).op == ExprBinary.Op.RELEASES)
 						return x;
 					else return super.visit(x);
 				}
