@@ -45,6 +45,7 @@ import edu.mit.csail.sdg.alloy4compiler.ast.ExprUnary.Op;
 import edu.mit.csail.sdg.alloy4compiler.ast.Sig;
 import edu.mit.csail.sdg.alloy4compiler.ast.Sig.Field;
 import edu.mit.csail.sdg.alloy4compiler.ast.Sig.PrimSig;
+import edu.mit.csail.sdg.alloy4compiler.ast.Sig.SubsetSig;
 import edu.mit.csail.sdg.alloy4compiler.ast.Type.ProductType;
 import edu.mit.csail.sdg.alloy4compiler.ast.VisitQuery;
 
@@ -365,8 +366,13 @@ final class ScopeComputer {
 
     /** Whether or not Int appears in the relation types found in these sigs */
     private boolean areIntsUsed(Iterable<Sig> sigs, Command cmd) {
-        /* check for Int-typed relations */
+    	/* check for Int-typed relations */
         for (Sig s : sigs) {
+        	// [HASLab] check for subsigs of Int
+        	if (s instanceof SubsetSig)
+        		for (Sig p : ((SubsetSig) s).parents)
+        			if (p == SIGINT || p == SEQIDX)
+                        return true;
             for (Field f : s.getFields()) {
                 for (ProductType pt : f.type()) {
                     for (int k = 0; k < pt.arity(); k++) {
