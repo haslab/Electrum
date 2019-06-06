@@ -296,7 +296,7 @@ final class ScopeComputer {
     private ScopeComputer(A4Reporter rep, Iterable<Sig> sigs, Command cmd) throws Err {
         this.rep = rep;
         this.cmd = cmd;
-        boolean shouldUseInts = areIntsUsed(sigs, cmd);
+        boolean shouldUseInts = true; // areIntsUsed(sigs, cmd); // [HASLab] pull from Alloy 5
         // Process each sig listed in the command
         for(CommandScope entry:cmd.scope) {
             Sig s = entry.sig;
@@ -368,11 +368,6 @@ final class ScopeComputer {
     private boolean areIntsUsed(Iterable<Sig> sigs, Command cmd) {
     	/* check for Int-typed relations */
         for (Sig s : sigs) {
-        	// [HASLab] check for subsigs of Int
-        	if (s instanceof SubsetSig)
-        		for (Sig p : ((SubsetSig) s).parents)
-        			if (p == SIGINT || p == SEQIDX)
-                        return true;
             for (Field f : s.getFields()) {
                 for (ProductType pt : f.type()) {
                     for (int k = 0; k < pt.arity(); k++) {
