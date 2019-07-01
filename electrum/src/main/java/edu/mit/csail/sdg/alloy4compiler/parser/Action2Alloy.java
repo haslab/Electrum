@@ -228,7 +228,7 @@ public class Action2Alloy {
 			if (old2fields.get(svv) != null)
 				for (Decl fvv0 : old2fields.get(svv))
 					for (ExprHasName fvv : fvv0.names)
-						if (!(acts_mods.keySet().contains(fvv.label)))
+						if (!(acts_mods.keySet().contains(fvv.label)) && fvv0.isPrivate == null && fvv0.isVar != null)
 							fc_body = fc_body.and((ExprVar.make(null,fvv.label).equal(ExprUnary.Op.PRIME.make(null, ExprVar.make(null,fvv.label)))));
 		}
 		
