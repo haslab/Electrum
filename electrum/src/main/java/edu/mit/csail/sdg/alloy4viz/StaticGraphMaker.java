@@ -192,7 +192,7 @@ public final class StaticGraphMaker {
          String x = view.label.get(set); if (x.length()==0) continue;
          Boolean showLabel = view.showAsLabel.get(set);
          if ((showLabel==null && showLabelByDefault) || (showLabel!=null && showLabel.booleanValue()))
-            setsLabel += ((setsLabel.length()>0?",\n ":"")+x);
+            setsLabel += ((setsLabel.length()>0?", ":"")+x);
       }
       if (setsLabel.length()>0) {
          Set<String> list = attribs.get(node);
@@ -338,7 +338,7 @@ public final class StaticGraphMaker {
          String x = view.label.get(set); if (x.length()==0) continue;
          Boolean showAsAttr = view.showAsAttr.get(set);
          if ((showAsAttr==null && showInAttrByDefault) || (showAsAttr!=null && showAsAttr))
-            attr += ((attr.length()>0?",\n ":"")+x);
+            attr += ((attr.length()>0?", ":"")+x);
       }
       if (label.length()==0) return (attr.length()>0) ? ("("+attr+")") : "";
       return (attr.length()>0) ? (label+" ("+attr+")") : label;
