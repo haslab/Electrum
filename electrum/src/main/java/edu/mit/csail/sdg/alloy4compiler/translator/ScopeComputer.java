@@ -45,6 +45,7 @@ import edu.mit.csail.sdg.alloy4compiler.ast.ExprUnary.Op;
 import edu.mit.csail.sdg.alloy4compiler.ast.Sig;
 import edu.mit.csail.sdg.alloy4compiler.ast.Sig.Field;
 import edu.mit.csail.sdg.alloy4compiler.ast.Sig.PrimSig;
+import edu.mit.csail.sdg.alloy4compiler.ast.Sig.SubsetSig;
 import edu.mit.csail.sdg.alloy4compiler.ast.Type.ProductType;
 import edu.mit.csail.sdg.alloy4compiler.ast.VisitQuery;
 
@@ -295,7 +296,7 @@ final class ScopeComputer {
     private ScopeComputer(A4Reporter rep, Iterable<Sig> sigs, Command cmd) throws Err {
         this.rep = rep;
         this.cmd = cmd;
-        boolean shouldUseInts = areIntsUsed(sigs, cmd);
+        boolean shouldUseInts = true; // areIntsUsed(sigs, cmd); // [HASLab] pull from Alloy 5
         // Process each sig listed in the command
         for(CommandScope entry:cmd.scope) {
             Sig s = entry.sig;
@@ -365,7 +366,7 @@ final class ScopeComputer {
 
     /** Whether or not Int appears in the relation types found in these sigs */
     private boolean areIntsUsed(Iterable<Sig> sigs, Command cmd) {
-        /* check for Int-typed relations */
+    	/* check for Int-typed relations */
         for (Sig s : sigs) {
             for (Field f : s.getFields()) {
                 for (ProductType pt : f.type()) {

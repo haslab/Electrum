@@ -993,8 +993,8 @@ public final class A4Solution {
 			static_uni = bounds.universe();
 		Instance inst = new Instance(static_uni);
 		for(int max=max(), i=min(); i<=max; i++) {
-			Tuple it = factory.tuple(""+i);
-			inst.add(i, factory.range(it, it));
+			Tuple it = static_uni.factory().tuple(""+i);
+			inst.add(i, static_uni.factory().range(it, it));
 		}
 		for (Relation r : bounds.relations()) inst.add(r, TemporalBoundsExpander.convertToUniv(bounds.lowerBound(r),static_uni));
 		

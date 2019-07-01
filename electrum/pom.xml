@@ -2,7 +2,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>pt.uminho.haslab.electrum</groupId>
 	<artifactId>electrum</artifactId>
-	<version>1.2.0</version>
+	<version>1.2.1</version>
 	<name>electrum</name>
 	<packaging>jar</packaging>
 	<profiles>
@@ -144,7 +144,7 @@
 		<dependency>
 			<groupId>pt.uminho.haslab.pardinus</groupId>
 			<artifactId>pardinus</artifactId>
-			<version>1.1.0</version>
+			<version>1.1.1</version>
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
