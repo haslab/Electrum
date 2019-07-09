@@ -293,7 +293,7 @@ public final class OurSyntaxWidget {
    boolean save(boolean alwaysPickNewName, Collection<String> bannedNames) {
       String n = this.filename;
       if (alwaysPickNewName || isFile==false || n.startsWith(Util.jarPrefix())) {
-         File f = OurDialog.askFile(false, null, ".ele", ".ele files");  if (f==null) return false;  // [HASLab] ele extension
+         File f = OurDialog.askFile(false, null, new String[] {".ele",".als"}, ".als and .ele files");  if (f==null) return false;  // [HASLab] ele extension
          n = Util.canon(f.getPath());   if (f.exists() && !OurDialog.askOverwrite(n)) return false;
       }
       if (saveAs(n, bannedNames)) {Util.setCurrentDirectory(new File(filename).getParentFile()); return true;} else return false;

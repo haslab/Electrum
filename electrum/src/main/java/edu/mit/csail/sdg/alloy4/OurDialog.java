@@ -141,15 +141,21 @@ public final class OurDialog {
    /** True if we should use AWT (instead of Swing) to display the OPEN and SAVE dialog. */
    private static boolean useAWT = Util.onMac();
 
+
+   public static File askFile (boolean isOpen, String dir, String ext, final String description) {
+	   return askFile(isOpen,dir,new String[] {ext}, description);
+   }
+
    /** Use the platform's preferred file chooser to ask the user to select a file.
     * <br> Note: if it is a save operation, and the user didn't include an extension, then we'll add the extension.
     * @param isOpen - true means this is an Open operation; false means this is a Save operation
     * @param dir - the initial directory (or null if we want to use the default)
-    * @param ext - the file extension (including "."; using lowercase letters; for example, ".als") or ""
+    * @param ext - a list of file extensions (including "."; using lowercase letters; for example, ".als") or {}
     * @param description - the description for the given extension
     * @return null if the user didn't choose anything, otherwise it returns the selected file
     */
-   public static File askFile (boolean isOpen, String dir, final String ext, final String description) {
+   // [HASLab] multiple extensions
+   public static File askFile (boolean isOpen, String dir, final String[] exts, final String description) {
       if (dir == null) dir = Util.getCurrentDirectory();
       if (!(new File(dir).isDirectory())) dir = System.getProperty("user.home");
       dir = Util.canon(dir);
@@ -160,8 +166,12 @@ public final class OurDialog {
          open.setAlwaysOnTop(true);
          open.setMode(isOpen ? FileDialog.LOAD : FileDialog.SAVE);
          open.setDirectory(dir);
-         if (ext.length()>0) open.setFilenameFilter(new FilenameFilter() {
-            public boolean accept(File dir, String name) { return name.toLowerCase(Locale.US).endsWith(ext); }
+         if (exts.length>0) open.setFilenameFilter(new FilenameFilter() { // [HASLab] list of extensions
+            public boolean accept(File dir, String name) { 
+            	for (String ext : exts)
+            		if (name.toLowerCase(Locale.US).endsWith(ext)) return true;
+            	return false;            	
+            }
          });
          open.setVisible(true); // This method blocks until the user either chooses something or cancels the dialog.
          parent.dispose();
@@ -179,8 +189,13 @@ public final class OurDialog {
             open.setDialogTitle(isOpen ? "Open..." : "Save...");
             open.setApproveButtonText(isOpen ? "Open" : "Save");
             open.setDialogType(isOpen ? JFileChooser.OPEN_DIALOG : JFileChooser.SAVE_DIALOG);
-            if (ext.length()>0) open.setFileFilter(new FileFilter() {
-               public boolean accept(File file) { return !file.isFile() || file.getPath().toLowerCase(Locale.US).endsWith(ext); }
+            if (exts.length>0) open.setFileFilter(new FileFilter() { // [HASLab] list of extensions
+               public boolean accept(File file) { 
+            	   if (!file.isFile()) return true;
+            	   for (String ext : exts)
+            		   if (file.getPath().toLowerCase(Locale.US).endsWith(ext)) return true;
+            	   return false;            	
+               }
                public String getDescription() { return description; }
             });
             if (open.showDialog(null, null) != JFileChooser.APPROVE_OPTION || open.getSelectedFile() == null) return null;
@@ -189,13 +204,13 @@ public final class OurDialog {
             // Some combination of Windows version and JDK version will trigger this failure.
             // In such a case, we'll fall back to using the "AWT" file open dialog
             useAWT = true;
-            return askFile(isOpen, dir, ext, description);
+            return askFile(isOpen, dir, exts, description); // [HASLab] list of extensions
          }
       }
       if (!isOpen) {
          int lastSlash = ans.lastIndexOf(File.separatorChar);
          int lastDot = (lastSlash>=0) ? ans.indexOf('.', lastSlash) : ans.indexOf('.');
-         if (lastDot < 0) ans = ans + ext;
+         if (lastDot < 0) ans = ans + exts[0]; // [HASLab] list of extensions
       }
       return new File(Util.canon(ans));
    }
