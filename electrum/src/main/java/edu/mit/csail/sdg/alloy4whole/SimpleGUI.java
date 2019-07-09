@@ -632,7 +632,7 @@ public final class SimpleGUI implements ComponentListener, Listener {
     /** This method performs File->Open. */
     private Runner doOpen() {
         if (wrap) return wrapMe();
-        File file=OurDialog.askFile(true, null, ".ele", ".ele files"); // [HASLab] ele extension
+        File file=OurDialog.askFile(true, null, new String[] {".ele",".als"}, ".als and .ele files"); // [HASLab] ele extension
         if (file!=null) {
             Util.setCurrentDirectory(file.getParentFile());
             doOpenFile(file.getPath());
@@ -643,7 +643,7 @@ public final class SimpleGUI implements ComponentListener, Listener {
     /** This method performs File->OpenBuiltinModels. */
     private Runner doBuiltin() {
         if (wrap) return wrapMe();
-        File file=OurDialog.askFile(true, alloyHome() + fs + "models", ".ele", ".ele files"); // [HASLab] ele extension
+        File file=OurDialog.askFile(true, alloyHome() + fs + "models", new String[] {".ele",".als"}, ".als and .ele files"); // [HASLab] ele extension
         if (file!=null) {
             doOpenFile(file.getPath());
         }
