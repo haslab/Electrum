@@ -33,7 +33,7 @@ import edu.mit.csail.sdg.alloy4compiler.translator.A4Options.SatSolver;
 
 /**
  * 
- * @modified Nuno Macedo // [HASLab] electrum-decomposed
+ * @modified Nuno Macedo // [HASLab] electrum-decomposed, electrum-unbounded
  *
  */
 @SuppressWarnings({"serial", "unchecked"})
