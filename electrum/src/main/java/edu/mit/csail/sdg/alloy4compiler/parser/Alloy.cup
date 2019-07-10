@@ -900,7 +900,7 @@ Bind ::= SUM2:o   Declp:a SuperOrBar:b {: RESULT = ExprQt.Op.SUM     	   .make(o
 
 // [HASLab] temporal seq
 TraceExprA ::=                       OrExprA:a  {: RESULT=a;                                                                 :};
-TraceExprA ::= Bind:a TRCSEQ:o TraceExprB:b     {: RESULT=ExprBinary.Op.AND.make(o, null, a, ExprUnary.Op.AFTER.make(o, b)); :};
+TraceExprA ::= OrExprB:a TRCSEQ:o Bind:b     {: RESULT=ExprBinary.Op.AND.make(o, null, a, ExprUnary.Op.AFTER.make(o, b)); :};
 TraceExprB ::=                       OrExprB:b  {: RESULT=b;                                                                 :};
 TraceExprB ::= OrExprB:a TRCSEQ:o TraceExprB:b  {: RESULT=ExprBinary.Op.AND.make(o, null, a, ExprUnary.Op.AFTER.make(o, b)); :};
 
