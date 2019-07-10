@@ -19,7 +19,6 @@ package edu.mit.csail.sdg.alloy4compiler.translator;
 import static edu.mit.csail.sdg.alloy4compiler.ast.Sig.NONE;
 import static edu.mit.csail.sdg.alloy4compiler.ast.Sig.SEQIDX;
 import static edu.mit.csail.sdg.alloy4compiler.ast.Sig.SIGINT;
-import static edu.mit.csail.sdg.alloy4compiler.ast.Sig.SIGTIME;
 import static edu.mit.csail.sdg.alloy4compiler.ast.Sig.STRING;
 import static edu.mit.csail.sdg.alloy4compiler.ast.Sig.UNIV;
 
@@ -120,7 +119,6 @@ final class ScopeComputer {
         if (sig==SIGINT) return 1<<bitwidth;
         if (sig==SEQIDX) return maxseq;
         if (sig==STRING) return maxstring;
-        if (sig==SIGTIME) return maxtrace;  // [HASLab]
         Integer y = sig2scope.get(sig);
         return (y==null) ? (-1) : y;
     }
@@ -139,7 +137,7 @@ final class ScopeComputer {
 
     /** Returns whether the scope of a sig is exact or not. */
     public boolean isExact(Sig sig) {
-        return sig==SIGINT || sig==SEQIDX || sig==STRING || ((sig instanceof PrimSig) && exact.containsKey(sig)) || sig==SIGTIME; // [HASLab]
+        return sig==SIGINT || sig==SEQIDX || sig==STRING || ((sig instanceof PrimSig) && exact.containsKey(sig));
     }
 
     /** Make the given sig "exact". */
@@ -318,10 +316,10 @@ final class ScopeComputer {
             }
             if (s==NONE) throw new ErrorSyntax(cmd.pos, "You cannot set a scope on \"none\".");
             if (s.isEnum!=null) throw new ErrorSyntax(cmd.pos, "You cannot set a scope on the enum \""+s.label+"\"");
-            if (s.isOne!=null && scope!=1) throw new ErrorSyntax(cmd.pos,
-                "Sig \""+s+"\" has the multiplicity of \"one\", so its scope must be 1, and cannot be "+scope);
-            if (s.isLone!=null && scope>1) throw new ErrorSyntax(cmd.pos,
-                "Sig \""+s+"\" has the multiplicity of \"lone\", so its scope must 0 or 1, and cannot be "+scope);
+            if (s.isOne!=null && s.isVariable == null && scope!=1) throw new ErrorSyntax(cmd.pos,
+                "Sig \""+s+"\" has the multiplicity of \"one\", so its scope must be 1, and cannot be "+scope); // [HASLab] if var, the atom may change
+            if (s.isLone!=null && s.isVariable == null && scope>1) throw new ErrorSyntax(cmd.pos,
+                "Sig \""+s+"\" has the multiplicity of \"lone\", so its scope must 0 or 1, and cannot be "+scope); // [HASLab] if var, the atom may change
             if (s.isSome!=null && scope<1) throw new ErrorSyntax(cmd.pos,
                 "Sig \""+s+"\" has the multiplicity of \"some\", so its scope must 1 or above, and cannot be "+scope);
             sig2scope(s, scope);
