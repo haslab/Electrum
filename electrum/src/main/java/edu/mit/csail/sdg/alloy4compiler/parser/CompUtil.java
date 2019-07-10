@@ -88,7 +88,7 @@ public final class CompUtil {
                 // eg. main==/home/models/main.als, then sub/test=>/home/models/sub/test.als"
                 int numberOfSlash=0;
                 for(int i=0; i<moduleA.length(); i++)  if (moduleA.charAt(i)=='/') numberOfSlash++;
-                return up(fileA, numberOfSlash+1)+File.separatorChar+moduleB.replace('/',File.separatorChar)+".ele"; // [HASLab] ele extension for local modules
+                return up(fileA, numberOfSlash+1)+File.separatorChar+moduleB.replace('/',File.separatorChar)+(fileA.substring(fileA.length()-4, fileA.length())); // [HASLab] use extension of local module
             }
             moduleA=moduleA.substring(a+1);
             moduleB=moduleB.substring(b+1);
