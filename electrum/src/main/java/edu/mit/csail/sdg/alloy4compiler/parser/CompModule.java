@@ -26,7 +26,6 @@ import static edu.mit.csail.sdg.alloy4compiler.ast.Attr.AttrType.WHERE;
 import static edu.mit.csail.sdg.alloy4compiler.ast.Sig.NONE;
 import static edu.mit.csail.sdg.alloy4compiler.ast.Sig.SEQIDX;
 import static edu.mit.csail.sdg.alloy4compiler.ast.Sig.SIGINT;
-import static edu.mit.csail.sdg.alloy4compiler.ast.Sig.SIGTIME;
 import static edu.mit.csail.sdg.alloy4compiler.ast.Sig.STRING;
 import static edu.mit.csail.sdg.alloy4compiler.ast.Sig.UNIV;
 
@@ -747,7 +746,6 @@ public final class CompModule extends Browsable implements Module {
 		if (name.equals("Int"))        return SIGINT;
 		if (name.equals("seq/Int"))    return SEQIDX;
 		if (name.equals("String"))     return STRING;
-		if (name.equals("Time"))       return SIGTIME; // [HASLab]
 		if (name.equals("none"))       return NONE;
 		if (name.indexOf('/')<0) {
 			s=getRawNQS(this, 1, name);

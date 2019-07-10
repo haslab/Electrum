@@ -46,10 +46,6 @@ public abstract class Sig extends Expr {
 	/** The built-in "Int" signature. */
 	public static final PrimSig SIGINT = new PrimSig("Int", UNIV, false);
 
-	/** The built-in "Time" signature. */
-	// [HASLab]
-	public static final PrimSig SIGTIME = new PrimSig("Time", UNIV, false);
-
 	/** The built-in "seq/Int" signature. */
 	public static final PrimSig SEQIDX = new PrimSig("seq/Int", SIGINT, true);
 
