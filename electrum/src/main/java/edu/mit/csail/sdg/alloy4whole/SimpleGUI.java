@@ -1530,7 +1530,7 @@ public final class SimpleGUI implements ComponentListener, Listener {
                     SimInstance simInst = convert(root, ans);
                     return simInst.visitThis(e).toString() + (simInst.wasOverflow() ? " (OF)" : "");
                 } else
-                	return ans.eval(e,Integer.valueOf(strs[1])).toString();
+                	return ans.eval(e,Integer.valueOf(strs[1])).toString(); // [HASLab] eval state 
             } catch(HigherOrderDeclException ex) {
                 throw new ErrorType("Higher-order quantification is not allowed in the evaluator.");
             }
