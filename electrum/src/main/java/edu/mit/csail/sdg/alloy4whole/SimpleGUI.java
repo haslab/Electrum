@@ -174,7 +174,7 @@ import edu.mit.csail.sdg.alloy4whole.SimpleReporter.SimpleTask2;
  * <br> (1) the run() method in SatRunner is launched from a fresh thread
  * <br> (2) the run() method in the instance watcher (in constructor) is launched from a fresh thread
  * 
- * @modified: Nuno Macedo, Eduardo Pessoa // [HASLab] electrum-temporal, electrum-decomposed, electrum-base
+ * @modified: Nuno Macedo, Eduardo Pessoa // [HASLab] electrum-temporal, electrum-decomposed, electrum-base, electrum-unbounded
  */
 
 public final class SimpleGUI implements ComponentListener, Listener {

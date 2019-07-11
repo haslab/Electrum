@@ -47,7 +47,7 @@ import edu.mit.csail.sdg.alloy4compiler.ast.Sig.Field;
 
 /** Translate an Alloy AST into Kodkod AST then attempt to solve it using Kodkod. 
  * 
- * @modified: Nuno Macedo, Eduardo Pessoa // [HASLab] electrum-temporal
+ * @modified: Nuno Macedo, Eduardo Pessoa // [HASLab] electrum-temporal, electrum-decomposed, electrum-unbounded
  */
 
 public final class TranslateAlloyToKodkod extends VisitReturn<Object> {

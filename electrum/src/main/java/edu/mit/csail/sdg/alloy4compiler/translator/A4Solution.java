@@ -108,7 +108,7 @@ import edu.mit.csail.sdg.alloy4compiler.translator.A4Options.SatSolver;
  * It is also used as a staging area for the solver before generating the solution.
  * Once solve() has been called, then this object becomes immutable after that.
  * 
- * @modified: Nuno Macedo, Eduardo Pessoa // [HASLab] electrum-temporal, electrum-symbolic
+ * @modified: Nuno Macedo, Eduardo Pessoa // [HASLab] electrum-temporal, electrum-symbolic, electrum-decomposed, electrum-unbounded
  */
 
 public final class A4Solution {
@@ -951,7 +951,7 @@ public final class A4Solution {
 			}
 			return;
 		}
-		if (s.isVariable!=null && s.parent!=UNIV) return; // [HASLab] do not rename variable sigs unless top
+//		if (s.isVariable!=null && s.parent!=UNIV) return; // [HASLab] do not rename variable sigs unless top
 		for(PrimSig c: s.children()) rename(frame, c, nexts, un);
 		String signame = un.make(s.label.startsWith("this/") ? s.label.substring(5) : s.label);
 		List<Tuple> list = new ArrayList<Tuple>();

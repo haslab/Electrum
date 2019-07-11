@@ -490,7 +490,7 @@ public abstract class Sig extends Expr {
 			if (bound.type.arity()>0 && bound.type.hasNoTuple()) throw new ErrorType(pos, "Cannot bind field "+label+" to the empty set or empty relation.");
 			this.isPrivate = (isPrivate!=null ? isPrivate : sig.isPrivate);
 			this.isMeta = (isMeta!=null ? isMeta : sig.isMeta);
-			this.isVariable = (isVar!=null ? isVar : null); // [HASLab]
+			this.isVariable = isVar; // [HASLab]
 			this.sig = sig;
 		}
 

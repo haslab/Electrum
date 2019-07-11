@@ -44,7 +44,7 @@ import java.util.Locale;
  * the crash will be reported to the parent process via callback, and if we try to execute another task,
  * then a new subprocess will be spawned automatically.
  * 
- * @modified Nuno Macedo // [HASLab] electrum-base
+ * @modified Nuno Macedo // [HASLab] electrum-unbounded
  */
 
 public final class WorkerEngine {
@@ -105,7 +105,7 @@ public final class WorkerEngine {
       synchronized(WorkerEngine.class) {
          try { if (latest_sub!=null) {
 			if (!System.getProperty("os.name").toLowerCase(Locale.US).startsWith("windows"))
-				try {  // [HASLab]
+				try {  // [HASLab] needed to stop all child processes (electrod)
 					Field f = latest_sub.getClass().getDeclaredField("pid");
 					f.setAccessible(true);
 					Runtime.getRuntime().exec("kill -SIGTERM "+f.get(latest_sub));
