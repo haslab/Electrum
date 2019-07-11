@@ -964,8 +964,8 @@ public final class A4Solution {
         int i = 0;
 		for(Tuple t: list) {
 			if (frame.atom2sig.containsKey(t.atom(0))) continue; // This means one of the subsig has already claimed this atom.
-//			String x = signame + "$" + i;  // [HASLab] do not renumber from 0 due to different states
-			String x = t.atom(0)+""; // [HASLab]
+			String x = signame + "$" + i;  // [HASLab] do not renumber from 0 due to different states
+//			String x = t.atom(0)+""; // [HASLab]
 			i++;
 	        frame.atom2sig.put(t.atom(0), s);
 			frame.atom2name.put(t.atom(0), x);
