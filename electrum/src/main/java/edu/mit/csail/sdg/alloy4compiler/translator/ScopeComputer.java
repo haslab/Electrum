@@ -44,7 +44,6 @@ import edu.mit.csail.sdg.alloy4compiler.ast.ExprUnary.Op;
 import edu.mit.csail.sdg.alloy4compiler.ast.Sig;
 import edu.mit.csail.sdg.alloy4compiler.ast.Sig.Field;
 import edu.mit.csail.sdg.alloy4compiler.ast.Sig.PrimSig;
-import edu.mit.csail.sdg.alloy4compiler.ast.Sig.SubsetSig;
 import edu.mit.csail.sdg.alloy4compiler.ast.Type.ProductType;
 import edu.mit.csail.sdg.alloy4compiler.ast.VisitQuery;
 
@@ -130,7 +129,8 @@ final class ScopeComputer {
         if (newValue<0)                 throw new ErrorSyntax(cmd.pos, "Cannot specify a negative scope for sig \""+sig+"\"");
         int old=sig2scope(sig);
         if (old==newValue) return;
-        if (old>=0)        throw new ErrorSyntax(cmd.pos, "Sig \""+sig+"\" already has a scope of "+old+", so we cannot set it to be "+newValue);
+        if (old>=0)      
+        	throw new ErrorSyntax(cmd.pos, "Sig \""+sig+"\" already has a scope of "+old+", so we cannot set it to be "+newValue);
         sig2scope.put((PrimSig)sig, newValue);
         rep.scope("Sig "+sig+" scope <= "+newValue+"\n");
     }
@@ -318,6 +318,8 @@ final class ScopeComputer {
             if (s.isEnum!=null) throw new ErrorSyntax(cmd.pos, "You cannot set a scope on the enum \""+s.label+"\"");
             if (s.isOne!=null && s.isVariable == null && scope!=1) throw new ErrorSyntax(cmd.pos,
                 "Sig \""+s+"\" has the multiplicity of \"one\", so its scope must be 1, and cannot be "+scope); // [HASLab] if var, the atom may change
+            if (s.isOne!=null && s.isVariable != null && scope<1) throw new ErrorSyntax(cmd.pos,
+                    "Var sig \""+s+"\" has the multiplicity of \"one\", so its scope must be 1 or above, and cannot be "+scope); // [HASLab] if var, the atom may change
             if (s.isLone!=null && s.isVariable == null && scope>1) throw new ErrorSyntax(cmd.pos,
                 "Sig \""+s+"\" has the multiplicity of \"lone\", so its scope must 0 or 1, and cannot be "+scope); // [HASLab] if var, the atom may change
             if (s.isSome!=null && scope<1) throw new ErrorSyntax(cmd.pos,
@@ -328,8 +330,7 @@ final class ScopeComputer {
         // Force "one" sigs to be exactly one, and "lone" to be at most one
         for(Sig s:sigs) if (s instanceof PrimSig) { // [HASLab]
             if (s.isOne!=null && s.isVariable==null) { makeExact(cmd.pos, s); sig2scope(s,1); } 
-            if (s.isOne!=null && s.isVariable!=null) { sig2scope(s,1); } 
-            else if (s.isLone!=null && sig2scope(s)!=0) sig2scope(s,1);
+            else if (s.isLone!=null && s.isVariable==null && sig2scope(s)!=0) sig2scope(s,1);
         }
         // Derive the implicit scopes
         while(true) {

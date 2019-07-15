@@ -28,6 +28,7 @@ import kodkod.ast.RelationPredicate.TotalOrdering;
 import kodkod.ast.operator.ExprOperator;
 import kodkod.engine.CapacityExceededException;
 import kodkod.engine.fol2sat.HigherOrderDeclException;
+import kodkod.engine.ltl2fol.TemporalTranslator;
 import kodkod.instance.Tuple;
 import kodkod.instance.TupleFactory;
 import kodkod.instance.TupleSet;
@@ -166,13 +167,19 @@ public final class TranslateAlloyToKodkod extends VisitReturn<Object> {
 	                Field f = (Field)n;
 	                Expr form = s.decl.get().join(f).in(d.expr);
 	                form = s.isOne==null ? form.forAll(s.decl) : ExprLet.make(null, (ExprVar)(s.decl.get()), s, form);
-	                frame.addFormula(cform(form.always()), f); // [HASLab] always
+	                Formula ff = cform(form);
+	                if (TemporalTranslator.isTemporal(ff)) // [HASLab] always
+	                	ff = ff.always();
+	                frame.addFormula(ff, f);
 	                // Given the above, we can be sure that every column is well-bounded (except possibly the first column).
 	                // Thus, we need to add a bound that the first column is a subset of s.
-	                if (s.isOne==null) {
+	                if (s.isOne==null) { // [HASLab]
 	                    Expression sr = a2k(s), fr = a2k(f);
 	                    for(int i=f.type().arity(); i>1; i--) fr=fr.join(Relation.UNIV);
-	                    frame.addFormula(fr.in(sr).always(), f); // [HASLab] always
+	                    ff = fr.in(sr);
+		                if (TemporalTranslator.isTemporal(ff)) // [HASLab] always
+		                	ff = ff.always();
+	                    frame.addFormula(ff, f); // [HASLab] always
 	                }
 	             }
 				if (s.isOne == null && d.disjoint2 != null)
@@ -180,18 +187,24 @@ public final class TranslateAlloyToKodkod extends VisitReturn<Object> {
 						Decl that = s.oneOf("that");
 						Expr formula = s.decl.get().equal(that.get()).not()
 								.implies(s.decl.get().join(f).intersect(that.get().join(f)).no());
-						frame.addFormula(cform(formula.forAll(that).forAll(s.decl)).always(), d.disjoint2); // [HASLab] always
+						Formula ff = cform(formula.forAll(that).forAll(s.decl));
+						if (d.isVar!=null)
+							ff = ff.always();
+						frame.addFormula(ff, d.disjoint2); // [HASLab] always
 					}
-				if (d.names.size() > 1 && d.disjoint != null) {
-					frame.addFormula(cform(ExprList.makeDISJOINT(d.disjoint, null, d.names)).always(), d.disjoint); // [HASLab] always
+				if (d.names.size() > 1 && d.disjoint != null) { // [HASLab] always
+					Formula ff = cform(ExprList.makeDISJOINT(d.disjoint, null, d.names));
+					if (d.isVar!=null)
+						ff = ff.always();
+					frame.addFormula(ff, d.disjoint);
 				}
 			}
 			k2pos_enabled = true;
 			for (Expr f : s.getFacts()) {
 				Expr form = s.isOne == null ? f.forAll(s.decl) : ExprLet.make(null, (ExprVar) (s.decl.get()), s, f);
 				Formula kdorm = cform(form);
-				if (!(kdorm instanceof TotalOrdering)) kdorm = kdorm.always(); // [HASLab] always, avoids over total order predicate
-                // [HASLab] TODO: is this still problematic?
+				// [HASLab] avoid always over statics (not only efficiency, total orders would not by detected in SB) 
+				if (TemporalTranslator.isTemporal(kdorm)) kdorm = kdorm.always();
 				frame.addFormula(kdorm, f);
 			}
 		}

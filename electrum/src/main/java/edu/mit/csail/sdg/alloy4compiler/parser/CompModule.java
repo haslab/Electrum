@@ -1008,7 +1008,7 @@ public final class CompModule extends Browsable implements Module {
 			realSig = new SubsetSig(fullname, parents, oldS.attributes.toArray(new Attr[0]));
 			for (Sig n : parents)
 				if (n.isVariable!=null && realSig.isVariable==null) // [HASLab]
-					warns.add(new ErrorWarning(realSig.isSubset, "Static sub-sig in variable sig.\n"
+					warns.add(new ErrorWarning(realSig.isSubset, "Part of "+ n.label +" is static.\n"
 							+ "Sig "+realSig.label+" is static but "+n.label+" is variable."));
 		} else {
 			Sig sup = ((PrimSig)oldS).parent;
@@ -1020,8 +1020,11 @@ public final class CompModule extends Browsable implements Module {
 			PrimSig p = (PrimSig)parent;
 			realSig = new PrimSig(fullname, p, oldS.attributes.toArray(new Attr[0]));
 			if (parent.isVariable!=null && realSig.isVariable==null) // [HASLab]
-				warns.add(new ErrorWarning(realSig.isSubsig, "Static sig extends variable sig.\n"
+				warns.add(new ErrorWarning(realSig.isSubsig, "Part of "+ parent.label +" is static.\n"
 						+ "Sig "+realSig.label+" is static but "+parent.label+" is variable."));
+			if (parent.isVariable==null && realSig.isVariable!=null) // [HASLab]
+				warns.add(new ErrorWarning(realSig.isSubsig, "Variable sig "+realSig.label+" is redundant.\n"
+						+ "Sig "+realSig.label+" is variable but "+parent.label+" is static."));
 		}
 		res.new2old.put(realSig, oldS);
 		res.sig2module.put(realSig, u);

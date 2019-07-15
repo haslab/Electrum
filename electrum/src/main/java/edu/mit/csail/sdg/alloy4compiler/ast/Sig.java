@@ -41,19 +41,19 @@ import edu.mit.csail.sdg.alloy4compiler.ast.Attr.AttrType;
 public abstract class Sig extends Expr {
 
 	/** The built-in "univ" signature. */
-	public static final PrimSig UNIV = new PrimSig("univ", null, false);
+	public static final PrimSig UNIV = new PrimSig("univ", null, true, false); // [HASLab]
 
 	/** The built-in "Int" signature. */
-	public static final PrimSig SIGINT = new PrimSig("Int", UNIV, false);
+	public static final PrimSig SIGINT = new PrimSig("Int", UNIV, false, false); // [HASLab]
 
 	/** The built-in "seq/Int" signature. */
-	public static final PrimSig SEQIDX = new PrimSig("seq/Int", SIGINT, true);
+	public static final PrimSig SEQIDX = new PrimSig("seq/Int", SIGINT, false, true); // [HASLab]
 
 	/** The built-in "String" signature. */
-	public static final PrimSig STRING = new PrimSig("String", UNIV, true);
+	public static final PrimSig STRING = new PrimSig("String", UNIV, false, true); // [HASLab]
 
 	/** The built-in "none" signature. */
-	public static final PrimSig NONE = new PrimSig("none", null, false);
+	public static final PrimSig NONE = new PrimSig("none", null, false,false); // [HASLab]
 
 	/** The built-in "none" signature. */
 	public static final PrimSig GHOST = mkGhostSig();
@@ -161,14 +161,14 @@ public abstract class Sig extends Expr {
 
 	/** Constructs a new builtin PrimSig. */
 	// [HASLab] extended with variable sigs.
-	private Sig(String label) {
+	private Sig(String label, boolean var) {
 		super(Pos.UNKNOWN, null);
 		Expr oneof = ExprUnary.Op.ONEOF.make(null, this);
 		ExprVar v = ExprVar.make(null, "this", oneof.type);
 		this.decl = new Decl(null, null, null, null, Util.asList(v), oneof);
 		this.builtin = true;
 		this.isAbstract = null;
-		this.isVariable = null; // [HASLab]
+		this.isVariable = var ? Pos.UNKNOWN : null; // [HASLab]
 		this.isLone = null;
 		this.isOne = null;
 		this.isSome = null;
@@ -310,8 +310,9 @@ public abstract class Sig extends Expr {
 		public final PrimSig parent;
 
 		/** Constructs a builtin PrimSig. */
-		private PrimSig(String label, PrimSig parent, boolean add) {
-			super(label);
+		// [HASLab] var builtins
+		private PrimSig(String label, PrimSig parent, boolean var, boolean add) { 
+			super(label,var);
 			this.parent = parent;
 			if (add) this.parent.children.add(this);
 		}
