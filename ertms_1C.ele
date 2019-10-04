@@ -188,7 +188,7 @@ fact MAAssignment {
 		all tr:Train | no tr.EoA' implies (tr in Off' or no tr.EoA)
 		-- if a train is connected, changes assign FS MA to a free VSS in front of the train (§3.2.1.4 / §3.3.2.1.1 / §3.8.3.3), 
 		-- or assign OS MA (§3.10.1.1)
-		all tr:Train-Off | tr.EoA != tr.EoA' implies (((memorisedFront[tr].^next&tr.EoA'.*prev).state in Free or after OSMA[tr]))
+		all tr:Train-Off' | tr.EoA != tr.EoA' implies (((memorisedFront[tr].^next&tr.EoA'.*prev).state in Free or after OSMA[tr]))
 	} }
 }
 
@@ -1541,7 +1541,6 @@ check S7ok	{S7 implies S7ok} 	for exactly 1 Train, exactly 3 TTD, exactly 8 VSS,
 check S8ok	{S8 implies S8ok} 	for exactly 2 Train, exactly 4 TTD, exactly 9 VSS, exactly 11 Time expect 0
 check S9ok	{S9 implies S9ok} 	for exactly 2 Train, exactly 4 TTD, exactly 9 VSS, exactly 12 Time expect 0
 */
-
 /**
 Verification of safety properties.
 **/
@@ -1567,7 +1566,7 @@ assert trains_ok_occupied_ok {
 -- if all timers expire automatically, no OS MAs and trains don't move outside MAs,
 -- then VSSs with a train are never Free
 assert timers_auto_free_ok {
-	(init && always (auto_timer && strictMove)) =>
+	(init && (some IntegrityConfirmed') && always (auto_timer && strictMove)) =>
 		always all tr:Train | (tr.pos_front).state != Free
 }
 
@@ -1596,7 +1595,7 @@ pred strictMove {
 pred strictMAs {
 	strictMove
 	Reports = TTD	
-	all tr:Disconnected | tr.EoA != tr.EoA' implies (((memorisedFront[tr].^next&tr.EoA'.*prev).state in Free))
+	all tr:Disconnected | no tr.EoA
 }
 
 -- initial predicate, all trains reporting, all VSS states consistent, no expired timers.
@@ -1647,13 +1646,13 @@ run timers_sanity {
 	eventually some GhostTrainPropExpired 
 } for 8 VSS, 4 TTD, 2 Train, exactly 10 Time expect 1
 
-check timers_nocollisions for 5 VSS, 3 TTD, 2 Train, exactly 8 Time expect 0
+check timers_nocollisions for 4 VSS, 2 TTD, 2 Train, exactly 8 Time expect 0
 check timers_nocollisions for 8 VSS, 3 TTD, 2 Train, exactly 8 Time expect 0
+check timers_nocollisions for 8 VSS, 3 TTD, 3 Train, exactly 8 Time expect 1
 
-check timers_auto_free_ok 		for 5 VSS, 2 TTD, 2 Train, exactly 8 Time expect 0
-check timers_auto_free_ok 		for 3 VSS, 1 TTD, 2 Train, exactly 3 Time expect 0
+check timers_auto_free_ok 		for 5 VSS, 2 TTD, 2 Train, exactly 8 Time expect 1
+check timers_auto_free_ok 		for 3 VSS, 1 TTD, 2 Train, exactly 3 Time expect 1
 check timers_auto_occupied_ok	for 8 VSS, 3 TTD, 2 Train, exactly 8 Time expect 0
-
 
 /**
 Visualization auxiliary functions.
@@ -1676,4 +1675,10 @@ fun _VSSs : TTD -> VSS {
 }
 fun ZVizTrainC3 : set Train {
 	MissionStarted
+}
+fun _MissionOnly : set Train {
+	MissionStarted - Reporting
+}
+fun _ReportingOnly : set Train {
+	Reporting - (IntegrityConfirmed + IntegrityLost)
 }

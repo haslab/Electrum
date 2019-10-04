@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <alloy>
 
-<view nodetheme="Martha" edgetheme="Martha" useOriginalAtomNames="yes">
+<view nodetheme="Martha" edgetheme="Martha" useOriginalAtomNames="yes" fontsize="14">
 
 <projection> <type name="VSS_manager"/> </projection>
 
@@ -70,11 +70,15 @@
 </node>
 
 <node label="MissionStarted">
-   <set name="this/MissionStarted" type="Train"/>
+   <set name="$_MissionOnly" type="Train"/>
 </node>
 
 <node label="MuteExpired">
    <set name="this/MuteExpired" type="Train"/>
+</node>
+
+<node label="Reporting">
+   <set name="$_ReportingOnly" type="Train"/>
 </node>
 
 <node label="ShadowARunning">
@@ -107,45 +111,21 @@
    <set name="$GhostTrainPropStart" type="TTD"/>
    <set name="$IntegrityLossPropStart" type="VSS"/>
    <set name="$IntegrityLossPropStop" type="VSS"/>
-   <set name="$S1_tr1" type="Train"/>
-   <set name="$S1_tr2" type="Train"/>
-   <set name="$S1_tr" type="Train"/>
-   <set name="$S2_tr1" type="Train"/>
-   <set name="$S2_tr2" type="Train"/>
-   <set name="$S2_tr" type="Train"/>
-   <set name="$S2a_tr1" type="Train"/>
-   <set name="$S2a_tr2" type="Train"/>
-   <set name="$S2a_tr" type="Train"/>
-   <set name="$S3_tr1" type="Train"/>
-   <set name="$S3_tr2" type="Train"/>
-   <set name="$S3_tr" type="Train"/>
-   <set name="$S4_tr1" type="Train"/>
-   <set name="$S4_tr2" type="Train"/>
-   <set name="$S4_tr" type="Train"/>
-   <set name="$S5_tr1" type="Train"/>
-   <set name="$S5_tr2" type="Train"/>
-   <set name="$S5_tr" type="Train"/>
-   <set name="$S5a_tr1" type="Train"/>
-   <set name="$S5a_tr2" type="Train"/>
-   <set name="$S5a_tr" type="Train"/>
-   <set name="$S6_tr1" type="Train"/>
-   <set name="$S6_tr2" type="Train"/>
-   <set name="$S6_tr" type="Train"/>
-   <set name="$S7_tr1" type="Train"/>
-   <set name="$S7_tr2" type="Train"/>
-   <set name="$S7_tr" type="Train"/>
-   <set name="$S8_tr1" type="Train"/>
-   <set name="$S8_tr2" type="Train"/>
-   <set name="$S8_tr" type="Train"/>
-   <set name="$S9_tr1" type="Train"/>
-   <set name="$S9_tr2" type="Train"/>
-   <set name="$S9_tr" type="Train"/>
    <set name="$ShadowAStart" type="TTD"/>
    <set name="$ShadowBStart" type="TTD"/>
+   <set name="$timers_auto_free_ok_tr" type="Train"/>
 </node>
 
 <node showlabel="no" color="Green">
    <set name="$ZVizTrainC3" type="Train"/>
+</node>
+
+<node showlabel="no" label="MissionStarted">
+   <set name="this/MissionStarted" type="Train"/>
+</node>
+
+<node showlabel="no" style="Solid" label="Reporting">
+   <set name="this/Reporting" type="Train"/>
 </node>
 
 <node style="Bold" label="IntegrityConfirmed">
@@ -180,20 +160,12 @@
    <type name="Train"/>
 </node>
 
-<node style="Solid" label="Reporting">
-   <set name="this/Reporting" type="Train"/>
-</node>
-
 <node visible="no">
    <type name="State"/>
 </node>
 
 <edge color="Magic" layout="yes" label="VSSs">
    <relation name="$_VSSs"> <type name="TTD"/> <type name="VSS"/> </relation>
-</edge>
-
-<edge color="Red">
-   <relation name="MA"> <type name="Train"/> <type name="VSS"/> </relation>
 </edge>
 
 <edge style="Dashed">
