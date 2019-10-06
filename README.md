@@ -4,6 +4,8 @@ This extension to the Alloy Analyzer by [INESC TEC](https://www.inesctec.pt/en) 
 
 [Alloy](http://alloy.mit.edu/) is a simple structural modeling language based on first-order logic developed at the [Software Design Group](http://sdg.csail.mit.edu/). Its Analyzer can generate instances of invariants, simulate the execution of operations, and check user-specified properties of a model.
 
+**Note:** This repository holds Electrum Analyzer version 1, which is no longer being updated as of version 1.2.2. Electrum Analyzer 2, which is based on the Alloy Analyzer 5, is developed in a different GitHub [repository](https://github.com/haslab/Electrum2).
+
 ## Getting started
 
 The best way to get started with Electrum is to download the executable ``jar`` (see [Running](#running)) and follow the [tutorial](https://github.com/haslab/Electrum/wiki/Tutorial). A repository of examples with familiar Alloy examples converted into Electrum is also available [here](electrum/src/main/resources/models/examples/electrum).
@@ -51,8 +53,8 @@ Electrum is open-source and available under the [MIT license](electrum/LICENSE),
 
 ## Collaborators
 - Nuno Macedo, HASLab, INESC TEC & Universidade do Minho, Portugal
-- Julien Brunel, ONERA/DTIS & Université fédérale de Toulouse, France
-- David Chemouil, ONERA/DTIS & Université fédérale de Toulouse, France
+- Julien Brunel, ONERA/DTIS & Université fédérale de Toulouse, France
+- David Chemouil, ONERA/DTIS & Université fédérale de Toulouse, France
 - Alcino Cunha, HASLab, INESC TEC & Universidade do Minho, Portugal
 - Denis Kuperberg, TU Munich, Germany
 - Eduardo Pessoa, HASLab, INESC TEC & Universidade do Minho, Portugal
