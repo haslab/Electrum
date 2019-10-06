@@ -108,7 +108,7 @@ import edu.mit.csail.sdg.alloy4compiler.translator.A4Options.SatSolver;
  * It is also used as a staging area for the solver before generating the solution.
  * Once solve() has been called, then this object becomes immutable after that.
  * 
- * @modified: Nuno Macedo, Eduardo Pessoa // [HASLab] electrum-temporal, electrum-symbolic
+ * @modified: Nuno Macedo, Eduardo Pessoa // [HASLab] electrum-temporal, electrum-symbolic, electrum-decomposed, electrum-unbounded
  */
 
 public final class A4Solution {
@@ -322,7 +322,7 @@ public final class A4Solution {
 				File tmp = File.createTempFile("tmp", ".cnf", new File(opt.tempDirectory));
 				tmp.deleteOnExit(); 
 //				solver.options().setSolver(SATFactory.externalFactory(ext, tmp.getAbsolutePath(), "", opt.solver.options())); // [HASLab] kodkod 2.0+
-				varOptions.setSolver(SATFactory.externalFactory(ext, tmp.getAbsolutePath(), false, opt.solver.options())); // [HASLab]
+				varOptions.setSolver(SATFactory.externalFactory(ext, tmp.getAbsolutePath(), false, false, opt.solver.options())); // [HASLab]
 			} catch(IOException ex) { throw new ErrorFatal("Cannot create temporary directory.", ex); }
         } else if (opt.solver.equals(A4Options.SatSolver.LingelingJNI)) {
         	varOptions.setSolver(SATFactory.Lingeling);
@@ -951,7 +951,7 @@ public final class A4Solution {
 			}
 			return;
 		}
-		if (s.isVariable!=null && s.parent!=UNIV) return; // [HASLab] do not rename variable sigs unless top
+//		if (s.isVariable!=null && s.parent!=UNIV) return; // [HASLab] do not rename variable sigs unless top
 		for(PrimSig c: s.children()) rename(frame, c, nexts, un);
 		String signame = un.make(s.label.startsWith("this/") ? s.label.substring(5) : s.label);
 		List<Tuple> list = new ArrayList<Tuple>();
@@ -964,8 +964,8 @@ public final class A4Solution {
         int i = 0;
 		for(Tuple t: list) {
 			if (frame.atom2sig.containsKey(t.atom(0))) continue; // This means one of the subsig has already claimed this atom.
-//			String x = signame + "$" + i;  // [HASLab] do not renumber from 0 due to different states
-			String x = t.atom(0)+""; // [HASLab]
+			String x = signame + "$" + i;  // [HASLab] do not renumber from 0 due to different states
+//			String x = t.atom(0)+""; // [HASLab]
 			i++;
 	        frame.atom2sig.put(t.atom(0), s);
 			frame.atom2name.put(t.atom(0), x);
@@ -993,8 +993,8 @@ public final class A4Solution {
 			static_uni = bounds.universe();
 		Instance inst = new Instance(static_uni);
 		for(int max=max(), i=min(); i<=max; i++) {
-			Tuple it = factory.tuple(""+i);
-			inst.add(i, factory.range(it, it));
+			Tuple it = static_uni.factory().tuple(""+i);
+			inst.add(i, static_uni.factory().range(it, it));
 		}
 		for (Relation r : bounds.relations()) inst.add(r, TemporalBoundsExpander.convertToUniv(bounds.lowerBound(r),static_uni));
 		

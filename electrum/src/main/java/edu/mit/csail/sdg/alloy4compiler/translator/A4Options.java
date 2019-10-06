@@ -23,7 +23,7 @@ import edu.mit.csail.sdg.alloy4.SafeList;
 
 /** Mutable; this class encapsulates the customizable options of the Alloy-to-Kodkod translator. 
  * 
- * @modified: Nuno Macedo // [HASLab] electrum-temporal, electrum-decomposed
+ * @modified: Nuno Macedo // [HASLab] electrum-temporal, electrum-decomposed, electrum-unbounded
 */
 
 public final class A4Options implements Serializable {

@@ -2,7 +2,11 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>pt.uminho.haslab.electrum</groupId>
 	<artifactId>electrum</artifactId>
+<<<<<<< HEAD
 	<version>1.2.0</version>
+=======
+	<version>1.2.2</version>
+>>>>>>> dev
 	<name>electrum</name>
 	<packaging>jar</packaging>
 	<profiles>

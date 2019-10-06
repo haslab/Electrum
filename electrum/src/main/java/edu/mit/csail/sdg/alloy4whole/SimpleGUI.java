@@ -174,7 +174,7 @@ import edu.mit.csail.sdg.alloy4whole.SimpleReporter.SimpleTask2;
  * <br> (1) the run() method in SatRunner is launched from a fresh thread
  * <br> (2) the run() method in the instance watcher (in constructor) is launched from a fresh thread
  * 
- * @modified: Nuno Macedo, Eduardo Pessoa // [HASLab] electrum-temporal, electrum-decomposed, electrum-base
+ * @modified: Nuno Macedo, Eduardo Pessoa // [HASLab] electrum-temporal, electrum-decomposed, electrum-base, electrum-unbounded
  */
 
 public final class SimpleGUI implements ComponentListener, Listener {
@@ -632,7 +632,7 @@ public final class SimpleGUI implements ComponentListener, Listener {
     /** This method performs File->Open. */
     private Runner doOpen() {
         if (wrap) return wrapMe();
-        File file=OurDialog.askFile(true, null, ".ele", ".ele files"); // [HASLab] ele extension
+        File file=OurDialog.askFile(true, null, new String[] {".ele",".als"}, ".als and .ele files"); // [HASLab] ele extension
         if (file!=null) {
             Util.setCurrentDirectory(file.getParentFile());
             doOpenFile(file.getPath());
@@ -643,7 +643,7 @@ public final class SimpleGUI implements ComponentListener, Listener {
     /** This method performs File->OpenBuiltinModels. */
     private Runner doBuiltin() {
         if (wrap) return wrapMe();
-        File file=OurDialog.askFile(true, alloyHome() + fs + "models", ".ele", ".ele files"); // [HASLab] ele extension
+        File file=OurDialog.askFile(true, alloyHome() + fs + "models", new String[] {".ele",".als"}, ".als and .ele files"); // [HASLab] ele extension
         if (file!=null) {
             doOpenFile(file.getPath());
         }
@@ -1530,7 +1530,7 @@ public final class SimpleGUI implements ComponentListener, Listener {
                     SimInstance simInst = convert(root, ans);
                     return simInst.visitThis(e).toString() + (simInst.wasOverflow() ? " (OF)" : "");
                 } else
-                	return ans.eval(e,Integer.valueOf(strs[1])).toString();
+                	return ans.eval(e,Integer.valueOf(strs[1])).toString(); // [HASLab] eval state 
             } catch(HigherOrderDeclException ex) {
                 throw new ErrorType("Higher-order quantification is not allowed in the evaluator.");
             }

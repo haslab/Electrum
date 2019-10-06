@@ -33,7 +33,7 @@ import edu.mit.csail.sdg.alloy4compiler.translator.A4Options.SatSolver;
 
 /**
  * 
- * @modified Nuno Macedo // [HASLab] electrum-decomposed
+ * @modified Nuno Macedo // [HASLab] electrum-decomposed, electrum-unbounded
  *
  */
 @SuppressWarnings({"serial", "unchecked"})
@@ -331,7 +331,7 @@ public class A4Preferences {
    /** The skolem depth. */
    public static final IntChoicePref SkolemDepth = new IntChoicePref("SkolemDepth3", "Skolem depth", Arrays.asList(0, 1, 2, 3, 4), 1);
 
-   /** True if Alloy Analyzer is to run in decomposed mode. */
+   /** The unsat core minimization strategy. */
    private static final String[] coreMinimizationLabels = new String[] {
       "Slow", "Slow (guarantees local minimum)",
       "Medium", "Medium",

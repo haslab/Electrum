@@ -60,7 +60,7 @@ import edu.mit.csail.sdg.alloy4viz.VizGUI;
 
 /** This helper method is used by SimpleGUI. 
  * 
- * @modified: Nuno Macedo, Eduardo Pessoa // [HASLab] electrum-temporal
+ * @modified: Nuno Macedo, Eduardo Pessoa // [HASLab] electrum-temporal, electrum-unbounded
  * */
 
 final class SimpleReporter extends A4Reporter { 

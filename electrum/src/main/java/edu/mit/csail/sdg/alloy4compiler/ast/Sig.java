@@ -46,10 +46,6 @@ public abstract class Sig extends Expr {
 	/** The built-in "Int" signature. */
 	public static final PrimSig SIGINT = new PrimSig("Int", UNIV, false);
 
-	/** The built-in "Time" signature. */
-	// [HASLab]
-	public static final PrimSig SIGTIME = new PrimSig("Time", UNIV, false);
-
 	/** The built-in "seq/Int" signature. */
 	public static final PrimSig SEQIDX = new PrimSig("seq/Int", SIGINT, true);
 
@@ -314,7 +310,8 @@ public abstract class Sig extends Expr {
 		public final PrimSig parent;
 
 		/** Constructs a builtin PrimSig. */
-		private PrimSig(String label, PrimSig parent, boolean add) {
+		// [HASLab] var builtins
+		private PrimSig(String label, PrimSig parent, boolean add) { 
 			super(label);
 			this.parent = parent;
 			if (add) this.parent.children.add(this);
@@ -494,7 +491,7 @@ public abstract class Sig extends Expr {
 			if (bound.type.arity()>0 && bound.type.hasNoTuple()) throw new ErrorType(pos, "Cannot bind field "+label+" to the empty set or empty relation.");
 			this.isPrivate = (isPrivate!=null ? isPrivate : sig.isPrivate);
 			this.isMeta = (isMeta!=null ? isMeta : sig.isMeta);
-			this.isVariable = (isVar!=null ? isVar : null); // [HASLab]
+			this.isVariable = isVar; // [HASLab]
 			this.sig = sig;
 		}
 

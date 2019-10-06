@@ -151,21 +151,17 @@ public final class A4SolutionWriter {
 		if (sol == null && x.isMeta != null)
 			return null; // When writing the metamodel, skip the metamodel sigs!
 		if (x instanceof PrimSig)
-			// [HASLab] variable sigs are treated as subset sigs, so do not remove atoms from parent
 			for (final PrimSig sub : children((PrimSig) x)) {
-				if (sub.isVariable == null) {
-					A4TupleSet ts3 = writeSig(sub, state); // [HASLab]
-					if (ts2 == null)
-						ts2 = ts3;
-					else
-						ts2 = ts2.plus(ts3);
-				}
+				A4TupleSet ts3 = writeSig(sub, state); // [HASLab]
+				if (ts2 == null)
+					ts2 = ts3;
+				else
+					ts2 = ts2.plus(ts3);
 			}
 		if (rep != null)
 			rep.write(x);
 		Util.encodeXMLs(out, "\n<sig label=\"", x.label, "\" ID=\"", map(x));
-		// [HASLab] var sigs are treated as subset sigs, do not add parent ids (unless printing meta-model)
-		if (x instanceof PrimSig && ((x != Sig.UNIV && x.isVariable == null) || state < 0)) 
+		if (x instanceof PrimSig && x != Sig.UNIV) 
 			Util.encodeXMLs(out, "\" parentID=\"", map(((PrimSig) x).parent));
 		if (x.builtin)
 			out.print("\" builtin=\"yes");
@@ -186,7 +182,7 @@ public final class A4SolutionWriter {
 		if (x.isEnum != null)
 			out.print("\" enum=\"yes");
 		if (x.isVariable != null)
-			out.print("\" var=\"yes"); // [HASLab] mark sig as var.
+			out.print("\" var=\"yes"); // [HASLab] mark sig as var
 		out.print("\">\n");
 		try {
 			if (sol != null && x != Sig.UNIV && x != Sig.SIGINT && x != Sig.SEQIDX) {
@@ -201,9 +197,6 @@ public final class A4SolutionWriter {
 		if (x instanceof SubsetSig)
 			for (Sig p : ((SubsetSig) x).parents)
 				Util.encodeXMLs(out, "   <type ID=\"", map(p), "\"/>\n");
-		// [HASLab] var sigs are treated as subset sigs, add parent as type (unless printing meta-model)
-		if (state >= 0 && (x instanceof PrimSig && x != Sig.UNIV && x.isVariable != null))
-			Util.encodeXMLs(out, "   <type ID=\"", map(((PrimSig) x).parent), "\"/>\n");
 		out.print("</sig>\n");
 		for (Field field : x.getFields())
 			writeField(field, state); // [HASLab]
@@ -276,7 +269,7 @@ public final class A4SolutionWriter {
 			if (s instanceof PrimSig && ((PrimSig) s).parent == Sig.UNIV)
 				toplevels.add((PrimSig) s);
 		
-		// [HASLab] write temporal metadata it not part of a trace.
+		// [HASLab] write temporal metadata
 		out.print("<instance bitwidth=\""); out.print(bitwidth);
 		out.print("\" maxseq=\""); out.print(maxseq);
 		out.print("\" command=\""); Util.encodeXML(out, originalCommand);
@@ -288,8 +281,7 @@ public final class A4SolutionWriter {
 		out.print("\">\n");
 
 		writeSig(Sig.UNIV, state); // [HASLab]
-		// [HASLab] variable sigs are treated as subset sigs, so must be processed here
-		for (Sig s:sigs) if (s instanceof SubsetSig || s.isVariable != null) writeSig(s, state); // [HASLab]
+		for (Sig s:sigs) if (s instanceof SubsetSig) writeSig(s, state); // [HASLab]
         if (sol!=null) for (ExprVar s:sol.getAllSkolems()) { if (rep!=null) rep.write(s); writeSkolem(s, state); } // [HASLab]
 
 		int m = 0;
@@ -325,7 +317,7 @@ public final class A4SolutionWriter {
 		if (!sol.satisfiable())
 			throw new ErrorAPI("This solution is unsatisfiable.");
 		try {
-			// [HASLab] write metadata in the header.
+			// [HASLab] write metadata in the header
 			Util.encodeXMLs(out, "<alloy builddate=\"", Version.buildDate());
 			out.print("\" bitwidth=\""); out.print(sol.getBitwidth());
 			out.print("\" maxseq=\""); out.print(sol.getMaxSeq());
@@ -335,7 +327,7 @@ public final class A4SolutionWriter {
 			out.print("\" backloop=\""); out.print(sol.getLoopState()); // [HASLab] the back loop of the instance
 			out.print("\">\n\n");
 
-			// [HASLab] write all relevant instances.
+			// [HASLab] write all relevant instances
 			for (int i = 0; i < sol.getTraceLength(); i++)
 				new A4SolutionWriter(rep, sol, sol.getAllReachableSigs(), sol.getBitwidth(), sol.getMaxSeq(),
 						sol.getTraceLength(), sol.getLoopState(), sol.getOriginalCommand(), sol.getOriginalFilename(), out, extraSkolems, i);  

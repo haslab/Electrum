@@ -19,7 +19,6 @@ package edu.mit.csail.sdg.alloy4compiler.translator;
 import static edu.mit.csail.sdg.alloy4compiler.ast.Sig.NONE;
 import static edu.mit.csail.sdg.alloy4compiler.ast.Sig.SEQIDX;
 import static edu.mit.csail.sdg.alloy4compiler.ast.Sig.SIGINT;
-import static edu.mit.csail.sdg.alloy4compiler.ast.Sig.SIGTIME;
 import static edu.mit.csail.sdg.alloy4compiler.ast.Sig.STRING;
 import static edu.mit.csail.sdg.alloy4compiler.ast.Sig.UNIV;
 
@@ -119,7 +118,6 @@ final class ScopeComputer {
         if (sig==SIGINT) return 1<<bitwidth;
         if (sig==SEQIDX) return maxseq;
         if (sig==STRING) return maxstring;
-        if (sig==SIGTIME) return maxtrace;  // [HASLab]
         Integer y = sig2scope.get(sig);
         return (y==null) ? (-1) : y;
     }
@@ -131,14 +129,15 @@ final class ScopeComputer {
         if (newValue<0)                 throw new ErrorSyntax(cmd.pos, "Cannot specify a negative scope for sig \""+sig+"\"");
         int old=sig2scope(sig);
         if (old==newValue) return;
-        if (old>=0)        throw new ErrorSyntax(cmd.pos, "Sig \""+sig+"\" already has a scope of "+old+", so we cannot set it to be "+newValue);
+        if (old>=0)      
+        	throw new ErrorSyntax(cmd.pos, "Sig \""+sig+"\" already has a scope of "+old+", so we cannot set it to be "+newValue);
         sig2scope.put((PrimSig)sig, newValue);
         rep.scope("Sig "+sig+" scope <= "+newValue+"\n");
     }
 
     /** Returns whether the scope of a sig is exact or not. */
     public boolean isExact(Sig sig) {
-        return sig==SIGINT || sig==SEQIDX || sig==STRING || ((sig instanceof PrimSig) && exact.containsKey(sig)) || sig==SIGTIME; // [HASLab]
+        return sig==SIGINT || sig==SEQIDX || sig==STRING || ((sig instanceof PrimSig) && exact.containsKey(sig));
     }
 
     /** Make the given sig "exact". */
@@ -295,7 +294,7 @@ final class ScopeComputer {
     private ScopeComputer(A4Reporter rep, Iterable<Sig> sigs, Command cmd) throws Err {
         this.rep = rep;
         this.cmd = cmd;
-        boolean shouldUseInts = areIntsUsed(sigs, cmd);
+        boolean shouldUseInts = true; // areIntsUsed(sigs, cmd); // [HASLab] pull from Alloy 5
         // Process each sig listed in the command
         for(CommandScope entry:cmd.scope) {
             Sig s = entry.sig;
@@ -317,10 +316,12 @@ final class ScopeComputer {
             }
             if (s==NONE) throw new ErrorSyntax(cmd.pos, "You cannot set a scope on \"none\".");
             if (s.isEnum!=null) throw new ErrorSyntax(cmd.pos, "You cannot set a scope on the enum \""+s.label+"\"");
-            if (s.isOne!=null && scope!=1) throw new ErrorSyntax(cmd.pos,
-                "Sig \""+s+"\" has the multiplicity of \"one\", so its scope must be 1, and cannot be "+scope);
-            if (s.isLone!=null && scope>1) throw new ErrorSyntax(cmd.pos,
-                "Sig \""+s+"\" has the multiplicity of \"lone\", so its scope must 0 or 1, and cannot be "+scope);
+            if (s.isOne!=null && s.isVariable == null && scope!=1) throw new ErrorSyntax(cmd.pos,
+                "Sig \""+s+"\" has the multiplicity of \"one\", so its scope must be 1, and cannot be "+scope); // [HASLab] if var, the atom may change
+            if (s.isOne!=null && s.isVariable != null && scope<1) throw new ErrorSyntax(cmd.pos,
+                    "Var sig \""+s+"\" has the multiplicity of \"one\", so its scope must be 1 or above, and cannot be "+scope); // [HASLab] if var, the atom may change
+            if (s.isLone!=null && s.isVariable == null && scope>1) throw new ErrorSyntax(cmd.pos,
+                "Sig \""+s+"\" has the multiplicity of \"lone\", so its scope must 0 or 1, and cannot be "+scope); // [HASLab] if var, the atom may change
             if (s.isSome!=null && scope<1) throw new ErrorSyntax(cmd.pos,
                 "Sig \""+s+"\" has the multiplicity of \"some\", so its scope must 1 or above, and cannot be "+scope);
             sig2scope(s, scope);
@@ -329,8 +330,7 @@ final class ScopeComputer {
         // Force "one" sigs to be exactly one, and "lone" to be at most one
         for(Sig s:sigs) if (s instanceof PrimSig) { // [HASLab]
             if (s.isOne!=null && s.isVariable==null) { makeExact(cmd.pos, s); sig2scope(s,1); } 
-            if (s.isOne!=null && s.isVariable!=null) { sig2scope(s,1); } 
-            else if (s.isLone!=null && sig2scope(s)!=0) sig2scope(s,1);
+            else if (s.isLone!=null && s.isVariable==null && sig2scope(s)!=0) sig2scope(s,1);
         }
         // Derive the implicit scopes
         while(true) {
@@ -365,7 +365,7 @@ final class ScopeComputer {
 
     /** Whether or not Int appears in the relation types found in these sigs */
     private boolean areIntsUsed(Iterable<Sig> sigs, Command cmd) {
-        /* check for Int-typed relations */
+    	/* check for Int-typed relations */
         for (Sig s : sigs) {
             for (Field f : s.getFields()) {
                 for (ProductType pt : f.type()) {

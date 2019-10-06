@@ -1,4 +1,5 @@
 /* Alloy Analyzer 4 -- Copyright (c) 2006-2009, Felix Chang
+ * Electrum -- Copyright (c) 2015-present, Nuno Macedo
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files
  * (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify,
@@ -48,6 +49,8 @@ import edu.mit.csail.sdg.alloy4.Pos;
  *
  * <br> <b>Invariant:</b> type!=EMPTY => sub.mult==0
  * <br> <b>Invariant:</b> type!=EMPTY => vars.size()>0
+ * 
+ * @modified Nuno Macedo // [HASLab] electrum-temporal
  */
 
 public final class ExprQt extends Expr {
@@ -243,7 +246,7 @@ public final class ExprQt extends Expr {
       for(Decl d: decls) {
          if (d.names.size()<=1 || d.disjoint==null) { newdecls.add(d); continue; }
          guard = ExprList.makeDISJOINT(d.disjoint, null, d.names).and(guard);
-         newdecls.add(new Decl(null, null, null, null, d.names, d.expr));
+         newdecls.add(new Decl(null, null, null, null, d.names, d.expr)); // [HASLab]
       }
       if (guard==null) return this;
       Expr sub;
