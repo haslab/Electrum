@@ -58,7 +58,7 @@ Electrum is open-source and available under the [MIT license](https://github.com
 <!--- FM Tutorial -->
 - Rebased to Alloy Analyzer 5
 - Slight changes to the language
-- New trace visualizer with additional exploration operations
+- Trace visualizer with additional exploration operations
 
 ### Electrum [1.2](https://github.com/haslab/Electrum/releases/tag/v1.2) (April 2019) 
 - Several improvements and bug fixes to the interface, visualiser and evaluator
