@@ -1,10 +1,11 @@
 # Electrum Analyzer
 
+**Note: This repository holds Electrum Analyzer version 1, which is no longer being updated as of version 1.2.2 (July 2019). Electrum Analyzer 2, which is based on the Alloy Analyzer 5, is developed in a different GitHub [repository](https://github.com/haslab/Electrum2).** |
+:------|
+
 This extension to the Alloy Analyzer by [INESC TEC](https://www.inesctec.pt/en) (the Institute for Systems and Computer Engineering, Technology and Science) and [ONERA](https://www.onera.fr/en) (the French aerospace research center) provides an analyzer for Electrum models, a temporal extension to the Alloy modeling language. The Analyzer provides both bounded and unbounded model checking procedures.
 
 [Alloy](http://alloy.mit.edu/) is a simple structural modeling language based on first-order logic developed at the [Software Design Group](http://sdg.csail.mit.edu/). Its Analyzer can generate instances of invariants, simulate the execution of operations, and check user-specified properties of a model.
-
-**Note:** This repository holds Electrum Analyzer version 1, which is no longer being updated as of version 1.2.2 (July 2019). Electrum Analyzer 2, which is based on the Alloy Analyzer 5, is developed in a different GitHub [repository](https://github.com/haslab/Electrum2).
 
 ## Getting started
 
