@@ -1,4 +1,4 @@
 theme: jekyll-theme-cayman
 plugins:
   - jekyll-redirect-from
-source: https://github.com/haslab/Electrum2
+repository_url: https://github.com/haslab/Electrum2
