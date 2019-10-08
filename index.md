@@ -16,34 +16,25 @@ A repository of examples with familiar Alloy examples converted into Electrum is
 
 ## Running
 
-[Download](https://github.com/haslab/Electrum/releases/tag/v1.2) the executable ``jar`` (or [build](#building-electrum-analyzer) it) and launch it simply as
+[Download](https://github.com/haslab/Electrum2/releases/tag/v2.0) the executable ``jar`` and launch it simply as
 
-`$ java -jar electrum-1.2.jar`
+`$ java -jar electrum2.0.jar`
 
 This will launch Electrum's/Alloy Analyzer's simple GUI, which is packaged with several examples. The file can also by run from the command-line, for more information run
 
-`$ java -jar electrum-1.2.jar --help`
+`$ java -jar electrum2.0.jar --help`
 
 To perform analyses on an unbounded time horizon, one needs to have installed [Electrod](https://github.com/grayswandyr/electrod/) program, as well as [NuSMV](http://nusmv.fbk.eu/) or [nuXmv](https://nuxmv.fbk.eu/).
 
 ## Building Electrum Analyzer
 
-The Electrum Analyzer requires Java 8 and can be built using Maven. The script will also build Kodkod/Pardinus.
-
-* Clone the Electrum repository, as well as Pardinus' as a submodule 
-
-  `$ git clone -b master --recursive https://github.com/haslab/Electrum`  
-  `$ cd Electrum`
-
-* Run the Maven script to generate a self containable executable under `electrum/target`. This will compile Electrum and Pardinus, and pack the available native libraries.
-
- `$  mvn clean package -DskipTests`
+The Electrum Analyzer 2 inherits the building [instructions](https://github.com/haslab/Electrum2#tldr) from Alloy Analyzer 5.
 
 ## Prototype: Electrum with actions
 
-An [extension of Electrum](https://github.com/haslab/Electrum/releases/tag/v1.0-actions), with actions, is currently under study. Check out the [paper](https://doi.org/10.1007/978-3-319-91271-4_30) with the preliminary proposition.
+An [extension of Electrum 1](https://github.com/haslab/Electrum/releases/tag/v1.0-actions), with actions, is currently under study. Check out the [paper](https://doi.org/10.1007/978-3-319-91271-4_30) with the preliminary proposition.
 
-If you wish to build it, repeat the steps above, just replacing `-b master` in the first line by `-b actions`.
+If you wish to build it, follow the [building](https://github.com/haslab/Electrum#building-electrum-analyzer) steps for Electrum 1, just replacing `-b master` in the first line by `-b actions`.
 
 ## ERTMS Case Study
 Our response to the ABZ 2018 call for case study submissions, the ERTMS system, can be found [here](https://github.com/haslab/Electrum/wiki/ERTMS). Or access directly the:
@@ -64,6 +55,12 @@ Electrum is open-source and available under the [MIT license](https://github.com
 - Eduardo Pessoa, HASLab, INESC TEC & Universidade do Minho, Portugal
 
 ## History
+### Electrum [2.0](https://github.com/haslab/Electrum2/releases/tag/v2.0) (October 2019) 
+<!--- FM Tutorial -->
+- Rebased to Alloy Analyzer 5
+- Slight changes to the language
+- New trace visualizer with additional exploration operations
+
 ### Electrum [1.2](https://github.com/haslab/Electrum/releases/tag/v1.2) (April 2019) 
 - Several improvements and bug fixes to the interface, visualiser and evaluator
 
