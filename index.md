@@ -4,15 +4,14 @@ Electrum is an extension to the Alloy Analyzer by [INESC TEC](https://www.inesct
 
 ## Getting started
 
-The best way to get started with Electrum is to download the executable ``jar`` (see [Running](#running)) and follow the [tutorial](https://github.com/haslab/Electrum/wiki/Tutorial). You can also watch the following video for an overview.
+The best way to get started with Electrum is to download the executable ``jar`` (see [Running](#running)) and follow the [tutorial](https://github.com/haslab/Electrum/wiki/Tutorial). You can also watch the following video for an overview. (The video was recorded for Electrum 1, so there may be slight changes on the interface.)
 
 <div align="center">
 <a href="http://www.youtube.com/watch?feature=player_embedded&v=FbjlpvjgMDA
 " target="_blank"><img src="http://img.youtube.com/vi/FbjlpvjgMDA/0.jpg" 
 alt="Electrum Video" width="480"  border="10" /></a></div>
 
-A repository of examples with familiar Alloy examples converted into Electrum is also available [here](https://github.com/haslab/Electrum/tree/master/electrum/src/main/resources/models/examples/electrum).
-
+A repository of examples, including familiar Alloy examples converted into Electrum, is also available [here](https://github.com/haslab/Electrum2/wiki).
 
 ## Running
 
