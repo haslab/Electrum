@@ -101,8 +101,7 @@ Electrum has been developed in the context of the [TRUST](http://trust.di.uminho
 - N. Macedo, A. Cunha and T. Guimarães. **Exploring scenario exploration.** In the proceedings of FASE'15. LNCS 9033. Springer, 2015.
 - A. Cunha, N. Macedo and T. Guimarães. **Target oriented relational model finding.** In the proceedings of FASE'14. LNCS 8411. Springer, 2014.
 
-
-—---------------
+---
 
 This work is financed by the ERDF – European Regional Development Fund through the Operational Programme for Competitiveness and Internationalisation - COMPETE 2020 Programme and by National Funds through the Portuguese funding agency, FCT - Fundação para a Ciência e a Tecnologia, within project POCI-01-0145-FEDER-016826.
 
