@@ -23,7 +23,7 @@ This will launch Electrum's/Alloy Analyzer's simple GUI, which is packaged with 
 
 `$ java -jar electrum2.0.jar --help`
 
-To perform analyses on an unbounded time horizon, one needs to have installed [Electrod](https://github.com/grayswandyr/electrod/) program, as well as [NuSMV](http://nusmv.fbk.eu/) or [nuXmv](https://nuxmv.fbk.eu/).
+To perform analyses on an unbounded time horizon, one needs to have installed [Electrod](https://github.com/grayswandyr/electrod/) program, as well as [NuSMV](http://nusmv.fbk.eu/) or [nuXmv](https://nuxmv.fbk.eu/). (REMARK: since version 2.1.2, Electrod is directly shipped inside the Electrum Analyzer; NuSMV and nuXmv must still be retrieved separately.)
 
 ## Building Electrum Analyzer
 
