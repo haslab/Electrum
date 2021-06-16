@@ -1,6 +1,6 @@
 Electrum is an extension to the Alloy Analyzer by [INESC TEC](https://www.inesctec.pt/en) (the Institute for Systems and Computer Engineering, Technology and Science) and [ONERA](https://www.onera.fr/en) (the French aerospace research center) provides an analyzer for Electrum models, a temporal extension to the Alloy modeling language. The Analyzer provides both bounded and unbounded model checking procedures.
 
-[Alloy](http://alloy.mit.edu/) is a simple structural modeling language based on first-order logic developed at the [Software Design Group](http://sdg.csail.mit.edu/). Its Analyzer can generate instances of invariants, simulate the execution of operations, and check user-specified properties of a model.
+[Alloy](https://alloytools.org/) is a simple structural modeling language based on first-order logic developed at the [Software Design Group](http://sdg.csail.mit.edu/). Its Analyzer can generate instances of invariants, simulate the execution of operations, and check user-specified properties of a model.
 
 ## Getting started
 
@@ -15,13 +15,13 @@ A repository of examples, including familiar Alloy examples converted into Elect
 
 ## Running
 
-[Download](https://github.com/haslab/Electrum2/releases/tag/v2.0) the executable ``jar`` and launch it simply as
+[Download](https://github.com/haslab/Electrum2/releases/download/v2.1.5/electrum-2.1.5.jar) the executable ``jar`` and launch it simply as
 
-`$ java -jar electrum2.0.jar`
+`$ java -jar electrum-2.1.5.jar`
 
 This will launch Electrum's/Alloy Analyzer's simple GUI, which is packaged with several examples. The file can also by run from the command-line, for more information run
 
-`$ java -jar electrum2.0.jar --help`
+`$ java -jar electrum-2.1.5.jar --help`
 
 To perform analyses on an unbounded time horizon, one needs to have installed [Electrod](https://github.com/grayswandyr/electrod/) program, as well as [NuSMV](http://nusmv.fbk.eu/) or [nuXmv](https://nuxmv.fbk.eu/). (REMARK: since version 2.1.2, Electrod is directly shipped inside the Electrum Analyzer; NuSMV and nuXmv must still be retrieved separately.)
 
@@ -31,7 +31,7 @@ The Electrum Analyzer 2 inherits the building [instructions](https://github.com/
 
 ## Prototype: Electrum with actions
 
-An [extension of Electrum 1](https://github.com/haslab/Electrum/releases/tag/v1.0-actions), with actions, is currently under study. Check out the [paper](https://doi.org/10.1007/978-3-319-91271-4_30) with the preliminary proposition.
+An [extension of Electrum 1](https://github.com/haslab/Electrum/releases/tag/v1.0-actions), with actions, is currently under study. Check out the [paper](https://doi.org/10.1007/978-3-319-91271-4_30) with the preliminary proposal.
 
 If you wish to build it, follow the [building](https://github.com/haslab/Electrum#building-electrum-analyzer) steps for Electrum 1, just replacing `-b master` in the first line by `-b actions`.
 
@@ -41,12 +41,19 @@ Our response to the ABZ 2018 call for case study submissions, the ERTMS system, 
 * Alloy [model](http://haslab.github.io/Electrum/ertms.als) and [theme](http://haslab.github.io/Electrum/ertms_als.thm)
 * Accepted [paper](http://haslab.github.io/Electrum/ertms.pdf) describing its development
 
+## ELS Case Study
+Our response to the ABZ 2020 call for case study submissions, the ELS system, can be found [here](https://github.com/haslab/Electrum/wiki/ELS). Or access directly the:
+* Single variant Electrum [model](http://haslab.github.io/Electrum/ertms.ele) and [theme](http://haslab.github.io/Electrum/ertms.thm)
+* Pure Electrum SPL [model](http://haslab.github.io/Electrum/ertms.als) and [theme](http://haslab.github.io/Electrum/ertms_als.thm)
+* Colorful Electrum SPL [model](http://haslab.github.io/Electrum/ertms.als) and [theme](http://haslab.github.io/Electrum/ertms_als.thm)
+* Accepted [paper](http://haslab.github.io/Electrum/ertms.pdf) describing its development
+
 ## License
 
-Electrum is open-source and available under the [MIT license](https://github.com/haslab/Electrum/blob/master/electrum/LICENSE), as is the Alloy Analyzer. However, it utilizes several third-party packages whose code may be distributed under a different license (see the various [LICENSE files](https://github.com/haslab/Electrum/tree/master/LICENSES) in the distribution for details), including [Kodod](https://github.com/emina/kodkod) and its extension [Pardinus](https://github.com/haslab/Pardinus), and the underlying solvers ([SAT4J](http://www.sat4j.org), [MiniSat](http://minisat.se), [Glucose/Syrup](http://www.labri.fr/perso/lsimon/glucose/), [(P)Lingeling](http://fmv.jku.at/lingeling/), [Yices](http://yices.csl.sri.com), [zChaff](https://www.princeton.edu/~chaff/zchaff.html), [CryptoMiniSat](https://www.msoos.org/cryptominisat5/) and [Electrod](https://github.com/grayswandyr/electrod/). [CUP](http://www2.cs.tum.edu/projects/cup/) and [JFlex](http://jflex.de/) are also used to generate the parser. 
+Electrum is open-source and available under the [MIT license](https://github.com/haslab/Electrum/blob/master/electrum/LICENSE), as is the Alloy Analyzer. However, it utilizes several third-party packages whose code may be distributed under a different license (see the various [LICENSE files](https://github.com/haslab/Electrum/tree/master/LICENSES) in the distribution for details), including [Kodod](https://github.com/emina/kodkod) and its extension [Pardinus](https://github.com/haslab/Pardinus), and the underlying solvers ([SAT4J](http://www.sat4j.org), [MiniSat](http://minisat.se), [Glucose/Syrup](http://www.labri.fr/perso/lsimon/glucose/), [(P)Lingeling](http://fmv.jku.at/lingeling/), [Yices](http://yices.csl.sri.com), [zChaff](https://www.princeton.edu/~chaff/zchaff.html), [CryptoMiniSat](https://www.msoos.org/cryptominisat5/) and [Electrod](https://github.com/grayswandyr/electrod/)). [CUP](http://www2.cs.tum.edu/projects/cup/) and [JFlex](http://jflex.de/) are also used to generate the parser. 
 
 ## Collaborators
-- Nuno Macedo, HASLab, INESC TEC & Universidade do Minho, Portugal
+- Nuno Macedo, HASLab, INESC TEC & Universidade do Porto, Portugal
 - Julien Brunel, ONERA/DTIS & Université fédérale de Toulouse, France
 - David Chemouil, ONERA/DTIS & Université fédérale de Toulouse, France
 - Alcino Cunha, HASLab, INESC TEC & Universidade do Minho, Portugal
