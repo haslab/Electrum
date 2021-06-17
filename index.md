@@ -36,17 +36,18 @@ An [extension of Electrum 1](https://github.com/haslab/Electrum/releases/tag/v1.
 If you wish to build it, follow the [building](https://github.com/haslab/Electrum#building-electrum-analyzer) steps for Electrum 1, just replacing `-b master` in the first line by `-b actions`.
 
 ## ERTMS Case Study
-Our response to the ABZ 2018 call for case study submissions, the ERTMS system, can be found [here](https://github.com/haslab/Electrum/wiki/ERTMS). Or access directly the:
-* Electrum [model](http://haslab.github.io/Electrum/ertms.ele) and [theme](http://haslab.github.io/Electrum/ertms.thm)
-* Alloy [model](http://haslab.github.io/Electrum/ertms.als) and [theme](http://haslab.github.io/Electrum/ertms_als.thm)
-* Accepted [paper](http://haslab.github.io/Electrum/ertms.pdf) describing its development
+Our response to the ABZ 2018 call for case study submissions, the ERTMS, can be found [here](https://github.com/haslab/Electrum/wiki/ERTMS). Or access directly the:
+* Electrum [model](https://github.com/haslab/Electrum2/wiki/ERTMS/ertms_1C.ele) and [theme](https://github.com/haslab/Electrum2/wiki/ERTMS/ertms_1C.thm)
+* Alloy [model](https://github.com/haslab/Electrum2/wiki/ERTMS/ertms_1A.als) and [theme](https://github.com/haslab/Electrum2/wiki/ERTMS/ertms_1A_als.thm)
+* Conference [paper](http://haslab.github.io/TRUST/papers/abz18.pdf) and [extended](http://haslab.github.io/TRUST/papers/sttt19.pdf) version describing its development
 
 ## ELS Case Study
-Our response to the ABZ 2020 call for case study submissions, the ELS system, can be found [here](https://github.com/haslab/Electrum/wiki/ELS). Or access directly the:
-* Single variant Electrum [model](http://haslab.github.io/Electrum/ertms.ele) and [theme](http://haslab.github.io/Electrum/ertms.thm)
-* Pure Electrum SPL [model](http://haslab.github.io/Electrum/ertms.als) and [theme](http://haslab.github.io/Electrum/ertms_als.thm)
-* Colorful Electrum SPL [model](http://haslab.github.io/Electrum/ertms.als) and [theme](http://haslab.github.io/Electrum/ertms_als.thm)
-* Accepted [paper](http://haslab.github.io/Electrum/ertms.pdf) describing its development
+Our response to the ABZ 2020 call for case study submissions, the ELS, can be found [here](https://github.com/haslab/Electrum/wiki/ELS). Or access directly the:
+* Single variant Electrum models, [EU](https://github.com/haslab/Electrum2/wiki/ELS/els_EU.ele), [USA](https://github.com/haslab/Electrum2/wiki/ELS/els_USA.ele), [EU+Armored](https://github.com/haslab/Electrum2/wiki/ELS/els_EU_armored.ele) and [USA+Armored](https://github.com/haslab/Electrum2/wiki/ELS/els_USA_armored.ele)
+* Pure Electrum SPL [model](https://github.com/haslab/Electrum2/wiki/ELS/els_multi.ele)
+* Colorful Electrum SPL [model](https://github.com/haslab/Electrum2/wiki/ELS/els_color.ele)
+* The [theme](https://github.com/haslab/Electrum2/wiki/ELS/els.thm) for all the models above 
+* Accepted [paper](http://haslab.github.io/TRUST/papers/abz20b.pdf) describing its development
 
 ## License
 
@@ -61,8 +62,14 @@ Electrum is open-source and available under the [MIT license](https://github.com
 - Eduardo Pessoa, HASLab, INESC TEC & Universidade do Minho, Portugal
 
 ## History
+### Electrum [2.1](https://github.com/haslab/Electrum2/releases/tag/v2.1) (November 2020) 
+<!--- Alloy6 -->
+- Slight changes to the language
+- Trace visualizer with additional exploration operations
+- Several interface/reporting improvements
+
 ### Electrum [2.0](https://github.com/haslab/Electrum2/releases/tag/v2.0) (October 2019) 
-<!--- FM Tutorial -->
+<!--- FM Tutorial, ABZ20 submission, ABZ20 attendence -->
 - Rebased to Alloy Analyzer 5
 - Slight changes to the language
 - Trace visualizer with additional exploration operations
